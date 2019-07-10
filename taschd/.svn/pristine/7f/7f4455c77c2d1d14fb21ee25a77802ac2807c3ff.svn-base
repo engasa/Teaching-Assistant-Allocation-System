@@ -1,0 +1,10 @@
+{
+  "Email" : "bfrank@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "JAVA", "C", "ASP.NET", "Matlab" ],
+  "First Name" : "Benjamin",
+  "Time Schedule" : [ "Tue 10:52–12:07", "Tue 11:00–12:15", "Thu 11:00–12:15" ],
+  "ID" : 222,
+  "Graduate Student" : true,
+  "Last Name" : "Franklin"
+}

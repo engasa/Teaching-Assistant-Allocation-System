@@ -1,0 +1,282 @@
+package edu.udel.cis.taschd.time;
+
+
+import java.text.DecimalFormat;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ListIterator;
+
+/**
+ * <p>
+ * An ordered sequence of {@link TimeInterval}s, representing the
+ * weekly-recurring times at which some recurring event happens. Examples
+ * include the meetings times of a class, or the times at which a student is
+ * busy.
+ * </p>
+ * 
+ * <p>
+ * {@link WeeklySchedule} is a ordered {@link ArrayList} of {@link TimeInterval}s.
+ * </p>
+ * 
+ * @author nikhil
+ * @author siegel
+ */
+public class WeeklySchedule {
+	/**
+	 * The sequence of {@link TimeInterval}s. They are ordered. The ordered is
+	 * determined by the method {@link TimeInterval#compareTo(TimeInterval)}.
+	 * That order is determined by first comparing start times. If start times
+	 * are equal, then the earlier end time comes first. The intervals may
+	 * overlap, but there are no duplicates.
+	 */
+	private ArrayList<TimeInterval> schedule;
+
+	/**
+	 * Constructs new empty {@link WeeklySchedule}.
+	 */
+	public WeeklySchedule() {
+		schedule = new ArrayList<>();
+	}
+
+	/**
+	 * Constructs a new schedule from the given collection of
+	 * {@link TimeInterval}s. The new {@link WeeklySchedule} will not keep any
+	 * reference to the given {@link Collection}, hence subsequent modifications
+	 * to the collection will not affect the new schedule. The new schedule may
+	 * keep references to the member intervals of the collection, but since
+	 * {@link TimeInterval}s are immutable, this fact should be invisible to the
+	 * client. The internal representation may differ from the organization of
+	 * the collection, in that intervals will be ordered and duplicates removed.
+	 * The given {@link Collection} will not be modified.
+	 * 
+	 * @param intervals
+	 *                      any {@link Collection} of non-{@code null}
+	 *                      {@link TimeInterval}s that will be used to build the
+	 *                      new schedule.
+	 */
+	public WeeklySchedule(Collection<TimeInterval> intervals) {
+		this();
+		for (TimeInterval ti : intervals)
+			addInterval(ti);
+	}
+
+	/**
+	 * A getter to get the schedule as an iterable set of {@link TimeInterval}s.
+	 * 
+	 * @return the schedule which is a {@link WeeklySchedule}.
+	 */
+	public Iterable<TimeInterval> getSchedule() {
+		return schedule;
+	}
+
+	/**
+	 * Adds a {@link TimeInterval} to this schedule. If the given
+	 * {@link TimeInterval} is already in this schedule, this is a no-op.
+	 * 
+	 * 
+	 * @param ti
+	 *               a non-{@code null} {@link TimeInterval} to add to this
+	 *               schedule.
+	 */
+	public void addInterval(TimeInterval ti) {
+		// Yes, this is a stupid linear-time insertion.
+		// But since these lists are expected to be very small, it should
+		// be a good solution. If they get big, someone can implement
+		// a binary search.
+		ListIterator<TimeInterval> iter = schedule.listIterator();
+
+		while (iter.hasNext()) {
+			TimeInterval y = iter.next();
+			int c = ti.compareTo(y);
+
+			if (c > 0) // ti goes after y
+				continue;
+			if (c == 0)
+				return;
+			// ... x y z ...
+			// y is the first item in list that comes after ti. You want to
+			// insert just before y.
+			iter.previous();
+			break;
+		}
+		iter.add(ti);
+	}
+
+	/**
+	 * This method returns the combined score, based on the time difference between
+	 * an end point in one schedule and a start point in the other schedule, 
+	 * which is used as partial input arguments of Hungarian algorithm in 
+	 * {@link edu.udel.cis.taschd.gen.Generator} to get the optimum assignment. 
+	 * 
+	 * @param that
+	 *                 a non-{@code null} {@link WeeklySchedule} that will 
+     *                 be used to compute the score.
+	 *                 
+	 * @return a double value for computed score.
+	 */
+	public double wtpsScore(WeeklySchedule that) {
+		// TODO : implement me!
+		int timeDifference;
+		double score = 1.0;
+		for (TimeInterval val1 : this.getSchedule()) {
+			
+			for (TimeInterval val2: that.getSchedule()){
+				
+				if(val2.getStartDayOfWeek().name().equals(val1.getEndDayOfWeek().name())) {
+					
+					if(val2.getEndTime()>val1.getEndTime()) {
+						
+						timeDifference = val2.getStartTime() - val1.getEndTime();
+						 
+						 if(timeDifference <= 0)
+							 score = score * 0;
+						 else if(timeDifference <15)
+							 score = score * (timeDifference/15.0);
+						 else
+							 score = score * 1;
+					}
+					
+					if(val2.getEndTime()<val1.getStartTime()) {
+						
+						timeDifference = val1.getStartTime() - val2.getEndTime();
+						 
+						 if(timeDifference <= 0)
+							 score = score * 0;
+						 else if(timeDifference <15)
+							 score = score * (timeDifference/15.0);
+						 else
+							 score = score * 1;
+					}
+					
+				}
+					
+			}
+				
+		}
+		
+		DecimalFormat df = new DecimalFormat("#.#");
+               
+		return Double.parseDouble(df.format(score));	
+	}
+	
+	
+	/**
+	 * This method returns the combined score, based on the time difference between
+	 * an end point in one schedule and a start point in the other schedule, 
+	 * which is used as partial input arguments of LPsover in 
+	 * {@link edu.udel.cis.taschd.gen.LPSovler} to get the optimum assignment. 
+	 * HardCore Means this method will set a threshold, which is the gap between different 
+	 * time interval. 
+	 * The default value is requiredGAp min. If the gap is larger than requiredGAp min. the ta is qualified. 
+	 * If the gap is less than requiredGAp min. the ta is not qualified. 
+	 * 
+	 * @param that
+	 *                 a non-{@code null} {@link WeeklySchedule} that will 
+     *                 be used to compute the score.
+	 *                 
+	 * @return a double value for computed score.
+	 * 
+	 * --This method is implemented by Yi Liu
+	 */
+	public double wtpsScoreHardCore(WeeklySchedule that, int requiredGAp) {
+		// TODO : implement me!
+		int timeDifference;
+		double score = 1.0;
+		for (TimeInterval val1 : this.getSchedule()) {
+			
+			for (TimeInterval val2: that.getSchedule()){
+				
+				if(val2.getStartDayOfWeek().name().equals(val1.getEndDayOfWeek().name())) {
+					
+					if(val2.getEndTime()>val1.getEndTime()) {
+						
+						timeDifference = val2.getStartTime() - val1.getEndTime();
+						 
+						 if(timeDifference <= requiredGAp)
+							 score = score * 0;
+						 else
+							 score = score * 1;
+					}
+					
+					if(val2.getEndTime()<val1.getStartTime()) {
+						
+						timeDifference = val1.getStartTime() - val2.getEndTime();
+						 
+						 if(timeDifference <= requiredGAp)
+							 score = score * 0;
+						 else
+							 score = score * 1;
+					}
+					
+				}
+					
+			}
+				
+		}
+		
+		DecimalFormat df = new DecimalFormat("#.#");
+               
+		return Double.parseDouble(df.format(score));	
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Constructs a short human-readable representation of this time interval,
+	 * as a comma separated list, e.g., 
+	 * 
+	 * <pre>
+	 * "MONDAY 11:00–12:15, TUESDAY 11:00–12:15".
+	 * </pre>
+	 * 
+	 * @return a String representation of the schedule.
+	 */
+	public String toStringOld() {
+		StringBuffer result = new StringBuffer();
+		boolean first = true;
+
+		for (TimeInterval ti : schedule) {
+			if (first)
+				first = false;
+			else
+				result.append(", ");
+			result.append(ti.toString());
+		}
+		return result.toString();
+	}
+
+	/**
+	 * Constructs a short human-readable representation of this time interval,
+	 * as a comma and semicolon-separated list, e.g.,
+	 * 
+	 * <pre>
+	 * Tue 11:00–12:15, 12:20–13:25; Thu 12:20–13:25
+	 * </pre>
+	 * 
+	 * @return string representation of the schedule
+	 */
+	public String toString() {
+		StringBuffer result = new StringBuffer();
+		DayOfWeek currentDay = null;
+
+		for (TimeInterval ti : schedule) {
+			DayOfWeek day = ti.getStartDayOfWeek();
+
+			if (currentDay == null) {
+				currentDay = day;
+				result.append(TimeInterval.shortName(day));
+				result.append(" ");
+			} else if (!currentDay.equals(day)) {
+				result.append("; ");
+				currentDay = day;
+				result.append(TimeInterval.shortName(day));
+				result.append(" ");
+			} else {
+				result.append(", ");
+			}
+			result.append(ti.timeString());
+		}
+		return result.toString();
+	}
+}

@@ -1,0 +1,129 @@
+{
+  "Section" : [ {
+    "Section Number" : "220",
+    "Section Type" : "Lec",
+    "Instructor name" : "Harvey",
+    "Location" : "B-B-GOR117",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "40",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 11:00–12:15", "Thu 11:00–12:15" ],
+    "CA" : [ {
+      "First Name" : "Denzel",
+      "Last Name" : "Washington",
+      "ID" : 444,
+      "Email" : "trainingday@udel.edu"
+    } ]
+  }, {
+    "Section Number" : "130",
+    "Section Type" : "L",
+    "Instructor name" : "Silber",
+    "Location" : "A-C-PRS101",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Wed 0:00–1:00" ],
+    "CA" : [ {
+      "First Name" : "Barack",
+      "Last Name" : "Obama",
+      "ID" : 111,
+      "Email" : "yeswecan@udel.edu"
+    } ]
+  }, {
+    "Section Number" : "140",
+    "Section Type" : "L",
+    "Instructor name" : "Silber",
+    "Location" : "A-D-PRS101",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Thu 0:00–1:00" ],
+    "CA" : [ {
+      "First Name" : "Barack",
+      "Last Name" : "Obama",
+      "ID" : 111,
+      "Email" : "yeswecan@udel.edu"
+    } ]
+  }, {
+    "Section Number" : "120",
+    "Section Type" : "L",
+    "Instructor name" : "Silber",
+    "Location" : "A-B-PRS101",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 0:00–1:00" ],
+    "CA" : [ {
+      "First Name" : "Barack",
+      "Last Name" : "Obama",
+      "ID" : 111,
+      "Email" : "yeswecan@udel.edu"
+    } ]
+  }, {
+    "Section Number" : "110",
+    "Section Type" : "Lec",
+    "Instructor name" : "Silber",
+    "Location" : "A-A-GOR208",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Mon 0:00–1:00" ],
+    "CA" : [ {
+      "First Name" : "Benjamin",
+      "Last Name" : "Franklin",
+      "ID" : 222,
+      "Email" : "bfrank@udel.edu"
+    } ]
+  }, {
+    "Section Number" : "310",
+    "Section Type" : "Lec",
+    "Instructor name" : "Carberry",
+    "Location" : "SHL120",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "35",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 11:00–12:15", "Thu 11:00–12:15" ],
+    "CA" : [ {
+      "First Name" : "Donald",
+      "Last Name" : "Duck",
+      "ID" : 555,
+      "Email" : "dduck@udel.edu"
+    } ]
+  }, {
+    "Section Number" : "210",
+    "Section Type" : "Lec",
+    "Instructor name" : "Harvey",
+    "Location" : "B-A-GOR117",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "40",
+    "TA Assigned" : true,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 9:30–10:45" ],
+    "CA" : [ {
+      "First Name" : "Good2",
+      "Last Name" : "Good2",
+      "ID" : 888,
+      "Email" : "Good2@udel.edu"
+    } ]
+  } ]
+}

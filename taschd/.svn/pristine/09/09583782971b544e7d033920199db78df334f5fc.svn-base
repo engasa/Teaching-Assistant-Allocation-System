@@ -1,0 +1,96 @@
+package edu.udel.cis.taschd.db;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.io.FileNotFoundException;
+
+/**
+ * The Database class is a component of the DB module. It stores and retrieves
+ * data by the request of the client.
+ * 
+ * @author Michael Oyefusi
+ * 
+ */
+
+public class Database {
+
+	private static boolean success = false;
+	/**
+	 * get Current directory of user
+	 */
+	static String directory = System.getProperty("user.dir");
+	static String course = "courses";
+	static String caPool = "ca_pool";
+	static String terms = "terms";
+	static String assistants = "assistants";
+	static String assignments = "assignments";
+
+	/**
+	 * store course in json file
+	 * 
+	 * @param c
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	public static boolean storeCourse(CourseInstance c) throws FileNotFoundException {
+		return success;
+	}
+
+	/**
+	 * store CA in json file
+	 * 
+	 * @param ca
+	 * @return
+	 */
+	public static boolean storeCA(CourseAssistant ca) {
+		return success;
+	}
+
+	/**
+	 * gets Course details from CISC675.json
+	 * 
+	 * @param code
+	 * @return
+	 */
+	public CourseInstance getCourseByCode(String code, String term) {
+		return null;
+	}
+
+	/**
+	 * gets CA details from SID123212.json
+	 * 
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public static CourseAssistant getCAById(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets CA schedule from SID123212.json
+	 * <p>
+	 * json has schedule, grades, skills, email, name, ID, ca history
+	 * </p>
+	 * 
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public WeeklySchedule getCASchdByID(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets Course schedule from CISC675.json
+	 * 
+	 * @param courseCode
+	 * @return
+	 */
+	public WeeklySchedule getCourseSchdByCode(String courseCode, String term) {
+		return null;
+	}
+
+}

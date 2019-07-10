@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GenerateAssignment.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.gen</a> &gt; <span class="el_source">GenerateAssignment.java</span></div><h1>GenerateAssignment.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.gen;
+
+
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
+import edu.udel.cis.taschd.assign.Assignment;
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * &lt;p&gt;
+ * The {@link GenerateAssignment} represents a generator tool for a 
+ * {@link CourseAssistantPool} and a {@link CourseInstancePool}. 
+ * A {@link CourseAssistantPool} is a set of {@link CourseAssistant}s 
+ * available for a given term. A {@link CourseInstancePool} is a set
+ * of {@link CourseInstance}s available for a given term. It provides
+ * the methods to generate the assignment. It hides the details of the
+ * internal representation of this generation process.
+ * &lt;/p&gt;
+ * 
+ * &lt;p&gt;
+ * {@link GenerateAssignment} uses modules ca, course, skill, time and
+ * assign.
+ * &lt;/p&gt;
+ *
+ * @author nikhil
+ * @author jinbo
+ */
+public class GenerateAssignment {
+	/**
+	 * This is the result we need to return as the real {@link Assignment}.
+	 */
+	private Assignment assign;
+	
+	/**
+	 * This is the {@link CourseAssistantPool} regarding as one of the input 
+	 * of the generator.
+	 */
+	private CourseAssistantPool cap;
+	
+	/**
+	 * This is the {@link CourseInstancePool} regarding as one of the input
+	 * of the generator.
+	 */
+	private CourseInstancePool cip;
+	
+	/**
+	 * This is an {@link ArrayList} of the {@link CourseAssistant}s, containing all the
+	 * {@link CourseAssistant}s with the high score which is computed by the 
+	 * {@link #divideCaPool(ArrayList, Section, SkillSet).
+	 */
+<span class="fc" id="L66">	private ArrayList&lt;CourseAssistant&gt; highScoreCa = new ArrayList&lt;&gt;();</span>
+	
+	/**
+	 * This is an {@link ArrayList} of the {@link CourseAssistant}s, containing all the
+	 * {@link CourseAssistant}s with the low score which is computed by the 
+	 * {@link #divideCaPool(ArrayList, Section, SkillSet).
+	 */
+<span class="fc" id="L73">	private ArrayList&lt;CourseAssistant&gt; lowScoreCa = new ArrayList&lt;&gt;();</span>
+	
+	/**
+	 * Constructs a new {@link GenerateAssignment} with the given {@link CourseAssistantPool}
+	 * and {@link CourseInstancePool}.
+	 * 
+	 * @param cap
+	 * 			      a non-{@code null} {@link CourseAssistantPool}.
+	 * @param cip
+	 *                a non-{@code null} {@link CourseInstancePool}.
+	 */
+<span class="fc" id="L84">	public GenerateAssignment(CourseAssistantPool cap, CourseInstancePool cip) {</span>
+<span class="fc" id="L85">		this.cap = cap;</span>
+<span class="fc" id="L86">		this.cip = cip;</span>
+<span class="fc" id="L87">		this.assign = new Assignment();	</span>
+<span class="fc" id="L88">	}</span>
+
+	/**
+	 * This is a method for generating the {@link Assignment} for the sections based on several constraints,
+	 * listed as scores of {@link CourseAssistant}s, course load, is the {@link Section}s consecutive or not,
+	 * the {@link CourseAssistant} assigned to a lecture {@link Section} should also be assigned to the
+	 * corresponding lab {@link Section} or inverse situation, the {@link Course} level and the {@link CourseAssistant}
+	 * level. For more optimization conditions we are still working. 
+	 *  
+	 * @param ci
+	 *              a non-{@code null} {@link ArrayList} of {@link CourseInstance}s.
+	 * @param ca
+	 *              a non-{@code null} {@link ArrayList of {@link CourseAssistant}s.
+	 */
+	private void createTaAssignment( ArrayList&lt;CourseInstance&gt; ci, ArrayList&lt;CourseAssistant&gt; ca) {
+<span class="fc" id="L103">		double finalScore = 0;</span>
+		double skillScore, wtpsScore;
+<span class="fc" id="L105">		int index = 0;</span>
+		CourseAssistant possibleCa;
+		
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+
+<span class="fc bfc" id="L111" title="All 2 branches covered.">		for(int i = 0; i&lt;ci.size();i++) {</span>
+
+<span class="fc" id="L113">			courseSkills = ci.get(i).getCourse().getSkills(); // get a course skill set</span>
+
+<span class="fc bfc" id="L115" title="All 2 branches covered.">			for(Section sec : ci.get(i).getSections()) { </span>
+				
+<span class="fc" id="L117">				int numTaAssigned = 0;</span>
+<span class="fc" id="L118">				int numLaAssigned = 0;</span>
+				
+<span class="fc" id="L120">				sectionSchedule = sec.getSchedule(); // get the wtps</span>
+
+<span class="fc" id="L122">				ArrayList&lt;CourseAssistant&gt; consideredCa = new ArrayList&lt;&gt;();</span>
+				
+<span class="fc bfc" id="L124" title="All 2 branches covered.">				if(!sec.isTaAssigned()) {</span>
+					
+<span class="fc" id="L126">					Section previousSec = null;</span>
+<span class="fc bfc" id="L127" title="All 4 branches covered.">					if(index!=0 &amp;&amp; index &lt; Iterables.size(ci.get(i).getSections()))</span>
+<span class="fc" id="L128">						previousSec = Iterables.get(ci.get(i).getSections(), index-1);</span>
+					//to check if the section is consecutive to previous section then assign same CA 
+					
+<span class="fc bfc" id="L131" title="All 6 branches covered.">					if(index!=0 &amp;&amp;  index &lt; Iterables.size(ci.get(i).getSections()) &amp;&amp; sec.getLocation().equalsIgnoreCase(previousSec.getLocation())</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">							&amp;&amp; sec.getInstructorName().equalsIgnoreCase(previousSec.getInstructorName()) &amp;&amp;</span>
+<span class="pc bpc" id="L133" title="5 of 6 branches missed.">							sec.getSchedule().wtpsScore(previousSec.getSchedule())&lt; 0.3 &amp;&amp; sec.isMtac() &amp;&amp; previousSec.isTaAssigned()) {</span>
+						
+						//Assign course assistant from previous section to consecutive section 
+<span class="nc" id="L136">						copyAssignment(sec, previousSec);</span>
+<span class="nc" id="L137">					}</span>
+					
+					//Assign Lab section with same CA assigned to corresponding lecture section
+<span class="pc bpc" id="L140" title="3 of 6 branches missed.">					else if(sec.getSectionType().equalsIgnoreCase(&quot;L&quot;) &amp;&amp; sec.getCorrespondingLab()!=null &amp;&amp; sec.getCorrespondingLecture().isTaAssigned()) {</span>
+						
+						//Assign course assistant from corresponding lecture to lab section
+<span class="nc" id="L143">						copyAssignment(sec, sec.getCorrespondingLecture());</span>
+<span class="nc" id="L144">					}</span>
+					
+<span class="pc bpc" id="L146" title="1 of 6 branches missed.">					else if( !sec.getSectionType().equalsIgnoreCase(&quot;L&quot;) &amp;&amp; sec.getCorrespondingLab()!=null &amp;&amp; sec.getCorrespondingLab().isTaAssigned()) {</span>
+						
+						//Assign course assistant from corresponding lab to lecture section
+<span class="fc" id="L149">						copyAssignment(sec, sec.getCorrespondingLab());</span>
+<span class="fc" id="L150">					}</span>
+					
+					
+					else { // Assign if it is not a consecutive section
+						
+<span class="fc" id="L155">					divideCaPool(ca, sec, courseSkills);</span>
+
+                    //run till section is assigned TA or every ta from highScore and lowScore pool is considered
+<span class="pc bpc" id="L158" title="1 of 4 branches missed.">					while(!sec.isTaAssigned() || consideredCa.size()== highScoreCa.size()+lowScoreCa.size()) {</span>
+                        
+						
+						
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">						if(numTaAssigned &lt; sec.getNumOfTA()) {</span>
+							
+<span class="pc bpc" id="L164" title="1 of 4 branches missed.">							if(!highScoreCa.isEmpty() &amp;&amp; consideredCa.size()!= highScoreCa.size()) {</span>
+								
+									
+						
+<span class="fc" id="L168">						possibleCa = highScoreCa.get((int)(Math.random()*highScoreCa.size()));</span>
+					//	System.out.println((int)(Math.random()*lowScoreCa.size()));
+
+						//to check if course is 600+ level and selected student is not graduate
+<span class="pc bpc" id="L172" title="3 of 4 branches missed.">						if(!(ci.get(i).getCourse().getCourseCode().matches(&quot;^[6-9].*$&quot;) &amp;&amp; !possibleCa.getGraduateStudent())){ </span>
+
+							//to check is course load for student is less than threshold and the selected student was not previously considered 
+<span class="pc bpc" id="L175" title="3 of 6 branches missed.">							if(possibleCa.getCourseLoad() &lt; 60 &amp;&amp; !consideredCa.contains(possibleCa) &amp;&amp; consideredCa.size()!= highScoreCa.size()) {</span>
+
+<span class="fc" id="L177">								sec.addAssignedCourseAssistant(possibleCa);         //assign CA</span>
+<span class="fc" id="L178">								possibleCa.setCourseLoad(possibleCa.getCourseLoad()+ sec.getCurrentEnrollment()); //increment the load</span>
+<span class="fc" id="L179">								numTaAssigned++; //increment number of Ta assigned</span>
+							//	sec.setTaAssigned(true);
+							}
+							// if no ta can be assigned from highScoreTa pool then select from lowScoreTa pool
+						}
+<span class="fc" id="L184">						}</span>
+							
+<span class="pc bpc" id="L186" title="2 of 4 branches missed.">							else if(!lowScoreCa.isEmpty() &amp;&amp; consideredCa.size()!= lowScoreCa.size()) {</span>
+								
+						
+<span class="fc" id="L189">								possibleCa = lowScoreCa.get((int)(Math.random()*lowScoreCa.size()));</span>
+						//		System.out.println((int)(Math.random()*lowScoreCa.size()));
+<span class="pc bpc" id="L191" title="1 of 4 branches missed.">								if(possibleCa.getCourseLoad() &lt; 60 &amp;&amp; !consideredCa.contains(possibleCa)) {</span>
+
+<span class="fc" id="L193">									sec.addAssignedCourseAssistant(possibleCa);         //assign CA</span>
+<span class="fc" id="L194">									possibleCa.setCourseLoad(possibleCa.getCourseLoad()+ sec.getCurrentEnrollment()); //increment the load</span>
+<span class="fc" id="L195">									numTaAssigned++; //increment number of Ta assigned</span>
+									//sec.setTaAssigned(true);
+								}
+<span class="fc" id="L198">								consideredCa.add(possibleCa); //add to considered Ca list</span>
+
+							}
+							
+						}
+
+						
+						
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">						if(numLaAssigned&lt; sec.getNumOfLA()) {</span>
+							
+<span class="nc" id="L208">							possibleCa = lowScoreCa.get((int)(Math.random()*lowScoreCa.size()));</span>
+						//	System.out.println((int)(Math.random()*lowScoreCa.size()));
+<span class="nc bnc" id="L210" title="All 6 branches missed.">							if(possibleCa.getCourseLoad() &lt; 60 &amp;&amp; !consideredCa.contains(possibleCa) &amp;&amp; !possibleCa.getGraduateStudent()) {</span>
+
+<span class="nc" id="L212">								sec.addAssignedCourseAssistant(possibleCa);         //assign CA</span>
+<span class="nc" id="L213">								possibleCa.setCourseLoad(possibleCa.getCourseLoad()+ sec.getCurrentEnrollment()); //increment the load</span>
+<span class="nc" id="L214">								numLaAssigned++; //increment number of La assigned</span>
+								//sec.setTaAssigned(true);
+							}
+<span class="nc" id="L217">							consideredCa.add(possibleCa);  //add to considered Ca list</span>
+						}
+						
+<span class="pc bpc" id="L220" title="1 of 4 branches missed.">						if(numTaAssigned == sec.getNumOfTA() &amp;&amp; numLaAssigned == sec.getNumOfLA()) {</span>
+						//	System.out.println(numTaAssigned +&quot; &quot;+ numLaAssigned);
+<span class="fc" id="L222">							sec.setTaAssigned(true);</span>
+						}
+						
+					//	System.out.println(sec.getSectionNumber()+ &quot; &quot;+ sec.isTaAssigned() + &quot; &quot;+ consideredCa.size());
+						
+					}
+				}
+<span class="fc" id="L229">				index++;</span>
+			}
+			}
+		}
+<span class="fc" id="L233">	}</span>
+
+	/**
+	 * This method copies the {@link CourseAssistant} from the previous {@link Section}
+	 * to current {@link Section}. This method is used when we find these {@link Section}s
+	 * are consecutive and want to assign the {@link CourseAssistant} of previous 
+	 * {@link Section} to this {@link Section}. Just one thing need to be considered, the 
+	 * course load should not exceed the given value.
+	 * 
+	 * @param sec
+	 *                the current {@link Section}.
+	 * @param previousSec
+	 *                the previous {@link Section}.
+	 */
+	private void copyAssignment(Section sec, Section previousSec) {
+		
+		//Assign course assistant from previous section to consecutive section 
+<span class="fc bfc" id="L250" title="All 2 branches covered.">		for(CourseAssistant c : previousSec.getAssignedCourseAssistants()){</span>
+			
+<span class="fc" id="L252">			sec.addAssignedCourseAssistant(c);</span>
+			
+			//if consecutive sections are labs then don't add load
+<span class="pc bpc" id="L255" title="1 of 2 branches missed.">			if(!sec.getSectionType().equalsIgnoreCase(&quot;L&quot;))</span>
+<span class="fc" id="L256">				c.setCourseLoad(c.getCourseLoad()+ sec.getCurrentEnrollment());</span>
+		}
+<span class="fc" id="L258">		sec.setTaAssigned(true);</span>
+		
+<span class="fc" id="L260">	}</span>
+	
+	/**
+	 * This method divides the {@link CourseAssistantPool} based on the comparative score threshold,
+	 * those which the scores are greater than 0.4 goes to the high score pool, those which the scores
+	 * are less than 0.4 goes to the low score pool.
+	 * 
+	 * @param ca 
+	 * 			     a non-{@code null} {@link CourseAssistant}.
+	 * @param sec
+	 *               a non-{@code null} {@link Section}.
+	 * @param courseSkills
+	 *               a non-{@code null} {@link SkillSet} of a {@link Course}.
+	 */
+	private void divideCaPool(ArrayList&lt;CourseAssistant&gt; ca, Section sec, SkillSet courseSkills) {
+		
+<span class="fc" id="L276">		double finalScore = 0;</span>
+<span class="fc" id="L277">		double skillScore = 0, wtpsScore = 0;</span>
+		
+<span class="fc" id="L279">		ArrayList&lt;CourseAssistant&gt; temp1 = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L280">		ArrayList&lt;CourseAssistant&gt; temp2 = new ArrayList&lt;&gt;();</span>
+		
+<span class="fc" id="L282">		WeeklySchedule sectionSchedule = sec.getSchedule(); // get the wtps</span>
+		
+<span class="fc bfc" id="L284" title="All 2 branches covered.">		for(int j = 0; j&lt;ca.size();j++) { </span>
+
+			
+		//	System.out.println(&quot;Size of CA pool&quot;+ ca.size());
+
+<span class="fc" id="L289">			skillScore = courseSkills.skillScore(ca.get(j).getPossessedSkillset()); </span>
+<span class="fc" id="L290">			wtpsScore =  sectionSchedule.wtpsScore(ca.get(j).getWtps());</span>
+
+<span class="fc bfc" id="L292" title="All 2 branches covered.">			if(!sec.isMtac())</span>
+<span class="fc" id="L293">				wtpsScore = 1.0;</span>
+
+<span class="fc" id="L295">			finalScore = skillScore * wtpsScore;</span>
+		//	System.out.println(&quot;CA&quot;+j +&quot; &quot;+ finalScore);
+			// divide the course assistant into highScore and lowScore pool
+<span class="fc bfc" id="L298" title="All 2 branches covered.">			if(finalScore &gt; 0.4) {</span>
+<span class="fc" id="L299">				temp1.add(ca.get(j));</span>
+			//	System.out.println(&quot;Size of highSkilled&quot; + temp1.size());
+<span class="fc" id="L301">			}</span>
+			else
+			{
+			//	System.out.println(&quot;hi im low skilled&quot;);
+<span class="fc" id="L305">				temp2.add(ca.get(j));</span>
+			//	System.out.println(&quot;Size of LowSkilled&quot; + temp2.size());
+			}
+			
+
+		}
+		
+<span class="fc" id="L312">		this.highScoreCa = temp1;</span>
+<span class="fc" id="L313">		this.lowScoreCa = temp2;</span>
+		
+<span class="fc" id="L315">	}</span>
+	
+	/**
+	 * This method is responsible for returning the assignment based on the 
+	 * {@link #createTaAssignment(ArrayList, ArrayList)} method. For each
+	 * {@link Section} in each {@link CourseInstance}, it will give the assignment.
+	 * Finally, it returns a {@link HashMap} as the assignment.
+	 * 
+	 * @return a {@link HashMap} representing the final assignment.
+	 */
+	public HashMap&lt;Section, Iterable&lt;CourseAssistant&gt;&gt; assign() {
+
+<span class="fc" id="L327">		ArrayList&lt;CourseAssistant&gt; temp1 = Lists.newArrayList(cap.getCourseAssistantSet());</span>
+<span class="fc" id="L328">		ArrayList&lt;CourseInstance&gt; temp2 = Lists.newArrayList(cip.getCourseInstanceSet());</span>
+		
+<span class="fc" id="L330">		createTaAssignment(temp2, temp1);</span>
+		
+<span class="fc" id="L332">		HashMap&lt;Section, Iterable&lt;CourseAssistant&gt;&gt; assignment = new HashMap&lt;&gt;();</span>
+		
+<span class="fc bfc" id="L334" title="All 2 branches covered.">		for(CourseInstance ci : cip.getCourseInstanceSet()) {</span>
+			
+<span class="fc bfc" id="L336" title="All 2 branches covered.">			for(Section sec : ci.getSections()) {</span>
+				
+<span class="pc bpc" id="L338" title="1 of 2 branches missed.">				if(sec.isTaAssigned()) {</span>
+<span class="fc" id="L339">					assignment.put(sec, sec.getAssignedCourseAssistants());</span>
+				}
+			}
+		}		
+<span class="fc" id="L343">		return assignment;</span>
+	}
+
+
+	
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TimeInterval.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.time</a> &gt; <span class="el_source">TimeInterval.java</span></div><h1>TimeInterval.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.time;
+
+import java.time.DayOfWeek;
+import edu.udel.cis.taschd.skill.Skill;
+
+/**
+ * &lt;p&gt;
+ * {@link TimeInterval} represents a single {@link TimeInterval} within a week. 
+ * A {@link TimeInterval} begins at a certain minute in the week, and has a duration,
+ * measured in minutes. This class is immutable.
+ * &lt;p&gt;
+ * 
+ * &lt;p&gt;
+ * For now, a {@link TimeInterval} will simply wrap a {@link String}, it uses nothing.
+ * &lt;/p&gt;
+ * 
+ * @author nikhil
+ * @author siegel
+ */
+public class TimeInterval implements Comparable&lt;TimeInterval&gt; {
+	/**
+	 * The minute within the week that this {@link TimeInterval} begins. This is an
+	 * integer in the range [0,10080). Note that 10080=7*24*60 is the number of
+	 * minutes in a week. 0 represents midnight at the very beginning of Monday.
+	 * 10079 represents 11:59:00 PM on Sunday night. This follows the ISO-8601
+	 * standard, where 1 represents Monday, and 7 represents Sunday.
+	 */
+	private int start;
+
+	/**
+	 * The number of minutes in the {@link TimeInterval}. This is an integer in 
+	 * the range [0,1440]. Note that a {@link TimeInterval} can extend into the 
+	 * next day, or even into the next week.
+	 */
+	private int duration;
+
+	/**
+	 * Constructs a new {@link TimeInterval} with given start minute and
+	 * duration.
+	 * 
+	 * @param start
+	 *                     the minute of the week at which this {@link TimeInterval}
+	 *                     begins, an integer in the range [0,10080). 0
+	 *                     represents Monday at midnight.
+	 * @param duration
+	 *                     the duration of this {@link TimeInterval}, measured in
+	 *                     minutes, an integer in the range [0,1440].
+	 */
+<span class="nc" id="L49">	public TimeInterval(int start, int duration) {</span>
+<span class="nc bnc" id="L50" title="All 4 branches missed.">		if (start &lt; 0 || start &gt;= 10080)</span>
+<span class="nc" id="L51">			throw new IllegalArgumentException(</span>
+<span class="nc" id="L52">					&quot;start must be in range [0,10080) but is &quot; + start);</span>
+<span class="nc" id="L53">		this.start = start;</span>
+<span class="nc bnc" id="L54" title="All 4 branches missed.">		if (duration &lt; 0 || duration &gt; 1440)</span>
+<span class="nc" id="L55">			throw new IllegalArgumentException(</span>
+<span class="nc" id="L56">					&quot;duration must be in range [0,1440] but is &quot; + duration);</span>
+<span class="nc" id="L57">		this.duration = duration;</span>
+<span class="nc" id="L58">	}</span>
+
+	/**
+	 * Constructs a new {@link TimeInterval} with data specified in more
+	 * convenient human-oriented structure.
+	 * 
+	 * @param dayOfWeek
+	 *                        the day of the week in which the {@link TimeInterval}
+	 *                        begins.
+	 * @param startHour
+	 *                        the hour of the day in which the {@link TimeInterval}
+	 *                        begins, an integer in the range [0,24).
+	 * @param startMinute
+	 *                        the minute of the hour in which the {@link TimeInterval}
+	 *                        begins, an integer in the range [0,60).
+	 * @param duration
+	 *                        the duration of the {@link TimeInterval}, in minutes, an
+	 *                        interval in the range [0,1440].
+	 */
+<span class="fc" id="L77">	public TimeInterval(DayOfWeek dayOfWeek, int startHour, int startMinute,</span>
+			int duration) {
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">		if (dayOfWeek == null)</span>
+<span class="nc" id="L80">			throw new IllegalArgumentException(&quot;dayOfWeek can not be null&quot;);</span>
+<span class="pc bpc" id="L81" title="2 of 4 branches missed.">		if (startHour &lt; 0 || startHour &gt;= 24)</span>
+<span class="nc" id="L82">			throw new IllegalArgumentException(</span>
+<span class="nc" id="L83">					&quot;start hour must be in range [0,23] but is &quot; + startHour);</span>
+<span class="pc bpc" id="L84" title="2 of 4 branches missed.">		if (startMinute &lt; 0 || startMinute &gt;= 60)</span>
+<span class="nc" id="L85">			throw new IllegalArgumentException(</span>
+<span class="nc" id="L86">					&quot;start minute must be in range [0,59] but is &quot;</span>
+<span class="nc" id="L87">							+ startMinute);</span>
+<span class="fc" id="L88">		this.start = (dayOfWeek.getValue() - 1) * 24 * 60 + startHour * 60</span>
+<span class="fc" id="L89">				+ startMinute;</span>
+<span class="pc bpc" id="L90" title="2 of 4 branches missed.">		if (duration &lt; 0 || duration &gt; 1440)</span>
+<span class="nc" id="L91">			throw new IllegalArgumentException(</span>
+<span class="nc" id="L92">					&quot;duration must be in range [0,1440] but is &quot; + duration);</span>
+<span class="fc" id="L93">		this.duration = duration;</span>
+<span class="fc" id="L94">	}</span>
+
+	/**
+	 * This is a static method to return the abbreviate of the day of week.
+	 * It only has seven conditions and cannot be modified.
+	 * 
+	 * @param day
+	 *                a enum value imported from {@link java.time.DayOfWeek},
+	 *                representing the seven days in one week.
+	 *                
+	 * @return switching according to the given parameter, it is a abbreviate
+	 *         of the day of week.
+	 */
+	public static String shortName(DayOfWeek day) {
+<span class="pc bpc" id="L108" title="3 of 8 branches missed.">		switch (day) {</span>
+			case FRIDAY :
+<span class="fc" id="L110">				return &quot;Fri&quot;;</span>
+			case MONDAY :
+<span class="fc" id="L112">				return &quot;Mon&quot;;</span>
+			case SATURDAY :
+<span class="nc" id="L114">				return &quot;Sat&quot;;</span>
+			case SUNDAY :
+<span class="nc" id="L116">				return &quot;Sun&quot;;</span>
+			case THURSDAY :
+<span class="fc" id="L118">				return &quot;Thu&quot;;</span>
+			case TUESDAY :
+<span class="fc" id="L120">				return &quot;Tue&quot;;</span>
+			case WEDNESDAY :
+<span class="fc" id="L122">				return &quot;Wed&quot;;</span>
+			default :
+<span class="nc" id="L124">				throw new RuntimeException(&quot;unreachable&quot;);</span>
+		}
+	}
+
+	/**
+	 * This method returns a formatted String, for now it is used to give the
+	 * standard form of time in {@link #timeString()}, like if the minute is 9,
+	 * it will convert to &quot;09&quot;. If the minute is 11, it will remain &quot;11&quot;.
+	 * 
+	 * @param x
+	 *              it is the minute of hour.
+	 *              
+	 * @return the formatted String of minute as required above.
+	 */
+	private String make2Digits(int x) {
+<span class="fc bfc" id="L139" title="All 2 branches covered.">		if (x &lt; 10)</span>
+<span class="fc" id="L140">			return &quot;0&quot; + x;</span>
+		else
+<span class="fc" id="L142">			return &quot;&quot; + x;</span>
+	}
+
+	/**
+	 * A getter to get the start time, represented as the number of minutes 
+	 * since midnight of Monday.
+	 * 
+	 * @return the start time, in minutes since Monday 00:00:00.
+	 */
+	public int getStartTime() {
+<span class="fc" id="L152">		return start;</span>
+	}
+
+	/**
+	 * A getter to get the day of the week of the start time of this {@link TimeInterval}.
+	 * 
+	 * @return the day of the week in which this {@link TimeInterval} starts.
+	 */
+	public DayOfWeek getStartDayOfWeek() {
+<span class="fc" id="L161">		return DayOfWeek.of(1 + start / (24 * 60));</span>
+	}
+
+	/**
+	 * A getter to get the hour of the day in which this {@link TimeInterval} begins. 
+	 * This is an integer in the range [0,23]. 0 represents midnight, 1 is 1:00 AM, etc.
+	 * 
+	 * @return the hour of the day in which this {@link TimeInterval} begins.
+	 */
+	public int getStartHourOfDay() {
+<span class="fc" id="L171">		return (start % (24 * 60)) / 60;</span>
+	}
+
+	/**
+	 * A getter to get the minute of the hour in which this {@link TimeInterval} begins. 
+	 * This is an integer in range [0,59].
+	 * 
+	 * @return the minute of the hour of the start time.
+	 */
+	public int getStartMinuteOfHour() {
+<span class="fc" id="L181">		return start % 60;</span>
+	}
+
+	/**
+	 * A getter to get the duration of this {@link TimeInterval}, in minutes.
+	 * 
+	 * @return the duration, in minutes.
+	 */
+	public int getDuration() {
+<span class="fc" id="L190">		return duration;</span>
+	}
+
+	/**
+	 * A getter to get the end time, represented as the number of minutes since 
+	 * midnight of Monday in the starting week. Note that the end time can extend 
+	 * into the next week.
+	 * 
+	 * @return the end time, in minutes since start Monday 00:00:00.
+	 */
+	public int getEndTime() {
+<span class="fc" id="L201">		return start + duration;</span>
+	}
+
+	/**
+	 * A getter to get the day of the week of the end time of this {@link TimeInterval}.
+	 * 
+	 * @return the day of the week in which this {@link TimeInterval} end.
+	 */
+	public DayOfWeek getEndDayOfWeek() {
+<span class="fc" id="L210">		return DayOfWeek.of(1 + ((start + duration) / (24 * 60)) % 7);</span>
+	}
+
+	/**
+	 * A getter to get the hour of the day in which this {@link TimeInterval} ends. 
+	 * This is an integer in the range [0,23]. 0 represents midnight, 1 is 1:00 AM, etc.
+	 * 
+	 * @return the hour of the day in which this {@link TimeInterval} ends.
+	 */
+	public int getEndHourOfDay() {
+<span class="fc" id="L220">		return ((start + duration) % (24 * 60)) / 60;</span>
+	}
+
+	/**
+	 * A getter to get the minute of the hour in which this {@link TimeInterval} ends. 
+	 * This is an integer in range [0,59].
+	 * 
+	 * @return the minute of the hour of the end time.
+	 */
+	public int getEndMinuteOfHour() {
+<span class="fc" id="L230">		return (start + duration) % 60;</span>
+	}
+
+	/**
+	 * Computes the number of minutes between the end of that {@link TimeInterval} and
+	 * the beginning of this one. This assumes that the {@link TimeInterval}s are
+	 * repeated every week, infinitely into the past and future, so that this
+	 * difference is always defined.
+	 * 
+	 * @param that
+	 *                 another (non-{@code null}) {@link TimeInterval}.
+	 *                 
+	 * @return the number of minutes between the end of that {@link TimeInterval} and
+	 *         the beginning of the next occurrence of this {@link TimeInterval};
+	 *         always a non-negative integer.
+	 */
+	public int minutesAfter(TimeInterval that) {
+<span class="fc" id="L247">		int result = start - that.getEndTime();</span>
+
+<span class="fc bfc" id="L249" title="All 2 branches covered.">		while (result &lt; 0)</span>
+<span class="fc" id="L250">			result += 7 * 24 * 60; // number of minutes in the week</span>
+<span class="fc" id="L251">		return result;</span>
+	}
+
+	/**
+	 * Compares the start times of this {@link TimeInterval} with that one.
+	 * Returns -1, 0, or 1 depending on whether this starts earlier, same time,
+	 *         or later than that
+	 * 
+	 * @param that
+	 *                 another non-{@code null} {@link TimeInterval}.
+	 *                 
+	 * @return -1 if this one starts at earlier time in the week; 
+	 *         0 if the starts times are equal;
+	 *         +1 if this one starts at a later time in the week.
+	 */
+	public int compareStart(TimeInterval that) {
+<span class="fc" id="L267">		int diff = this.start - that.start;</span>
+
+<span class="fc bfc" id="L269" title="All 2 branches covered.">		if (diff &lt; 0)</span>
+<span class="fc" id="L270">			return -1;</span>
+<span class="fc bfc" id="L271" title="All 2 branches covered.">		else if (diff == 0)</span>
+<span class="fc" id="L272">			return 0;</span>
+		else
+<span class="fc" id="L274">			return 1;</span>
+	}
+
+	/**
+	 * Compares the end times of this {@link TimeInterval} with that one.
+	 * Returns -1, 0, or 1 depending on whether this ends earlier, same time, or
+	 *         later than that.
+	 * 
+	 * @param that
+	 *                 another non-{@code null} {@link TimeInterval}.
+	 *                 
+	 * @return -1 if this one ends at earlier time in the week; 
+	 *         0 if the end times are equal;
+	 *         +1 if this one ends at a later time in the week.
+	 * 
+	 */
+	public int compareEnd(TimeInterval that) {
+<span class="fc" id="L291">		int diff = this.getEndTime() - that.getEndTime();</span>
+
+<span class="fc bfc" id="L293" title="All 2 branches covered.">		if (diff &lt; 0)</span>
+<span class="fc" id="L294">			return -1;</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">		else if (diff == 0)</span>
+<span class="fc" id="L296">			return 0;</span>
+		else
+<span class="fc" id="L298">			return 1;</span>
+	}
+
+	/**
+	 * Returns a human-readable representation of the {@link TimeInterval} without 
+	 * the day of the week, in the form &quot;HH:MM–HH:MM&quot;.
+	 * 
+	 * @return string representation of {@link TimeInterval} without day of week.
+	 */
+	public String timeString() {
+<span class="fc" id="L308">		return getStartHourOfDay() + &quot;:&quot; + make2Digits(getStartMinuteOfHour())</span>
+<span class="fc" id="L309">				+ &quot;–&quot; + getEndHourOfDay() + &quot;:&quot;</span>
+<span class="fc" id="L310">				+ make2Digits(getEndMinuteOfHour());</span>
+	}
+
+	/**
+	 * This class is now immutable, so this method will be deleted. Instead,
+	 * specify all values at construction. And use the enumeration
+	 * {@link DayOfWeek}, not a string.
+	 * 
+	 * @param arg
+	 *                string representation of day.
+	 */
+	@Deprecated
+	public void setDayOfWeek(String arg) {
+<span class="nc" id="L323">		throw new RuntimeException(&quot;deprecated&quot;);</span>
+	}
+
+	/**
+	 * Returns a human-readable representation of this {@link TimeInterval},
+	 * in the form &quot;DayOfWeek hh:mm - hh:mm&quot;, with a possible appendage if 
+	 * the end time is the next day.
+	 * 
+	 * @return a String representation of the {@link TimeInterval}.
+	 */
+	public String toString() {
+<span class="fc" id="L334">		DayOfWeek startDay = getStartDayOfWeek(), endDay = getEndDayOfWeek();</span>
+<span class="fc" id="L335">		String result = shortName(startDay) + &quot; &quot; + timeString();</span>
+
+<span class="fc bfc" id="L337" title="All 2 branches covered.">		if (!startDay.equals(endDay))</span>
+<span class="fc" id="L338">			result += &quot; (&quot; + shortName(endDay) + &quot;)&quot;;</span>
+<span class="fc" id="L339">		return result;</span>
+	}
+
+	/**
+	 * This method is a override for {@link java.lang.Object#equals(Object)}.
+	 * 
+	 * @return the boolean value, TRUE if these two objects are equal or in the
+	 * second if statement their start times and durations are the same,
+	 * FALSE if this object is not TimeInterval type or in the second if statement
+	 *  their start times or durations are not the same.
+	 */
+	@Override
+	public boolean equals(Object obj) {
+<span class="fc bfc" id="L352" title="All 2 branches covered.">		if (this == obj)</span>
+<span class="fc" id="L353">			return true;</span>
+<span class="fc bfc" id="L354" title="All 2 branches covered.">		if (obj instanceof TimeInterval) {</span>
+<span class="fc" id="L355">			TimeInterval that = (TimeInterval) obj;</span>
+
+<span class="pc bpc" id="L357" title="3 of 4 branches missed.">			return this.start == that.start &amp;&amp; this.duration == that.duration;</span>
+		}
+<span class="fc" id="L359">		return false;</span>
+	}
+
+	/**
+	 * This method is a override for {@link java.lang.Object#hashCode()}.
+	 * 
+	 * @return an int value representing the hash code defined by ourself.
+	 */
+	@Override
+	public int hashCode() {
+<span class="fc" id="L369">		return start * 1000000 + duration;</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * &lt;p&gt;
+	 * The order is determined by first comparing start times. If start times
+	 * are equal, the end times are used to break the tie.
+	 * &lt;/p&gt;
+	 */
+	@Override
+	public int compareTo(TimeInterval that) {
+<span class="fc" id="L382">		int c = compareStart(that);</span>
+
+<span class="fc bfc" id="L384" title="All 2 branches covered.">		if (c != 0)</span>
+<span class="fc" id="L385">			return c;</span>
+<span class="fc" id="L386">		return compareEnd(that);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

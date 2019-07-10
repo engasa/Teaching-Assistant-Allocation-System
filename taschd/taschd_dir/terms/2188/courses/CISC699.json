@@ -1,0 +1,20 @@
+{
+  "Sections" : [ {
+    "Section Number" : "410",
+    "Section Type" : "Lec",
+    "Instructor name" : "onlyForLuckyguy",
+    "Location" : "SHL120",
+    "Current Enrollment" : "35",
+    "Enrollment Cap" : "35",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : false,
+    "Time Schedule" : [ "Sat 0:00–0:10" ]
+  } ],
+  "Skills" : [ "unique" ],
+  "Course Code" : "699",
+  "Prefix" : "CISC",
+  "Has Lab" : false,
+  "Course Name" : "NOmATACCourse"
+}

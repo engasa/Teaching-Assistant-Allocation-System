@@ -1,0 +1,136 @@
+const {app,BrowserWindow,ipcMain} = require('electron');
+var io = require('socket.io')()
+const path = require('path')
+const url = require('url')
+
+var count = 0;
+
+// modified by Sumeet
+// var rightVelocity = new Array();
+var rightVelocity = new Array(36);
+var leftVelocity = new Array(36);
+
+index = 0;
+
+// Keep a global reference of the window object, if you don't, the window will
+// be closed automatically when the JavaScript object is garbage collected.
+
+
+function createWindow () {
+  // Create the browser window.
+  mainWindow = new BrowserWindow({width: 1920, height: 1080})
+
+  // and load the index.html of the app.
+  mainWindow.loadURL(url.format({
+    pathname: path.join(__dirname, 'index.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+
+  // Open the DevTools.
+  mainWindow.webContents.openDevTools()
+
+  // Emitted when the window is closed.
+  mainWindow.on('closed', function () {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null
+  })
+}
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.on('ready', createWindow)
+
+// Quit when all windows are closed.
+app.on('window-all-closed', function () {
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+app.on('activate', function () {
+
+
+  if (mainWindow === null) {
+    createWindow()
+  }
+})
+
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  var socket_list = new Array();
+  var win_sender;
+
+  
+  io.on('connection',function(socket){
+    var batt_update_time;
+    var batt_lev = '';
+
+  //to connect
+    var ip = socket.request.connection.remoteAddress;
+    var clientip = ip.substring(18);
+
+    win_sender.send('asynchronous-reply', 'connected', clientip)
+
+  //sent velocities
+ 
+    socket.on('getvelocity',function(velocities){
+    count = count +1;
+    console.log(count);
+    // modified by Sumeet
+	index = velocities[0].index;
+	rightVelocity[index] = velocities[0].lv;
+	leftVelocity[index] = velocities[0].rv;
+	console.log("test point");
+	console.log(rightVelocity[index]);                            
+    })
+
+
+    //recive battery level from clients
+      socket.on('battery', function(data){    
+          batt_update_time = new Date().getTime();
+          //console.log('robot'+ clientip + " has battery level:" + data.toString());
+          batt_lev = batt_lev + data.toString().substring(0,4)+'\t'
+          win_sender.send('battery_level',data.toString(),clientip)
+          // modified by Sumeet
+          batt[clientip] = clientip + data.toString()
+	  
+   });
+
+
+  //disconnect handler
+    var if_connected = setInterval(function(){ 
+        var now = new Date().getTime();
+        var disconnect_tester = now - batt_update_time;
+        if(disconnect_tester > 30000){
+          console.log("Socket " +"robot" +clientip + " disconnected.");
+          win_sender.send('asynchronous-reply', 'Disconnect', clientip) 
+          console.log('Robot'+clientip+":",batt_lev)
+          clearInterval(if_connected);
+          socket.disconnect(true)
+          // modified by Sumeet might need clientip+1
+          rightVelocity[clientip] = 0;
+          leftVelocity[clientip] = 0;
+                                   
+        }
+        // modified by Sumeet
+       for(var z = 0; z<36;z++){
+	socket.emit('velocity'+(z+1), (leftVelocity[z+1])+','+(rightVelocity[z+1])+';')	
+}
+
+          
+    }, 70);
+  
+  }); 
+
+ipcMain.on('asynchronous-message', (event, arg1, agr2) => {
+   win_sender = event.sender;
+})
+
+  io.listen(5001);
+  console.log("Server Started");

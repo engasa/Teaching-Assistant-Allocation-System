@@ -1,0 +1,20 @@
+{
+  "Sections" : [ {
+    "Section Number" : "310",
+    "Section Type" : "Lec",
+    "Instructor name" : "Carberry",
+    "Location" : "SHL120",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "35",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 11:00–12:15", "Thu 11:00–12:15" ]
+  } ],
+  "Skills" : [ "604" ],
+  "Course Code" : "304",
+  "Prefix" : "CISC",
+  "Has Lab" : false,
+  "Course Name" : "Logic and Programming"
+}

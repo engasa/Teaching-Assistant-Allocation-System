@@ -1,0 +1,279 @@
+package edu.udel.cis.taschd.gen;
+
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+
+import edu.udel.cis.taschd.assign.Assignment;
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Represents a generator tool for a {@link CourseAssistantPool} and a set of
+ * {@link CourseInstance}s. A course assistant pool is a set of course
+ * assistants available for a given term. A course instance ArrayList is a set
+ * of course instances available for a given term.
+ *
+ * @author nikhil
+ * @author jinbo
+ */
+public class GenerateAssignment {
+	private Assignment assign;
+	private CourseAssistantPool cap;
+	private CourseInstancePool cip; // course instance pool
+	
+
+	private ArrayList<CourseAssistant> highScoreCa = new ArrayList<>();
+	private ArrayList<CourseAssistant> lowScoreCa = new ArrayList<>();
+
+	public GenerateAssignment(CourseAssistantPool cap, CourseInstancePool cip) {
+		this.cap = cap;
+		this.cip = cip;
+
+		this.assign = new Assignment();
+
+		
+	}
+
+
+
+	
+	/**
+	 * Create a method for create assignment for the sections based
+	 * @param cou Course object in {@link Course}
+	 * @param sec Section object in {@link Section}
+	 * @param ca CourseAssistant object in {@link CourseAssistant}
+	 * @return 
+	 * @return double double arrayList with computed scores for each CA to each course 
+	 */
+	private void createTaAssignment( ArrayList<CourseInstance> ci, ArrayList<CourseAssistant> ca) {
+
+
+		double finalScore = 0;
+		double skillScore, wtpsScore;
+		int index = 0;
+		CourseAssistant possibleCa;
+		int numTaAssigned = 0;
+		int numLaAssigned = 0;
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+
+
+		for(int i = 0; i<ci.size();i++) {
+
+			courseSkills = ci.get(i).getCourse().getSkills(); // get a course skill set
+
+			for(Section sec : ci.get(i).getSections()) { 
+				sectionSchedule = sec.getSchedule(); // get the wtps
+
+				ArrayList<CourseAssistant> consideredCa = new ArrayList<>();
+				
+				if(!sec.isTaAssigned()) {
+					
+					Section previousSec = Iterables.get(ci.get(i).getSections(), index-1);
+					//to check if the section is consecutive to previous section then assign same CA 
+					if(index!=0 && sec.getLocation().equalsIgnoreCase(previousSec.getLocation())
+							&& sec.getInstructorName().equalsIgnoreCase(previousSec.getInstructorName()) &&
+							sec.getSchedule().wtpsScore(previousSec.getSchedule())< 0.3 && sec.isMtac() && previousSec.isTaAssigned()) {
+						
+						//Assign course assistant from previous section to consecutive section 
+						copyAssignment(sec, previousSec);
+					}
+					
+					//Assign Lab section with same CA assigned to corresponding lecture section
+					else if(sec.getSectionType().equalsIgnoreCase("L") && sec.getCorrespondingLecture().isTaAssigned()
+							|| !sec.getSectionType().equalsIgnoreCase("L") && sec.getCorrespondingLab().isTaAssigned()) {
+						
+						//Assign course assistant from corresponding lecture to lab section
+						copyAssignment(sec, sec.getCorrespondingLecture());
+					}
+					
+					else if( !sec.getSectionType().equalsIgnoreCase("L") && sec.getCorrespondingLab().isTaAssigned()) {
+						
+						//Assign course assistant from corresponding lab to lecture section
+						copyAssignment(sec, sec.getCorrespondingLab());
+					}
+					
+					
+					
+					
+					else { // Assign if it is not a consecutive section
+						
+					divideCaPool(ca, sec, courseSkills);
+					/*for(int j = 0; j<ca.size();j++) { 
+
+
+						skillScore = courseSkills.skillScore(ca.get(j).getPossessedSkillset()); 
+						wtpsScore =  sectionSchedule.wtpsScore(ca.get(j).getWtps());
+
+						if(!sec.isMtac())
+							wtpsScore = 1.0;
+
+						finalScore = skillScore * wtpsScore;
+
+						// divide the course assistant into highScore and lowScore pool
+						if(finalScore >0.4)
+							highScoreCa.add(ca.get(j));
+						else
+							lowScoreCa.add(ca.get(j));
+
+					}
+*/
+                    //run till section is assigned TA or every ta from highScore and lowScore pool is considered
+					while(!sec.isTaAssigned() || consideredCa.size()== highScoreCa.size()+lowScoreCa.size()) {
+
+						if(numTaAssigned < sec.getNumOfTA()) {
+						possibleCa = highScoreCa.get((int)Math.random()*highScoreCa.size());
+
+						//to check if course is 600+ level and selected student is not graduate
+						if(!(ci.get(i).getCourse().getCourseCode().matches("^[6-9].*$") && !possibleCa.getGraduateStudent())){ 
+
+							//to check is course load for student is less than threshold and the selected student was not previously considered 
+							if(possibleCa.getCourseLoad() < 60 && !consideredCa.contains(possibleCa) && consideredCa.size()!= highScoreCa.size()) {
+
+						
+								sec.addAssignedCourseAssistant(possibleCa);         //assign CA
+								possibleCa.setCourseLoad(possibleCa.getCourseLoad()+ sec.getCurrentEnrollment()); //increment the load
+								numTaAssigned++; //increment number of Ta assigned
+							//	sec.setTaAssigned(true);
+							}
+							// if no ta can be assigned from highScoreTa pool then select from lowScoreTa pool
+							else {
+
+								possibleCa = lowScoreCa.get((int)Math.random()*lowScoreCa.size());
+								if(possibleCa.getCourseLoad() < 60 && !consideredCa.contains(possibleCa)) {
+
+									sec.addAssignedCourseAssistant(possibleCa);         //assign CA
+									possibleCa.setCourseLoad(possibleCa.getCourseLoad()+ sec.getCurrentEnrollment()); //increment the load
+									numTaAssigned++; //increment number of Ta assigned
+									//sec.setTaAssigned(true);
+								}
+								consideredCa.add(possibleCa); //add to considered Ca list
+
+							}
+							
+						}
+
+						}
+						
+						if(numLaAssigned< sec.getNumOfLA()) {
+							
+							possibleCa = lowScoreCa.get((int)Math.random()*lowScoreCa.size());
+							
+							if(possibleCa.getCourseLoad() < 60 && !consideredCa.contains(possibleCa) && !possibleCa.getGraduateStudent()) {
+
+								sec.addAssignedCourseAssistant(possibleCa);         //assign CA
+								possibleCa.setCourseLoad(possibleCa.getCourseLoad()+ sec.getCurrentEnrollment()); //increment the load
+								numLaAssigned++; //increment number of La assigned
+								//sec.setTaAssigned(true);
+							}
+							consideredCa.add(possibleCa);  //add to considered Ca list
+						}
+						
+						if(numTaAssigned == sec.getNumOfTA() && numLaAssigned == sec.getNumOfLA())
+							sec.setTaAssigned(true);
+						
+					}
+				}
+				
+				
+				
+				index++;
+			}
+			}
+		}
+
+
+
+
+
+	}
+
+	//Copy CourseAssistant from previous section to current section
+	private void copyAssignment(Section sec, Section previousSec) {
+		
+		//Assign course assistant from previous section to consecutive section 
+		for(CourseAssistant c : previousSec.getAssignedCourseAssistants()){
+			
+			sec.addAssignedCourseAssistant(c);
+			
+			//if consecutive sections are labs then don't add load
+			if(!sec.getSectionType().equalsIgnoreCase("L"))
+				c.setCourseLoad(c.getCourseLoad()+ sec.getCurrentEnrollment());
+		}
+		sec.setTaAssigned(true);
+		
+	}
+	
+	
+	//Divide CourseAssistantPool based on comparative score threshold value
+	private void divideCaPool(ArrayList<CourseAssistant> ca, Section sec, SkillSet courseSkills) {
+		
+		double finalScore = 0;
+		double skillScore = 0, wtpsScore = 0;
+		
+		ArrayList<CourseAssistant> temp1 = new ArrayList<>();
+		ArrayList<CourseAssistant> temp2 = new ArrayList<>();
+		
+		WeeklySchedule sectionSchedule = sec.getSchedule(); // get the wtps
+		
+		for(int j = 0; j<ca.size();j++) { 
+
+			
+
+			skillScore = courseSkills.skillScore(ca.get(j).getPossessedSkillset()); 
+			wtpsScore =  sectionSchedule.wtpsScore(ca.get(j).getWtps());
+
+			if(!sec.isMtac())
+				wtpsScore = 1.0;
+
+			finalScore = skillScore * wtpsScore;
+
+			// divide the course assistant into highScore and lowScore pool
+			if(finalScore >0.4)
+				temp1.add(ca.get(j));
+			else
+				temp2.add(ca.get(j));
+
+		}
+		
+		this.highScoreCa = temp1;
+		this.lowScoreCa = temp2;
+		
+	}
+	
+	//return assignment
+	public HashMap<Section, Iterable<CourseAssistant>> assign() {
+
+		ArrayList<CourseAssistant> temp1 = Lists.newArrayList(cap.getCourseAssistantSet());
+		ArrayList<CourseInstance> temp2 = Lists.newArrayList(cip.getCourseInstanceSet());
+		
+		createTaAssignment(temp2, temp1);
+		
+		HashMap<Section, Iterable<CourseAssistant>> assignment = new HashMap<>();
+		
+		for(CourseInstance ci : cip.getCourseInstanceSet()) {
+			
+			for(Section sec : ci.getSections()) {
+				
+				if(sec.isTaAssigned()) {
+					assignment.put(sec, sec.getAssignedCourseAssistants());
+				}
+			}
+		}
+		
+		return assignment;
+
+	}
+
+
+}

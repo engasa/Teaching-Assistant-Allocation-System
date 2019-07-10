@@ -1,0 +1,48 @@
+package edu.udel.cis.taschd.course;
+
+import java.util.ArrayList;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import org.junit.Test;
+
+public class CourseInstancePoolTest {
+	
+	private static ArrayList<CourseInstance> pool1 = new ArrayList<>();
+	
+
+//	@Test
+//	public void testCourseInstancePool() {
+//	TO DO
+//	}
+//
+//	@Test
+//	public void testGetCourseAssistantSet() {
+//	TO DO
+//	}
+//
+//	@Test
+//	public void testAddCourseInstancetoPool() {
+//	TO DO
+//	}
+//
+//	@Test
+//	public void testFindCourseInstanceByInstructor() {
+//		TO DO
+//	}
+	
+	@Test
+	public void testFindCourseInstanceByInstructor() {
+		pool1.add(new CourseInstance(new Course("CISC", "675", "Software Engineering"), 2191));
+		pool1.add(new CourseInstance(new Course("CISC", "642", "Intro to Computer Vision"), 2198));
+		pool1.add(new CourseInstance(new Course("CISC", "681", "Artificial Intelligence"), 2191));
+		pool1.get(0).addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule()));
+		pool1.get(0).addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule()));
+		pool1.get(1).addSection(new Section("", "010", "Kambhamettu,Chandra", 19, 20, "MEM110", new WeeklySchedule()));
+		
+		CourseInstancePool test1 = new CourseInstancePool(pool1);
+		System.out.println(test1.findCourseInstanceByInstructor("Siegel,Stephen"));
+		System.out.println(test1.findCourseInstanceByInstructor("Kambhamettu,Chandra"));
+	}
+
+}

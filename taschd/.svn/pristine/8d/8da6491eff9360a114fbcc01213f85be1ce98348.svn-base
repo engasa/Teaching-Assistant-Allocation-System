@@ -1,0 +1,20 @@
+package edu.udel.cis.taschd.extract;
+/**package edu.cis.taschd.course;
+import edu.cis.taschd.course;
+import edu.cis.taschd.ca;
+import edu.cis.taschd.time;
+
+public class ExtractCAGrades {
+	
+	public String source;
+	public String[] credentials;
+	public String[] CAGradesSource;
+	
+	public String[] ExtractCAGrades(String source, String[] credentials) {
+		
+	}
+	
+	public void parseAndSetCAGrades(String[] CAGradesSource) {
+		
+	}
+}**/

@@ -1,0 +1,100 @@
+package edu.udel.cis.taschd.userinterface;
+
+import edu.udel.cis.taschd.userinterface.UserInterface;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.ca.CourseAssistant;
+
+/**
+ *   <p>
+ *   
+ *   The {@link display} class contains the main function. It processes the command line 
+ *   and executes commands. Command line arguments are provided by the user.
+ *   
+ *   </p>
+ *   
+ *   @author yasha
+ */
+public class display {
+	/**
+	 * 
+	 * @param args
+	 *            command line arguments
+	 */
+	@SuppressWarnings("static-access")
+	public final static void main(String[] args) {
+		System.out.println("taschd v0: The TA Scheduler.  http://taschd.cis.udel.edu");
+		int count = args.length;
+		UserInterface ui = new UserInterface();
+		for(int i=0;i<count;i++) 
+		switch(args[0]){
+		
+		case "init":
+			System.out.println("Creating the directory structure\n");
+			ui.init();
+			break;
+			
+		case "addterm":
+			if(i==1){
+			    ui.addTerm(args[i]);
+			    System.out.println("Adding the term " + args[i] );
+			}
+			else if (i>1) {
+				System.out.println("Error: Second argument (term) not added i.e. " + args[i]);
+				System.out.println("Add one term at a time");
+				break;
+			}
+				
+		case "getcaschd":
+			//TODO Find out why source given as web is not working
+			//for(i=1;i<5;i++){
+			int CAid = Integer.parseInt(args[3]);
+			int [] id = new int[CAid];
+			CourseAssistant courseassistant = new CourseAssistant(CAid);
+			courseassistant.getId();
+			ui.getCaSchd(args[1], args, id, args[2]);
+			//}
+			break;
+			
+		case "getcrsschd":
+			//TODO Find out why source given as web is not working
+			ui.getCourseSchd(args[1], args[2], args[3]);
+			break;
+			
+		case "display":
+			break;
+			
+		case "posslist":
+			break;
+			
+		case "optassignment":
+			break;
+			
+		case "addCASkill":
+		//	addCASkill();
+			break;
+
+		case "addCourse":
+			String prefix = args[1], courseCode = args[2], courseName = args[3];
+			Course course = new Course(prefix, courseCode, courseName);
+			int term = Integer.parseInt(args[4]);
+			CourseInstance c = new CourseInstance(course, term); 
+			c.getCourse();
+		    ui.storeCourseToDatabase(c);
+		 // TODO Add course to specific term also
+			
+			break;
+			
+			
+		case "addCA":
+			//TODO complete function storeCA to database module
+			int caid = Integer.parseInt(args[1]);
+			CourseAssistant ca = new CourseAssistant(caid);
+			ui.storeCAToDatabase(ca);
+			break;
+			
+		}
+		
+	}
+	
+}

@@ -1,0 +1,406 @@
+package edu.udel.cis.taschd.extract;
+
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
+import com.gargoylesoftware.htmlunit.html.HtmlTable;
+import com.gargoylesoftware.htmlunit.html.HtmlTableBody;
+import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
+import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
+
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.time.DayOfWeek;
+
+/**
+ * The CourseScheduleExtractor class is responsible for the extraction of
+ * {@link CourseInstance}/{@link Section} details, in a specific semester.
+ * Attributes of courses and courses sections are returned. It hides the details
+ * of extraction and assigns extracted values to {@link CourseInstance} objects.
+ * It also uses {@link WeeklySchedule} class variables.
+ * 
+ * @author Narasimha Srikumar Akella
+ */
+public class CourseScheduleExtractor {
+
+	private List<Map<String, String>> courseScheduleSource = new ArrayList<Map<String, String>>();
+	private ArrayList<CourseInstance> crsInstances = new ArrayList<CourseInstance>();
+
+	/**
+	 * @param source
+	 *            Source of extraction (eg. Web)
+	 * @param courseKey
+	 *            departmentID/ courseID (eg. CISC, CISC681)
+	 * @param term
+	 *            Course offering term (eg. 2188, 2193)
+	 */
+	public CourseScheduleExtractor(String source, String courseKey, String term) {
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
+		java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(java.util.logging.Level.OFF);
+	    java.util.logging.Logger.getLogger("org.apache.http").setLevel(java.util.logging.Level.OFF);
+		try {
+			if (source.equals("Web")) {
+				if (courseKey.isEmpty()) {
+					System.out.println("Course Key provided is empty");
+				} else if (term.isEmpty()) {
+					System.out.println("Term value provided is empty");
+				} 				
+				else {
+				courseScheduleSource = getCourseScheduleWeb(courseKey, term);
+				this.crsInstances = parseAndSetCourseDetails(courseScheduleSource, Integer.parseInt(term));}
+			}
+			else {System.out.println("Source should be Web, only Web extraction is implemented in this phase");}
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+
+	/**
+	 * The returnCourseInstances return the Course Schedules as a list of
+	 * CourseInstance Objects
+	 * 
+	 * @return CourseInstance : ArrayList of CourseInstance Object
+	 */
+	public ArrayList<CourseInstance> returnCourseInstances() {
+		return crsInstances;
+	}
+
+	/**
+	 * The parseAndSetCourseDetails method takes the list<Map> of courseSource
+	 * extracted from webreg, parses it and places the values in CourseInstance
+	 * class variables.
+	 * 
+	 * @param courseSource
+	 *            : ArrayList of Course details extracted from webreg
+	 * @param crsTerm
+	 *            : Current Course term (ex: for Fall 2018, term = 2188)
+	 * @return CourseInstance : List of CourseInstance Objects with details and
+	 *         Sections
+	 */
+	private ArrayList<CourseInstance> parseAndSetCourseDetails(List<Map<String, String>> courseSource, int crsTerm) {
+		if (courseSource.isEmpty()) {
+			System.out.println("No Course details extracted for given Course Key and Term");
+			return null;
+		} else {
+			String currCourse = courseSource.get(0).get("courseCode");
+			String prevCourse = courseSource.get(0).get("courseCode");
+			DateFormat dateformat = new SimpleDateFormat("hh:mm a");
+			ArrayList<Section> sectionsObject = new ArrayList<Section>();
+
+			int crsIndex = 0;
+			int secIndex = 0;
+			for (Iterator<Map<String, String>> iter = courseSource.iterator(); iter.hasNext();) {
+
+				String departmentID = courseSource.get(crsIndex).get("departmentID");
+				String courseCode = courseSource.get(crsIndex).get("courseCode");
+				String courseName = courseSource.get(crsIndex).get("courseName");
+
+				Course crs = new Course(departmentID, courseCode, courseName);
+				CourseInstance ci = new CourseInstance(crs, crsTerm);
+				while (currCourse.equals(prevCourse)) {
+					String sectionNumber = courseSource.get(secIndex).get("sectionNumber");
+					int currEnrollment = Integer.parseInt(courseSource.get(secIndex).get("currentEnrollment"));
+					int enrollmentCap = Integer.parseInt(courseSource.get(secIndex).get("enrollmentCap"));
+					String location = courseSource.get(secIndex).get("location");
+					String sectionType = courseSource.get(secIndex).get("sectionType");
+					String instructorName = courseSource.get(secIndex).get("instructorName");
+					if (sectionType.equals("LAB"))
+						ci.setHasLab(true);
+					WeeklySchedule weeklySchedule = new WeeklySchedule();
+					Set<String> daysSet = courseSource.get(secIndex).keySet().stream()
+							.filter(s -> s.startsWith("WeekDay")).collect(Collectors.toSet());
+					String[] daysArr = daysSet.toArray(new String[daysSet.size()]);
+
+					for (int wtpsIndex = 1; wtpsIndex <= daysArr.length; wtpsIndex++) {
+						String tempDayKey = "WeekDay" + wtpsIndex;
+						String tempsTimeKey = "startTime" + wtpsIndex;
+						String tempeTimeKey = "endTime" + wtpsIndex;
+
+						DayOfWeek weekDay = getDayofWeek(courseSource.get(secIndex).get(tempDayKey));
+						String[] timeInterval = courseSource.get(secIndex).get(tempsTimeKey).split(":");
+						int startHour = 0;
+						if ((timeInterval[1].contains("AM")) || (Integer.parseInt(timeInterval[0])) == 12) {
+							timeInterval[1] = timeInterval[1].replace("AM", "");
+							timeInterval[1] = timeInterval[1].replace("PM", "");
+							startHour = Integer.parseInt(timeInterval[0]);
+						} else if ((timeInterval[1].contains("PM")) && (Integer.parseInt(timeInterval[0])) < 12) {
+							timeInterval[1] = timeInterval[1].replace("PM", "");
+							startHour = Integer.parseInt(timeInterval[0]) + 12;
+						}
+
+						int startMin = Integer.parseInt(timeInterval[1]);
+						Date sTime = null;
+						Date eTime = null;
+						try {
+							String txtsTime = courseSource.get(secIndex).get(tempsTimeKey).replace("AM", " AM")
+									.replace("PM", " PM");
+							String txteTime = courseSource.get(secIndex).get(tempeTimeKey).replace("AM", " AM")
+									.replace("PM", " PM");
+							sTime = dateformat.parse(txtsTime);
+							eTime = dateformat.parse(txteTime);
+
+						} catch (ParseException e1) {
+							e1.printStackTrace();
+						}
+
+						int duration = ((int) (eTime.getTime() - sTime.getTime())) / 60000;
+						weeklySchedule.addInterval(new TimeInterval(weekDay, startHour, startMin, duration));
+					}
+
+					Section section = new Section(sectionType, sectionNumber, instructorName, currEnrollment,
+							enrollmentCap, location, weeklySchedule);
+					sectionsObject.add(section);
+					prevCourse = currCourse;
+					iter.next();
+					secIndex++;
+					crsIndex++;
+					ci.addSection(section);
+					if (crsIndex < courseSource.size()) {
+						currCourse = courseSource.get(crsIndex).get("courseCode");
+					} else
+						break;
+				}
+				crsInstances.add(ci);
+				prevCourse = currCourse;
+			}
+		}
+		return crsInstances;
+	}
+
+	/**
+	 * The getCourseScheduleWeb method takes the credentials, term and search key as
+	 * arguments and extracts courses schedule from webreg, into a list of maps.
+	 * 
+	 * @param courseKey
+	 *            : Search key to retrieve Courses Details from WebReg
+	 * @param term
+	 *            : Current Course term (ex: for Fall 2018, term = 2188)
+	 * @return courseScheduleSource : Array list of maps with the course details
+	 */
+	private List<Map<String, String>> getCourseScheduleWeb(String courseKey, String term) throws IOException {
+		List<Map<String, String>> courseScheduleSource = new ArrayList<Map<String, String>>();
+
+		WebClient webClient = new WebClient();
+
+		HtmlPage page = webClient.getPage("http://www.udel.edu/courses");
+		HtmlForm coursesForm = page.getElementByName("CourseInformation");
+		HtmlSelect termSelect = coursesForm.getSelectByName("term");
+		HtmlTextInput courseSearchKey = coursesForm.getInputByName("course_sec");
+		HtmlButton courseSearch = coursesForm.getOneHtmlElementByAttribute("button", "type", "submit");
+
+		termSelect.getOptionByValue(term).setSelected(true);
+		courseSearchKey.type(courseKey);
+		HtmlPage courseSearchResultsPage = courseSearch.click();
+
+		webClient.waitForBackgroundJavaScript(2000);
+		webClient.getOptions().setJavaScriptEnabled(true);
+
+		List<?> nextButtonList = courseSearchResultsPage.getElementsByIdAndOrName("searchNxtBtn");
+		while (!nextButtonList.isEmpty()) {
+			HtmlButton nextButton = (HtmlButton) nextButtonList.get(0);
+			courseScheduleSource = getCourseSchedulefromPage(courseSearchResultsPage, term, courseScheduleSource);
+			courseSearchResultsPage = nextButton.click();
+			webClient.waitForBackgroundJavaScript(2000);
+			nextButtonList = courseSearchResultsPage.getElementsByIdAndOrName("searchNxtBtn");
+		}
+		if (nextButtonList.isEmpty()) {
+			courseScheduleSource = getCourseSchedulefromPage(courseSearchResultsPage, term, courseScheduleSource);
+		}
+
+		webClient.close();
+		return courseScheduleSource;
+	}
+
+	/**
+	 * If the Course Search from Webreg is across multiple pages,
+	 * getCourseSchedulefromPage method takes the page as argument, extracts courses
+	 * schedule from the given page
+	 * 
+	 * @param page
+	 *            : HtmlPage to extract the Course Details from
+	 * @param term
+	 *            : Current Course term (ex: for Fall 2018, term = 2188)
+	 * @param courseScheduleSource
+	 *            : Array list of maps with the course details
+	 * @return courseScheduleSource : Array list of maps with the course details
+	 */
+	private static List<Map<String, String>> getCourseSchedulefromPage(HtmlPage page, String term,
+			List<Map<String, String>> courseScheduleSource) {
+
+		HtmlTable studenScheduleTable = page.getHtmlElementById("results-" + term);
+
+		int colIndex;
+		for (final HtmlTableBody body : studenScheduleTable.getBodies()) {
+			final List<HtmlTableRow> rows = body.getRows();
+			for (final HtmlTableRow row : rows) {
+				if (row.getCell(5).asText().trim().contains("Cancel")) {
+					continue;
+				}
+				colIndex = 0;
+				Map<String, String> temp = new HashMap<String, String>();
+				int lineOneDays = 0;
+				int lineTwoDays = 0;
+				for (final HtmlTableCell cell : row.getCells()) {
+					switch (colIndex) {
+					case 0:
+						String[] tempSect = cell.asText().trim().split(" ");
+						String deptID = tempSect[0].trim().substring(0, 4);
+						String courseCode = tempSect[0].trim().substring(4, 7);
+						String sectionNumber = tempSect[0].trim().substring(7, 10);
+						String sectionType = tempSect[1].trim();
+						temp.put("departmentID", deptID);
+						temp.put("courseCode", courseCode);
+						temp.put("sectionNumber", sectionNumber);
+						temp.put("sectionType", sectionType);
+						break;
+					case 1:
+						String courseName = cell.asText().trim();
+						temp.put("courseName", courseName);
+						break;
+					case 2:
+						String tempEnroll;
+						if (cell.asText().trim().contains("\n")) {
+							String[] tempEnrolls = cell.asText().trim().split("\\r?\\n");
+							tempEnroll = tempEnrolls[0].trim();
+						} else {
+							tempEnroll = cell.asText().trim();
+						}
+						if (tempEnroll.contains("OF")) {
+							String[] tempTxt = tempEnroll.split("OF");
+							String currentEnrollment = tempTxt[0].trim();
+							String enrollmentCap = tempTxt[1].trim();
+							temp.put("currentEnrollment", currentEnrollment);
+							temp.put("enrollmentCap", enrollmentCap);
+						}
+						break;
+					case 4:
+						String tempSch = cell.asText().trim();
+						if (tempSch.equals("TBA"))
+							break;
+						if (tempSch.contains("\n")) {
+							String[] schLines = tempSch.split("\\r?\\n");
+							lineOneDays = schLines[0].trim().length();
+							lineTwoDays = schLines[1].trim().length();
+							int dayCount = 0;
+							for (int k = 0; k < schLines[0].trim().length(); k++) {
+								String tempDay = Character.toString(schLines[0].trim().charAt(k));
+								temp.put("WeekDay" + (dayCount + 1), tempDay);
+								dayCount++;
+							}
+							for (int k = 0; k < schLines[1].trim().length(); k++) {
+								String tempDay = Character.toString(schLines[1].trim().charAt(k));
+								temp.put("WeekDay" + (dayCount + 1), tempDay);
+								dayCount++;
+							}
+						} else {
+							lineOneDays = tempSch.length();
+							for (int k = 0; k < tempSch.length(); k++) {
+								String tempDay = Character.toString(tempSch.charAt(k));
+								temp.put("WeekDay" + (k + 1), tempDay);
+							}
+						}
+						break;
+					case 5:
+						String tempTime = cell.asText().trim();
+						if (tempTime.contains("\n")) {
+							String[] tempTimes = tempTime.split("\\r?\\n");
+							int dayCount = 0;
+							for (int k = 0; k < lineOneDays; k++) {
+								String[] lineOneTime = tempTimes[0].trim().split("-");
+								String startTime = lineOneTime[0].trim();
+								String endTime = lineOneTime[1].trim();
+								temp.put("startTime" + (dayCount + 1), startTime);
+								temp.put("endTime" + (dayCount + 1), endTime);
+								dayCount++;
+							}
+							for (int k = 0; k < lineTwoDays; k++) {
+								String[] lineTwoTime = tempTimes[1].trim().split("-");
+								String startTime = lineTwoTime[0].trim();
+								String endTime = lineTwoTime[1].trim();
+								temp.put("startTime" + (dayCount + 1), startTime);
+								temp.put("endTime" + (dayCount + 1), endTime);
+								dayCount++;
+							}
+						} else {
+							int dayCount = 0;
+							for (int k = 0; k < lineOneDays; k++) {
+								String[] lineOneTime = cell.asText().trim().split("-");
+								String startTime = lineOneTime[0].trim();
+								String endTime = lineOneTime[1].trim();
+								temp.put("startTime" + (dayCount + 1), startTime);
+								temp.put("endTime" + (dayCount + 1), endTime);
+								dayCount++;
+							}
+						}
+						break;
+					case 6:
+						String tempLoc = cell.asText().trim();
+						temp.put("location", tempLoc);
+					case 7:
+						String tempInst = cell.asText().trim();
+						temp.put("instructorName", tempInst);
+					default:
+						break;
+					}
+					colIndex++;
+				}
+				courseScheduleSource.add(temp);
+			}
+		}
+		return courseScheduleSource;
+	}
+
+	/**
+	 * The getDayofWeek method takes the weekday as Single letter and returns the
+	 * corresponding DayofWeek for the letter
+	 * 
+	 * @param weekDay
+	 *            : Single Character representation of week day (eg. M)
+	 * @return DayOfWeek : Day of Week enumerator
+	 */
+	private static DayOfWeek getDayofWeek(String weekday) {
+		DayOfWeek weekDay;
+		switch (weekday) {
+		case "M":
+			weekDay = DayOfWeek.valueOf("MONDAY");
+			break;
+		case "T":
+			weekDay = DayOfWeek.valueOf("TUESDAY");
+			break;
+		case "W":
+			weekDay = DayOfWeek.valueOf("WEDNESDAY");
+			break;
+		case "R":
+			weekDay = DayOfWeek.valueOf("THURSDAY");
+			break;
+		case "F":
+			weekDay = DayOfWeek.valueOf("FRIDAY");
+			break;
+		default:
+			weekDay = null;
+			break;
+		}
+		return weekDay;
+	}
+}

@@ -1,0 +1,155 @@
+package edu.udel.cis.taschd.gen;
+
+import java.util.ArrayList;
+import edu.udel.cis.taschd.assign.Assignment;
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Represents a generator tool for a {@link CourseAssistantPool} and a 
+ * set of {@link CourseInstance}s. A course assistant pool is a set of 
+ * course assistants available for a given term. A course instance ArrayList
+ * is a set of course instances available for a given term.
+ *
+ * @author nikhil
+ * @author matthew
+ * @author yiliu
+ */
+public class ScoreTable {
+	private Assignment assign;
+	private CourseAssistantPool cap;
+	private CourseInstancePool cip; // course instance pool
+	private ArrayList<ArrayList<Double>> scoreTable;
+	int capSize = 0;
+	int cipSize = 0;
+	
+	public ScoreTable(CourseAssistantPool cap, CourseInstancePool cip) {
+		this.cap = cap;
+		this.cip = cip;
+		this.capSize = cap.getSize();
+		this.cipSize = cip.getSize();
+		this.scoreTable = new ArrayList<ArrayList<Double>>();				
+		this.assign = new Assignment();	
+		this.fillTable();
+	}
+	
+	/**
+	 * Create a method for filling in the empty "table" 
+	 * @param cou Course object in {@link Course}
+	 * @param sec Section object in {@link Section}
+	 * @param ca CourseAssistant object in {@link CourseAssistant}
+	 * @return double double arrayList with computed scores for each CA to each course 
+	 */
+	private void fillTable() {
+		
+		int j = 0;
+		int i = 0;
+		double finalScore = 0;
+		double skillScore, wtpsScore;
+		double[] temp = new double[capSize];
+		ArrayList<ArrayList<Double>> table = new ArrayList<ArrayList<Double>>();
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+		
+		
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+			
+			courseSkills = ci.getCourse().getSkills();
+			System.out.println("skill");
+			System.out.println(courseSkills.toString());
+			
+			for(Section sec : ci.getSections()) {
+				ArrayList<Double> secCa = new ArrayList<Double>();
+				sectionSchedule = sec.getSchedule();
+						for (CourseAssistant ca : cap.getCourseAssistantSet()) {
+							System.out.println(ca.toString());
+							System.out.println(ca.getPossessedSkillset().toString());
+							
+						    skillScore = courseSkills.skillScore(ca.getPossessedSkillset()); 
+							wtpsScore =  sectionSchedule.wtpsScore(ca.getWtps());
+							
+							if(!sec.isMtac())
+								wtpsScore = 1.0; // I think this should be included in wtps scor, but deal with it later---Yi
+							
+							//1. graduate
+							//2. consequetive sections.
+							//3. 
+							int graduateWeight = 0;
+							if (!ca.getGraduateStudent()) {
+								 int courseCode = Integer.parseInt(ci.getCourse().getCourseCode());
+								 if (courseCode >= 600) {
+									 graduateWeight = 10;
+								 }
+							}
+							
+							
+							finalScore = 2 - skillScore * wtpsScore + graduateWeight;
+							
+							secCa.add(finalScore);	
+							if (capSize < cipSize) {
+								secCa.add(finalScore);
+							}
+							i++;
+							
+							System.out.println(finalScore);
+							
+						}
+						
+						System.out.println(secCa.toString());
+						for(int k = 0; k< sec.getNumOfTA();k++) { ///this can be a problem in the future.
+						    table.add(secCa);
+						}
+						
+						i = 0;
+						System.out.println("---------------------------");
+			}
+			
+			
+		}
+		System.out.println(table.toString());
+		int rol = table.size();
+		int col = table.get(0).size();
+
+		
+		if (rol< col) {
+			for (int ii = 0; ii < col - rol; ii ++) {
+				ArrayList<Double> ghostSection = new ArrayList<Double>();
+				for (int jj = 0; jj <col; jj ++) {
+				    ghostSection.add(0.0);
+				}
+				table.add(ghostSection);
+			}
+		}
+	
+		this.scoreTable = table;
+			
+	}
+	
+	public ArrayList<ArrayList<Double>> getTable(){
+		return scoreTable;
+	}
+	public double[][] tableTo2DArray(){
+		int a = scoreTable.size();
+		double [][] arrayTable = new double [a][a] ;
+		for (int i = 0; i < a; i ++) {
+			for (int j = 0; j < a; j ++) {
+				arrayTable[i][j] = scoreTable.get(i).get(j);
+			}
+			
+			
+		}
+		return arrayTable;		
+		
+	}
+	
+	
+	 
+	
+	
+}

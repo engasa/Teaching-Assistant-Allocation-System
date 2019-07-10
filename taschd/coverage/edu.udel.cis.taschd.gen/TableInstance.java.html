@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TableInstance.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.gen</a> &gt; <span class="el_source">TableInstance.java</span></div><h1>TableInstance.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.gen;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.course.CourseInstance;
+
+/**
+ * TableInstance is an object for storing information for a {@link ScoreTable}
+ * Each store table will store the information of {@link CourseAssistant}
+ * {@link CourseInstance} {@link Section} and rows and columns in the ScoreTable
+ * By using this table, we can quick access result in {@link ScoreTable} for
+ * example: {@link ScoreTable} will give a final result of indexes. We can
+ * obtaining the pairing section and course assistance by using indexes and
+ * tableInstance.
+ * 
+ * @author yiliu
+ */
+public class TableInstance {
+
+	private int col; // column in the score table
+
+	private int row; // row in score table
+
+	private CourseAssistant ca; // which CourseAssistant is the column representing
+	private Section sec; // which Section is the row representing
+	private CourseInstance course; // which course is this cell representing
+	private double score; // the score of this CourseAssistant and this Section
+
+	/**
+	 * Constructs a new {@link TableInstance} objects with given row number, column
+	 * number, courseAssistant, course, score.
+	 * 
+	 * 
+	 * @param row             a integer which representing the row number in
+	 *                        {@link ScoreTable}.
+	 * @param col             a integer which representing the row number in
+	 *                        {@link ScoreTable}.
+	 * 
+	 * @param CourseAssistant a courseAsssistant for pairing
+	 *                        {@link CourseAssistant}.
+	 * @param Section         a Section for pairing {@link Section}.
+	 * @param CourseInstance  the course instance of the section
+	 *                        {@link CourseInstance}.
+	 * @param                 double a double which is the score/cost/weight to
+	 *                        assessing the section pairing with the
+	 *                        courseAssisstant .
+	 */
+<span class="fc" id="L49">	public TableInstance(int row, int col, CourseAssistant ca, Section sec, CourseInstance course, double score) {</span>
+<span class="fc" id="L50">		this.col = col;</span>
+<span class="fc" id="L51">		this.row = row;</span>
+<span class="fc" id="L52">		this.ca = ca;</span>
+<span class="fc" id="L53">		this.sec = sec;</span>
+<span class="fc" id="L54">		this.course = course;</span>
+<span class="fc" id="L55">		this.score = score;</span>
+
+<span class="fc" id="L57">	}</span>
+
+	/**
+	 * A getter to get the course.
+	 *
+	 * @return course.
+	 */
+	public CourseInstance getCourse() {
+<span class="fc" id="L65">		return course;</span>
+	}
+
+	/**
+	 * A getter to get the column.
+	 *
+	 * @return col.
+	 */
+	public int getCol() {
+<span class="nc" id="L74">		return col;</span>
+	}
+
+	/**
+	 * A getter to get the row.
+	 *
+	 * @return row.
+	 */
+	public int getRow() {
+<span class="nc" id="L83">		return row;</span>
+	}
+
+	/**
+	 * A getter to get the CourseAssistant.
+	 *
+	 * @return CourseAssistant.
+	 */
+	public CourseAssistant getCa() {
+<span class="fc" id="L92">		return ca;</span>
+	}
+
+	/**
+	 * A getter to get the Section.
+	 *
+	 * @return Section.
+	 */
+	public Section getSec() {
+<span class="fc" id="L101">		return sec;</span>
+	}
+
+	/**
+	 * A getter to get the score.
+	 *
+	 * @return score.
+	 */
+	public double getScore() {
+<span class="nc" id="L110">		return score;</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

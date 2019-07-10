@@ -1,0 +1,827 @@
+package edu.udel.cis.taschd.gen;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.PrintStream;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.Test;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Tests of the {@link HungarianSolver} class.
+ *
+ * @author Yi Liu
+ */
+public class HugarianSolverTest {
+	public static PrintStream out = System.out;
+	/**
+	 * CourseAssistant ID:888888888; FirstName: Yi; LastName: Liu; Email:y@udel.edu
+	 * 
+	 */
+	public static CourseAssistant ca1 = new CourseAssistant(888888888);
+
+	/**
+	 * CourseAssistant ID:999999999; FirstName: Mike; LastName: D; Email:md@udel.edu
+	 * 
+	 */
+	public static CourseAssistant ca2 = new CourseAssistant(999999999);
+
+	/**
+	 * CourseAssistant ID:111111111; FirstName: John; LastName: Lenon;
+	 * Email:JL@udel.edu
+	 * 
+	 */
+
+	public static CourseAssistant ca3 = new CourseAssistant(111111111);
+
+	/**
+	 * CourseAssistant ID:111111111; FirstName: John; LastName: Lenon;
+	 * Email:JL@udel.edu
+	 * 
+	 */
+
+	public static CourseAssistant ca4 = new CourseAssistant(1234567);
+	/**
+	 * CISC 675 Software Engineering Spring 2019
+	 */
+
+	public static CourseAssistant ca5 = new CourseAssistant(232333333);
+	/**
+	 * CISC 675 Software Engineering Spring 2019
+	 */
+	public static CourseInstance ci1 = new CourseInstance(new Course("CISC", "675", "Software Engineering"), 2191);
+
+	/**
+	 * CISC 675 Software Engineering Fall 2019
+	 */
+	public static CourseInstance ci2 = new CourseInstance(new Course("CISC", "642", "Intro to Computer Vision"), 2198);
+
+	CourseAssistantPool pool1 = new CourseAssistantPool();
+
+	@Test
+	public void scoreTableTest() {
+		System.out.println("--------------------------------------");
+		System.out.println("------------TEST1------------");
+		// ca1
+		// make a new skil set
+		SkillSet skillSet1 = new SkillSet(new HashSet<Skill>());
+		skillSet1.addSkill(new Skill("Java"));
+		skillSet1.addSkill(new Skill("Python"));
+		skillSet1.addSkill(new Skill("Javascript"));
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti1 = new ArrayList<TimeInterval>();
+		TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+		cti1.add(ti1);
+		cti1.add(ti2);
+
+		// Add Weekly Time Schedule Specification
+		WeeklySchedule w1 = new WeeklySchedule(cti1);
+
+		Set<CourseInstance> caOneCourseEnrolled = new HashSet<CourseInstance>();
+		caOneCourseEnrolled.add(ci1);
+		caOneCourseEnrolled.add(ci2);
+
+		// set First Name, Last Name
+		ca1.setFirstName("Yi");
+		ca1.setLastName("Liu");
+		ca1.setEmailAddress("y@udel.edu");
+		ca1.setPossessedSkillset(skillSet1);
+		ca1.setWtps(w1);
+		ca1.setCourseEnrolled(caOneCourseEnrolled);
+		ca1.setGraduateStudent(true);
+
+		// ca2
+		// make a new skill set
+		SkillSet skillSet2 = new SkillSet(new HashSet<Skill>());
+		skillSet2.addSkill(new Skill("Java"));
+		skillSet2.addSkill(new Skill("Python"));
+		skillSet2.addSkill(new Skill("Matlab"));
+
+		SkillSet skillSet5 = new SkillSet(new HashSet<Skill>());
+		skillSet5.addSkill(new Skill("Perl"));
+		skillSet5.addSkill(new Skill("CSS"));
+		skillSet5.addSkill(new Skill("HTML"));
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+		TimeInterval ti3 = new TimeInterval(DayOfWeek.MONDAY, 11, 15, 75);
+		TimeInterval ti4 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		cti1.add(ti3);
+		cti1.add(ti4);
+
+		// Add Weekly Time Schedule Specification
+		WeeklySchedule w2 = new WeeklySchedule(cti2);
+
+		// Course Enrrolled
+		CourseInstance ci3 = new CourseInstance(new Course("CISC", "220", "Datastrucutre"), 1234);
+		CourseInstance ci4 = new CourseInstance(new Course("CISC", "677", "Ghost Course"), 7777);
+
+		Set<CourseInstance> caOneCourseEnrolled2 = new HashSet<CourseInstance>();
+		caOneCourseEnrolled2.add(ci1);
+		caOneCourseEnrolled2.add(ci3);
+		caOneCourseEnrolled2.add(ci4);
+
+		// set First Name, Last Name
+		ca2.setFirstName("Mike");
+		ca2.setLastName("D");
+		ca2.setEmailAddress("md@udel.edu");
+		ca2.setPossessedSkillset(skillSet2);
+		ca2.setWtps(w2);
+		ca2.setCourseEnrolled(caOneCourseEnrolled2);
+		ca2.setGraduateStudent(false);
+
+		// ca3
+		// make a new skill set
+		SkillSet skillSet3 = new SkillSet(new HashSet<Skill>());
+		skillSet3.addSkill(new Skill("Java"));
+		skillSet3.addSkill(new Skill("Python"));
+		skillSet3.addSkill(new Skill("Matlab"));
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti3 = new ArrayList<TimeInterval>();
+		TimeInterval ti5 = new TimeInterval(DayOfWeek.MONDAY, 11, 15, 75);
+		TimeInterval ti6 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		cti3.add(ti5);
+		cti3.add(ti6);
+
+		// Add Weekly Time Schedule Specification
+		WeeklySchedule w3 = new WeeklySchedule(cti2);
+
+		// Course Enrrolled
+		CourseInstance ci5 = new CourseInstance(new Course("CISC", "555", "Hard Math"), 5555);
+		CourseInstance ci6 = new CourseInstance(new Course("CISC", "233", "Artificial Intelegence"), 4444);
+
+		Set<CourseInstance> caOneCourseEnrolled3 = new HashSet<CourseInstance>();
+		caOneCourseEnrolled2.add(ci5);
+		caOneCourseEnrolled2.add(ci6);
+		caOneCourseEnrolled2.add(ci4);
+
+		// set First Name, Last Name
+		ca3.setFirstName("J");
+		ca3.setLastName("l4");
+		ca3.setEmailAddress("JL@udel.edu");
+		ca3.setPossessedSkillset(skillSet3);
+		ca3.setWtps(w3);
+		ca3.setCourseEnrolled(caOneCourseEnrolled3);
+		ca3.setGraduateStudent(true);
+
+		ca4.setPossessedSkillset(skillSet2);
+		ca4.setCourseEnrolled(caOneCourseEnrolled3);
+		ca4.setGraduateStudent(true);
+		ca4.setFirstName("JJ");
+		ca4.setLastName("l46");
+		ca4.setEmailAddress("JL@udel.edu");
+		ca4.setPossessedSkillset(skillSet3);
+
+		ca5.setGraduateStudent(true);
+		ca5.setFirstName("F5");
+		ca5.setLastName("l5");
+		ca5.setEmailAddress("F5@udel.edu");
+		ca5.setPossessedSkillset(skillSet5);
+
+		pool1.addCourseAssistant(ca1);
+		pool1.addCourseAssistant(ca2);
+		pool1.addCourseAssistant(ca3);
+		pool1.addCourseAssistant(ca4);
+		pool1.addCourseAssistant(ca5);
+
+		/////////////////////////////////////////////////////////////////
+
+		// Add sections to Course Instance
+		ci1.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1)));
+		ci1.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1))); // this
+																												// will
+																												// not
+																												// be
+																												// added
+																												// as it
+																												// is
+																												// duplicated
+		ci1.addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule(cti2)));
+
+		ci1.getCourse().setSkills(skillSet1);
+
+		ci2.getCourse().getSkills().addSkill(new Skill("Perl"));
+		ci2.getCourse().getSkills().addSkill(new Skill("CSS"));
+		ci2.getCourse().getSkills().addSkill(new Skill("HTML"));
+		out.println(ci1);
+
+		// Test Course Instance
+		assertEquals(ci1.toString(), "CISC 675 - 010 020L");
+
+		// Create Lecture Sections WTPS for CISC 642 Fall 2018
+		cti3.add(ti4);
+		cti3.add(ti5);
+
+		// Add sections to Course Instance
+		ci2.addSection(new Section("", "010", "Kambhamettu,Chandra", 19, 20, "MEM110", new WeeklySchedule(cti3)));
+
+		// Test Course Instance
+		out.println(ci2);
+		assertEquals(ci2.toString(), "CISC 642 - 010");
+
+		ci3.addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule(cti2)));
+		ci3.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1)));
+
+		for (Section sec : ci1.getSections()) {
+			sec.setNumOfTA(1);
+		}
+		for (Section sec : ci2.getSections()) {
+			sec.setNumOfTA(1);
+		}
+
+		CourseInstancePool ciPool = new CourseInstancePool();
+		ciPool.addCourseInstancetoPool(ci1);
+		ciPool.addCourseInstancetoPool(ci2);
+//	    System.out.println(pool1.getSize());
+//	    System.out.println(ciPool.getSize());
+//	    System.out.println(ci1.getSections());
+
+		HugarianSolver scoreT1 = new HugarianSolver(pool1, ciPool);
+		//ArrayList<ArrayList<Double>> testOne = scoreT1.getTable();
+
+		//System.out.println(testOne.size());
+		//for (int i = 0; i < testOne.size(); i++) {
+		//	System.out.println(testOne.get(i).toString());
+		//}
+
+		//System.out.println("Bipartite Matching: " + Arrays.toString(scoreT1.getResult()));
+		scoreT1.assign().displayAll(System.out);
+
+	}
+	
+	@Test
+	public void numOfSectionsMorethanTaTest() {
+		System.out.println("--------------------------------------");
+		System.out.println("------------TEST1------------");
+		// ca1
+		// make a new skil set
+		SkillSet skillSet1 = new SkillSet(new HashSet<Skill>());
+		skillSet1.addSkill(new Skill("Java"));
+		skillSet1.addSkill(new Skill("Python"));
+		skillSet1.addSkill(new Skill("Javascript"));
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti1 = new ArrayList<TimeInterval>();
+		TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+		cti1.add(ti1);
+		cti1.add(ti2);
+
+		// Add Weekly Time Schedule Specification
+		WeeklySchedule w1 = new WeeklySchedule(cti1);
+
+		Set<CourseInstance> caOneCourseEnrolled = new HashSet<CourseInstance>();
+		caOneCourseEnrolled.add(ci1);
+		caOneCourseEnrolled.add(ci2);
+
+		// set First Name, Last Name
+		ca1.setFirstName("Yi");
+		ca1.setLastName("Liu");
+		ca1.setEmailAddress("y@udel.edu");
+		ca1.setPossessedSkillset(skillSet1);
+		ca1.setWtps(w1);
+		ca1.setCourseEnrolled(caOneCourseEnrolled);
+		ca1.setGraduateStudent(true);
+
+		// ca2
+		// make a new skill set
+		SkillSet skillSet2 = new SkillSet(new HashSet<Skill>());
+		skillSet2.addSkill(new Skill("Java"));
+		skillSet2.addSkill(new Skill("Python"));
+		skillSet2.addSkill(new Skill("Matlab"));
+
+		SkillSet skillSet5 = new SkillSet(new HashSet<Skill>());
+		skillSet5.addSkill(new Skill("Perl"));
+		skillSet5.addSkill(new Skill("CSS"));
+		skillSet5.addSkill(new Skill("HTML"));
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+		TimeInterval ti3 = new TimeInterval(DayOfWeek.MONDAY, 11, 15, 75);
+		TimeInterval ti4 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		cti1.add(ti3);
+		cti1.add(ti4);
+
+		// Add Weekly Time Schedule Specification
+		WeeklySchedule w2 = new WeeklySchedule(cti2);
+
+		// Course Enrrolled
+		CourseInstance ci3 = new CourseInstance(new Course("CISC", "220", "Datastrucutre"), 1234);
+		CourseInstance ci4 = new CourseInstance(new Course("CISC", "677", "Ghost Course"), 7777);
+
+		Set<CourseInstance> caOneCourseEnrolled2 = new HashSet<CourseInstance>();
+		caOneCourseEnrolled2.add(ci1);
+		caOneCourseEnrolled2.add(ci3);
+		caOneCourseEnrolled2.add(ci4);
+
+		// set First Name, Last Name
+		ca2.setFirstName("Mike");
+		ca2.setLastName("D");
+		ca2.setEmailAddress("md@udel.edu");
+		ca2.setPossessedSkillset(skillSet2);
+		ca2.setWtps(w2);
+		ca2.setCourseEnrolled(caOneCourseEnrolled2);
+		ca2.setGraduateStudent(false);
+
+		// ca3
+		// make a new skill set
+		SkillSet skillSet3 = new SkillSet(new HashSet<Skill>());
+		skillSet3.addSkill(new Skill("Java"));
+		skillSet3.addSkill(new Skill("Python"));
+		skillSet3.addSkill(new Skill("Matlab"));
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti3 = new ArrayList<TimeInterval>();
+		TimeInterval ti5 = new TimeInterval(DayOfWeek.MONDAY, 11, 15, 75);
+		TimeInterval ti6 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		cti3.add(ti5);
+		cti3.add(ti6);
+
+		// Add Weekly Time Schedule Specification
+		WeeklySchedule w3 = new WeeklySchedule(cti2);
+
+		// Course Enrrolled
+		CourseInstance ci5 = new CourseInstance(new Course("CISC", "555", "Hard Math"), 5555);
+		CourseInstance ci6 = new CourseInstance(new Course("CISC", "233", "Artificial Intelegence"), 4444);
+
+		Set<CourseInstance> caOneCourseEnrolled3 = new HashSet<CourseInstance>();
+		caOneCourseEnrolled2.add(ci5);
+		caOneCourseEnrolled2.add(ci6);
+		caOneCourseEnrolled2.add(ci4);
+
+		// set First Name, Last Name
+		ca3.setFirstName("J");
+		ca3.setLastName("l4");
+		ca3.setEmailAddress("JL@udel.edu");
+		ca3.setPossessedSkillset(skillSet3);
+		ca3.setWtps(w3);
+		ca3.setCourseEnrolled(caOneCourseEnrolled3);
+		ca3.setGraduateStudent(true);
+
+		ca4.setPossessedSkillset(skillSet2);
+		ca4.setCourseEnrolled(caOneCourseEnrolled3);
+		ca4.setGraduateStudent(true);
+		ca4.setFirstName("JJ");
+		ca4.setLastName("l46");
+		ca4.setEmailAddress("JL@udel.edu");
+		ca4.setPossessedSkillset(skillSet3);
+
+		ca5.setGraduateStudent(true);
+		ca5.setFirstName("F5");
+		ca5.setLastName("l5");
+		ca5.setEmailAddress("F5@udel.edu");
+		ca5.setPossessedSkillset(skillSet5);
+
+		pool1.addCourseAssistant(ca1);
+		pool1.addCourseAssistant(ca2);
+
+
+		/////////////////////////////////////////////////////////////////
+
+		// Add sections to Course Instance
+		ci1.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1)));
+		ci1.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1))); // this
+																												// will
+																												// not
+																												// be
+																												// added
+																												// as it
+																												// is
+																												// duplicated
+		ci1.addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule(cti2)));
+
+		ci1.getCourse().setSkills(skillSet1);
+
+		ci2.getCourse().getSkills().addSkill(new Skill("Perl"));
+		ci2.getCourse().getSkills().addSkill(new Skill("CSS"));
+		ci2.getCourse().getSkills().addSkill(new Skill("HTML"));
+		out.println(ci1);
+
+		// Test Course Instance
+		//assertEquals(ci1.toString(), "CISC 675 - 010 020L");
+
+		// Create Lecture Sections WTPS for CISC 642 Fall 2018
+		cti3.add(ti4);
+		cti3.add(ti5);
+
+		// Add sections to Course Instance
+		ci2.addSection(new Section("", "010", "Kambhamettu,Chandra", 19, 20, "MEM110", new WeeklySchedule(cti3)));
+
+		// Test Course Instance
+		out.println(ci2);
+		//assertEquals(ci2.toString(), "CISC 642 - 010");
+
+		ci3.addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule(cti2)));
+		ci3.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1)));
+
+		for (Section sec : ci1.getSections()) {
+			sec.setNumOfTA(1);
+		}
+		for (Section sec : ci2.getSections()) {
+			sec.setNumOfTA(1);
+		}
+
+		CourseInstancePool ciPool = new CourseInstancePool();
+		ciPool.addCourseInstancetoPool(ci1);
+		ciPool.addCourseInstancetoPool(ci2);
+//	    System.out.println(pool1.getSize());
+//	    System.out.println(ciPool.getSize());
+//	    System.out.println(ci1.getSections());
+
+		HugarianSolver scoreT1 = new HugarianSolver(pool1, ciPool);
+		// ArrayList<ArrayList<Double>> testOne = scoreT1.getTable();
+
+//		System.out.println(testOne.size());
+//		for (int i = 0; i < testOne.size(); i++) {
+//			System.out.println(testOne.get(i).toString());
+//		}
+
+	//	System.out.println("Bipartite Matching: " + Arrays.toString(scoreT1.getResult()));
+		scoreT1.assign().displayAll(System.out);
+
+	}
+
+	@Test
+	public void test() {
+		System.out.println("--------------------------------------");
+		System.out.println("------------TEST12------------");
+		// Create a Course Assistant Pool object
+		CourseAssistant ca1 = new CourseAssistant(3344556);
+		CourseAssistant ca2 = new CourseAssistant(2938405);
+		CourseAssistant ca3 = new CourseAssistant(4445556);
+		CourseAssistant ca4 = new CourseAssistant(1111222);
+		CourseAssistant ca5 = new CourseAssistant(4582948);
+
+		////////////////// CA 1 //////////////////////////////////////
+		ca1.setFirstName("Barack");
+		ca1.setLastName("Obama");
+		ca1.setEmailAddress("yeswecan@udel.edu");
+		SkillSet skillSet1 = new SkillSet();
+		skillSet1.addSkill(new Skill("SQL"));
+		skillSet1.addSkill(new Skill("Swift"));
+		skillSet1.addSkill(new Skill("Java"));
+		skillSet1.addSkill(new Skill("Bash"));
+		skillSet1.addSkill(new Skill(".NET"));
+		skillSet1.addSkill(new Skill("C+"));
+		ca1.setPossessedSkillset(skillSet1);
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+		TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+		TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+		TimeInterval ti3 = new TimeInterval(DayOfWeek.FRIDAY, 11, 0, 75);
+		cti2.add(ti1);
+		cti2.add(ti2);
+		cti2.add(ti3);
+		WeeklySchedule w1 = new WeeklySchedule(cti2);
+		ca1.setWtps(w1);
+		ca1.setGraduateStudent(true);
+		////////////////// CA 2 //////////////////////////////////////
+		// set First Name, Last Name
+		ca2.setFirstName("Benjamin");
+		ca2.setLastName("Franklin");
+		ca2.setEmailAddress("bfrank@udel.edu");
+		SkillSet skillSet2 = new SkillSet();
+		skillSet2.addSkill(new Skill("OpenCV"));
+		skillSet2.addSkill(new Skill("Python"));
+		skillSet2.addSkill(new Skill("ASP.NET"));
+		ca2.setPossessedSkillset(skillSet2);
+
+		// Create WTPS for CourseAssisstant2
+		Collection<TimeInterval> cta2 = new ArrayList<TimeInterval>();
+		TimeInterval ta1 = new TimeInterval(DayOfWeek.TUESDAY, 12, 30, 50);
+		TimeInterval ta2 = new TimeInterval(DayOfWeek.MONDAY, 12, 20, 50);
+		TimeInterval ta4 = new TimeInterval(DayOfWeek.WEDNESDAY, 12, 20, 50);
+		TimeInterval ta3 = new TimeInterval(DayOfWeek.FRIDAY, 12, 20, 50);
+		TimeInterval ta5 = new TimeInterval(DayOfWeek.MONDAY, 14, 30, 50);
+		TimeInterval ta6 = new TimeInterval(DayOfWeek.WEDNESDAY, 14, 30, 50);
+		TimeInterval ta7 = new TimeInterval(DayOfWeek.FRIDAY, 14, 30, 50);
+		cta2.add(ta1);
+		cta2.add(ta2);
+		cta2.add(ta3);
+		cta2.add(ta4);
+		cta2.add(ta5);
+		cta2.add(ta6);
+		cta2.add(ta7);
+		WeeklySchedule w2 = new WeeklySchedule(cta2);
+		ca2.setWtps(w2);
+		ca2.setGraduateStudent(true);
+		////////////////// CA 3 //////////////////////////////////////
+		// set First Name, Last Name
+		ca3.setFirstName("Bill");
+		ca3.setLastName("Clinton");
+		ca3.setEmailAddress("billclinton@udel.edu");
+		SkillSet skillSet3 = new SkillSet();
+		skillSet3.addSkill(new Skill("Java"));
+		skillSet3.addSkill(new Skill("Clojure"));
+		ca3.setPossessedSkillset(skillSet3);
+
+		// Create WTPS for CourseAssisstant3
+		Collection<TimeInterval> ctb2 = new ArrayList<TimeInterval>();
+		TimeInterval tb1 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+		TimeInterval tb2 = new TimeInterval(DayOfWeek.THURSDAY, 15, 30, 75);
+		TimeInterval tb4 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+		TimeInterval tb3 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+		TimeInterval tb5 = new TimeInterval(DayOfWeek.TUESDAY, 17, 0, 75);
+		TimeInterval tb6 = new TimeInterval(DayOfWeek.THURSDAY, 17, 0, 75);
+		ctb2.add(tb1);
+		ctb2.add(tb2);
+		ctb2.add(tb4);
+		ctb2.add(tb3);
+		ctb2.add(tb5);
+		ctb2.add(tb6);
+		WeeklySchedule x2 = new WeeklySchedule(ctb2);
+		ca3.setWtps(x2);
+		ca3.setGraduateStudent(true);
+		////////////////// CA 4 //////////////////////////////////////
+		// set First Name, Last Name
+		ca4.setFirstName("Denzel");
+		ca4.setLastName("Washington");
+		ca4.setEmailAddress("trainingday@udel.edu");
+		SkillSet skillSet4 = new SkillSet();
+		skillSet4.addSkill(new Skill("Java"));
+		skillSet4.addSkill(new Skill("Alloy"));
+		skillSet4.addSkill(new Skill("Perl"));
+		ca4.setPossessedSkillset(skillSet4);
+
+		// Create WTPS for CourseAssisstant4
+		Collection<TimeInterval> ctc2 = new ArrayList<TimeInterval>();
+		TimeInterval tc1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+		TimeInterval tc2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+		TimeInterval tc4 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+		TimeInterval tc5 = new TimeInterval(DayOfWeek.TUESDAY, 17, 20, 75);
+		TimeInterval tc6 = new TimeInterval(DayOfWeek.THURSDAY, 17, 20, 75);
+		TimeInterval tc7 = new TimeInterval(DayOfWeek.MONDAY, 9, 5, 50);
+		TimeInterval tc8 = new TimeInterval(DayOfWeek.WEDNESDAY, 9, 5, 50);
+		TimeInterval tc9 = new TimeInterval(DayOfWeek.FRIDAY, 9, 5, 50);
+		TimeInterval tc3 = new TimeInterval(DayOfWeek.FRIDAY, 12, 20, 50);
+		ctc2.add(tc1);
+		ctc2.add(tc2);
+		ctc2.add(tc4);
+		ctc2.add(tc5);
+		ctc2.add(tc6);
+		ctc2.add(tc7);
+		ctc2.add(tc8);
+		ctc2.add(tc9);
+		ctc2.add(tc3);
+		WeeklySchedule v2 = new WeeklySchedule(ctc2);
+		ca4.setWtps(v2);
+		ca4.setGraduateStudent(false);
+		////////////////// CA 5 //////////////////////////////////////
+		// set First Name, Last Name
+		ca5.setFirstName("Donald");
+		ca5.setLastName("Duck");
+		ca5.setEmailAddress("dduck@udel.edu");
+		SkillSet skillSet5 = new SkillSet();
+		skillSet5.addSkill(new Skill("Java"));
+		skillSet5.addSkill(new Skill("Python"));
+		skillSet5.addSkill(new Skill("PHP"));
+		skillSet5.addSkill(new Skill("Ruby"));
+		skillSet5.addSkill(new Skill("Pel"));
+		skillSet5.addSkill(new Skill("C"));
+		skillSet5.addSkill(new Skill("Fortran"));
+		ca4.setPossessedSkillset(skillSet5);
+
+		// Create WTPS for CourseAssisstant5
+		Collection<TimeInterval> cxc2 = new ArrayList<TimeInterval>();
+		TimeInterval zc1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+		TimeInterval zc2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+		TimeInterval zc4 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+		TimeInterval zc7 = new TimeInterval(DayOfWeek.MONDAY, 8, 40, 75);
+		TimeInterval zc9 = new TimeInterval(DayOfWeek.FRIDAY, 8, 40, 75);
+		TimeInterval zc3 = new TimeInterval(DayOfWeek.TUESDAY, 9, 30, 75);
+		TimeInterval zc8 = new TimeInterval(DayOfWeek.FRIDAY, 10, 10, 115);
+		cxc2.add(zc1);
+		cxc2.add(zc2);
+		cxc2.add(zc4);
+		cxc2.add(zc7);
+		cxc2.add(zc9);
+		cxc2.add(zc3);
+		cxc2.add(zc8);
+		WeeklySchedule z2 = new WeeklySchedule(cxc2);
+		ca5.setWtps(z2);
+		ca5.setGraduateStudent(false);
+
+		CourseAssistantPool cap = new CourseAssistantPool();
+		cap.addCourseAssistant(ca1);
+		cap.addCourseAssistant(ca2);
+		cap.addCourseAssistant(ca3);
+		cap.addCourseAssistant(ca4);
+		cap.addCourseAssistant(ca5);
+
+		System.out.println("Course Assistant Pool\n");
+		Iterable<CourseAssistant> i = cap.getCourseAssistantSet();
+		for (CourseAssistant c : i) {
+			c.display();
+			// System.out.println(c.getWtps().toString());
+			// System.out.println(c.toString());
+		}
+
+		////////////////// CI 1 //////////////////////////////////////
+		ArrayList<CourseInstance> pool1 = new ArrayList<>();
+		// Create WTPS for CourseAssisstant5
+		Collection<TimeInterval> emw1 = new ArrayList<TimeInterval>();
+		TimeInterval er2 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+		TimeInterval er3 = new TimeInterval(DayOfWeek.THURSDAY, 15, 30, 75);
+		emw1.add(er2);
+		emw1.add(er3);
+		pool1.add(new CourseInstance(new Course("CISC", "210", "Introduction to Systems Programming"), 2191));
+		Section s = new Section("Lec", "010", "Silber", 40, 40, "GOR208", new WeeklySchedule(emw1));
+		s.setMtac(true);
+		s.setNumOfLA(0);
+		s.setNumOfTA(1);
+		s.setTaAssigned(false);
+		pool1.get(0).addSection(s);
+
+		Collection<TimeInterval> emw2 = new ArrayList<TimeInterval>();
+		TimeInterval er4 = new TimeInterval(DayOfWeek.WEDNESDAY, 13, 25, 50);
+		emw2.add(er4);
+		Section s2 = new Section("L", "020", "Silber", 20, 20, "PRS101", new WeeklySchedule(emw2));
+		s2.setMtac(true);
+		s2.setNumOfLA(0);
+		s2.setNumOfTA(1);
+		s2.setTaAssigned(false);
+		s.setCorrespondingLab(s2);
+		s2.setCorrespondingLecture(s);
+		pool1.get(0).addSection(s2);
+
+		Collection<TimeInterval> emw3 = new ArrayList<TimeInterval>();
+		TimeInterval er6 = new TimeInterval(DayOfWeek.WEDNESDAY, 14, 30, 50);
+		emw3.add(er6);
+		Section s3 = new Section("L", "021", "Silber", 20, 20, "PRS101", new WeeklySchedule(emw3));
+		s3.setMtac(true);
+		s3.setNumOfLA(0);
+		s3.setNumOfTA(1);
+		s3.setCorrespondingLecture(s);
+		s3.setTaAssigned(false);
+		pool1.get(0).addSection(s3);
+		pool1.get(0).getCourse().getSkills().addSkill(new Skill("C"));
+		pool1.get(0).getCourse().getSkills().addSkill(new Skill("C++"));
+		pool1.get(0).setHasLab(true);
+
+		////////////////// CI 2 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "275", "Introduction to Software Engineering"), 2191));
+		Collection<TimeInterval> ss1 = new ArrayList<TimeInterval>();
+		TimeInterval e2 = new TimeInterval(DayOfWeek.TUESDAY, 9, 30, 75);
+		TimeInterval e3 = new TimeInterval(DayOfWeek.THURSDAY, 9, 30, 75);
+		TimeInterval e4 = new TimeInterval(DayOfWeek.WEDNESDAY, 17, 0, 120);
+		ss1.add(e2);
+		ss1.add(e3);
+		ss1.add(e4);
+
+		Section p = new Section("Lec", "010", "Harvey", 33, 40, "GOR117", new WeeklySchedule(ss1));
+		p.setMtac(true);
+		p.setNumOfLA(0);
+		p.setNumOfTA(1);
+		p.setMtac(true);
+		p.setTaAssigned(false);
+
+		pool1.get(1).addSection(p);
+		pool1.get(1).setHasLab(true);
+		pool1.get(1).getCourse().getSkills().addSkill(new Skill("Any"));
+
+		Collection<TimeInterval> tm = new ArrayList<TimeInterval>();
+		TimeInterval cc = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+		TimeInterval vv = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+		TimeInterval bb = new TimeInterval(DayOfWeek.WEDNESDAY, 17, 0, 120);
+		tm.add(cc);
+		tm.add(vv);
+		tm.add(bb);
+		Section p2 = new Section("Lec", "011", "Harvey", 38, 40, "GOR117", new WeeklySchedule(tm));
+		p2.setMtac(true);
+		p2.setNumOfLA(0);
+		p2.setNumOfTA(1);
+		p2.setTaAssigned(false);
+		pool1.get(1).addSection(p2);
+
+		////////////////// CI 3 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "303", "Automata Theory"), 2191));
+		Collection<TimeInterval> tt = new ArrayList<TimeInterval>();
+		TimeInterval ii = new TimeInterval(DayOfWeek.MONDAY, 10, 10, 50);
+		TimeInterval oo = new TimeInterval(DayOfWeek.WEDNESDAY, 10, 10, 50);
+		TimeInterval pp = new TimeInterval(DayOfWeek.FRIDAY, 10, 10, 50);
+		tt.add(ii);
+		tt.add(oo);
+		tt.add(pp);
+		Section d = new Section("Lec", "010", "Carberry", 43, 45, "ALS318", new WeeklySchedule(tt));
+		d.setMtac(true);
+		d.setNumOfLA(0);
+		d.setNumOfTA(1);
+		d.setMtac(true);
+		d.setTaAssigned(false);
+
+		pool1.get(2).addSection(d);
+		pool1.get(2).setHasLab(false);
+		pool1.get(2).getCourse().getSkills().addSkill(new Skill("601"));
+
+		////////////////// CI 4 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "304", "Logic and Programming"), 2191));
+		Collection<TimeInterval> hh = new ArrayList<TimeInterval>();
+		TimeInterval qw = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+		TimeInterval wq = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+		hh.add(qw);
+		hh.add(wq);
+		Section q = new Section("Lec", "010", "Carberry", 35, 35, "SHL120", new WeeklySchedule(hh));
+		q.setNumOfLA(0);
+		q.setNumOfTA(1);
+		q.setMtac(false);
+		q.setTaAssigned(false);
+
+		pool1.get(3).addSection(q);
+		pool1.get(3).setHasLab(false);
+		pool1.get(3).getCourse().getSkills().addSkill(new Skill("604"));
+
+		////////////////// CI 5 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "320", "Introduction to Algorithms"), 2191));
+		Collection<TimeInterval> gg = new ArrayList<TimeInterval>();
+		TimeInterval gh = new TimeInterval(DayOfWeek.TUESDAY, 12, 30, 75);
+		TimeInterval hg = new TimeInterval(DayOfWeek.THURSDAY, 12, 30, 75);
+		gg.add(gh);
+		gg.add(hg);
+		Section h = new Section("Lec", "010", "Bart", 43, 45, "GOR208", new WeeklySchedule(gg));
+		h.setMtac(true);
+		h.setNumOfLA(0);
+		h.setNumOfTA(1);
+		h.setTaAssigned(false);
+
+		pool1.get(4).addSection(q);
+		pool1.get(4).setHasLab(false);
+		pool1.get(4).getCourse().getSkills().addSkill(new Skill("621"));
+
+		////////////////// CI 6 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "437", "Database Systems"), 2191));
+		Collection<TimeInterval> asd = new ArrayList<TimeInterval>();
+		TimeInterval sd = new TimeInterval(DayOfWeek.TUESDAY, 16, 0, 75);
+		TimeInterval ds = new TimeInterval(DayOfWeek.THURSDAY, 16, 0, 75);
+		asd.add(sd);
+		asd.add(ds);
+		Section aa = new Section("Lec", "010", "Gibbons", 35, 35, "GOR102", new WeeklySchedule(asd));
+		aa.setMtac(true);
+		aa.setNumOfLA(0);
+		aa.setNumOfTA(1);
+		aa.setTaAssigned(false);
+
+		pool1.get(5).addSection(aa);
+		pool1.get(5).setHasLab(false);
+		pool1.get(5).getCourse().getSkills().addSkill(new Skill("637"));
+		pool1.get(5).getCourse().getSkills().addSkill(new Skill("SQL"));
+
+//		pool1.add(new CourseInstance(new Course("CISC", "442", "Introduction to Computer Vision"), 2191));
+//		pool1.add(new CourseInstance(new Course("CISC", "450", "Computer Networks I"), 2191));
+//		pool1.add(new CourseInstance(new Course("CISC", "675", "Software Engineering"), 2191));
+//		pool1.add(new CourseInstance(new Course("CISC", "642", "Intro to Computer Vision"), 2198));
+//		pool1.add(new CourseInstance(new Course("CISC", "681", "Artificial Intelligence"), 2191));
+
+//		pool1.get(0).addSection(new Section("Lec", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule()));
+//		pool1.get(0).addSection(new Section("Lec", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule()));
+//		pool1.get(0).addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule()));
+//		pool1.get(1).addSection(new Section("Lec", "010", "Kambhamettu,Chandra", 19, 20, "MEM110", new WeeklySchedule()));
+//		
+		// Create a Course Instance Pool object
+		System.out.println("\nCourse Instance Pool\n");
+		CourseInstancePool cip = new CourseInstancePool(pool1);
+		Iterable<CourseInstance> i2 = cip.getCourseInstanceSet();
+
+		for (CourseInstance c2 : i2) {
+			c2.display();
+//			System.out.println(c2.toString());
+
+			/*
+			 * for(Section sec : c2.getSections()) sec.setTaAssigned(false);
+			 */
+
+		}
+		HugarianSolver scoreT1 = new HugarianSolver(cap, cip);
+		// ArrayList<ArrayList<Double>> testOne = scoreT1.getTable();
+
+//		System.out.println(testOne.size());
+
+//		for (int count = 0; count < testOne.size(); count++) {
+//			System.out.println(testOne.get(count).toString());
+//		}
+
+		//System.out.println("Bipartite Matching: " + Arrays.toString(scoreT1.getResult()));
+		scoreT1.assign().displayAll(System.out);
+
+	}
+
+}

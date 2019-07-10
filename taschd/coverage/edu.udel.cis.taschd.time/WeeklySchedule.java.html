@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WeeklySchedule.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.time</a> &gt; <span class="el_source">WeeklySchedule.java</span></div><h1>WeeklySchedule.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.time;
+
+
+import java.text.DecimalFormat;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ListIterator;
+
+/**
+ * &lt;p&gt;
+ * An ordered sequence of {@link TimeInterval}s, representing the
+ * weekly-recurring times at which some recurring event happens. Examples
+ * include the meetings times of a class, or the times at which a student is
+ * busy.
+ * &lt;/p&gt;
+ * 
+ * &lt;p&gt;
+ * {@link WeeklySchedule} is a ordered {@link ArrayList} of {@link TimeInterval}s.
+ * &lt;/p&gt;
+ * 
+ * @author nikhil
+ * @author siegel
+ */
+public class WeeklySchedule {
+	/**
+	 * The sequence of {@link TimeInterval}s. They are ordered. The ordered is
+	 * determined by the method {@link TimeInterval#compareTo(TimeInterval)}.
+	 * That order is determined by first comparing start times. If start times
+	 * are equal, then the earlier end time comes first. The intervals may
+	 * overlap, but there are no duplicates.
+	 */
+	private ArrayList&lt;TimeInterval&gt; schedule;
+
+	/**
+	 * Constructs new empty {@link WeeklySchedule}.
+	 */
+<span class="fc" id="L38">	public WeeklySchedule() {</span>
+<span class="fc" id="L39">		schedule = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L40">	}</span>
+
+	/**
+	 * Constructs a new schedule from the given collection of
+	 * {@link TimeInterval}s. The new {@link WeeklySchedule} will not keep any
+	 * reference to the given {@link Collection}, hence subsequent modifications
+	 * to the collection will not affect the new schedule. The new schedule may
+	 * keep references to the member intervals of the collection, but since
+	 * {@link TimeInterval}s are immutable, this fact should be invisible to the
+	 * client. The internal representation may differ from the organization of
+	 * the collection, in that intervals will be ordered and duplicates removed.
+	 * The given {@link Collection} will not be modified.
+	 * 
+	 * @param intervals
+	 *                      any {@link Collection} of non-{@code null}
+	 *                      {@link TimeInterval}s that will be used to build the
+	 *                      new schedule.
+	 */
+	public WeeklySchedule(Collection&lt;TimeInterval&gt; intervals) {
+<span class="fc" id="L59">		this();</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">		for (TimeInterval ti : intervals)</span>
+<span class="fc" id="L61">			addInterval(ti);</span>
+<span class="fc" id="L62">	}</span>
+
+	/**
+	 * A getter to get the schedule as an iterable set of {@link TimeInterval}s.
+	 * 
+	 * @return the schedule which is a {@link WeeklySchedule}.
+	 */
+	public Iterable&lt;TimeInterval&gt; getSchedule() {
+<span class="fc" id="L70">		return schedule;</span>
+	}
+
+	/**
+	 * Adds a {@link TimeInterval} to this schedule. If the given
+	 * {@link TimeInterval} is already in this schedule, this is a no-op.
+	 * 
+	 * 
+	 * @param ti
+	 *               a non-{@code null} {@link TimeInterval} to add to this
+	 *               schedule.
+	 */
+	public void addInterval(TimeInterval ti) {
+		// Yes, this is a stupid linear-time insertion.
+		// But since these lists are expected to be very small, it should
+		// be a good solution. If they get big, someone can implement
+		// a binary search.
+<span class="fc" id="L87">		ListIterator&lt;TimeInterval&gt; iter = schedule.listIterator();</span>
+
+<span class="fc bfc" id="L89" title="All 2 branches covered.">		while (iter.hasNext()) {</span>
+<span class="fc" id="L90">			TimeInterval y = iter.next();</span>
+<span class="fc" id="L91">			int c = ti.compareTo(y);</span>
+
+<span class="fc bfc" id="L93" title="All 2 branches covered.">			if (c &gt; 0) // ti goes after y</span>
+<span class="fc" id="L94">				continue;</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">			if (c == 0)</span>
+<span class="fc" id="L96">				return;</span>
+			// ... x y z ...
+			// y is the first item in list that comes after ti. You want to
+			// insert just before y.
+<span class="fc" id="L100">			iter.previous();</span>
+<span class="fc" id="L101">			break;</span>
+		}
+<span class="fc" id="L103">		iter.add(ti);</span>
+<span class="fc" id="L104">	}</span>
+
+	/**
+	 * This method returns the combined score, based on the time difference between
+	 * an end point in one schedule and a start point in the other schedule, 
+	 * which is used as partial input arguments of Hungarian algorithm in 
+	 * {@link edu.udel.cis.taschd.gen.Generator} to get the optimum assignment. 
+	 * 
+	 * @param that
+	 *                 a non-{@code null} {@link WeeklySchedule} that will 
+     *                 be used to compute the score.
+	 *                 
+	 * @return a double value for computed score.
+	 */
+	public double wtpsScore(WeeklySchedule that) {
+		// TODO : implement me!
+		int timeDifference;
+<span class="fc" id="L121">		double score = 1.0;</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">		for (TimeInterval val1 : this.getSchedule()) {</span>
+			
+<span class="fc bfc" id="L124" title="All 2 branches covered.">			for (TimeInterval val2: that.getSchedule()){</span>
+				
+<span class="fc bfc" id="L126" title="All 2 branches covered.">				if(val2.getStartDayOfWeek().name().equals(val1.getEndDayOfWeek().name())) {</span>
+					
+<span class="fc bfc" id="L128" title="All 2 branches covered.">					if(val2.getEndTime()&gt;val1.getEndTime()) {</span>
+						
+<span class="fc" id="L130">						timeDifference = val2.getStartTime() - val1.getEndTime();</span>
+						 
+<span class="fc bfc" id="L132" title="All 2 branches covered.">						 if(timeDifference &lt;= 0)</span>
+<span class="fc" id="L133">							 score = score * 0;</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">						 else if(timeDifference &lt;15)</span>
+<span class="fc" id="L135">							 score = score * (timeDifference/15.0);</span>
+						 else
+<span class="fc" id="L137">							 score = score * 1;</span>
+					}
+					
+<span class="fc bfc" id="L140" title="All 2 branches covered.">					if(val2.getEndTime()&lt;val1.getStartTime()) {</span>
+						
+<span class="fc" id="L142">						timeDifference = val1.getStartTime() - val2.getEndTime();</span>
+						 
+<span class="pc bpc" id="L144" title="1 of 2 branches missed.">						 if(timeDifference &lt;= 0)</span>
+<span class="nc" id="L145">							 score = score * 0;</span>
+<span class="pc bpc" id="L146" title="1 of 2 branches missed.">						 else if(timeDifference &lt;15)</span>
+<span class="nc" id="L147">							 score = score * (timeDifference/15.0);</span>
+						 else
+<span class="fc" id="L149">							 score = score * 1;</span>
+					}
+					
+				}
+					
+			}
+				
+		}
+		
+<span class="fc" id="L158">		DecimalFormat df = new DecimalFormat(&quot;#.#&quot;);</span>
+               
+<span class="fc" id="L160">		return Double.parseDouble(df.format(score));	</span>
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 * Constructs a short human-readable representation of this time interval,
+	 * as a comma separated list, e.g., 
+	 * 
+	 * &lt;pre&gt;
+	 * &quot;MONDAY 11:00–12:15, TUESDAY 11:00–12:15&quot;.
+	 * &lt;/pre&gt;
+	 * 
+	 * @return a String representation of the schedule.
+	 */
+	public String toStringOld() {
+<span class="nc" id="L176">		StringBuffer result = new StringBuffer();</span>
+<span class="nc" id="L177">		boolean first = true;</span>
+
+<span class="nc bnc" id="L179" title="All 2 branches missed.">		for (TimeInterval ti : schedule) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">			if (first)</span>
+<span class="nc" id="L181">				first = false;</span>
+			else
+<span class="nc" id="L183">				result.append(&quot;, &quot;);</span>
+<span class="nc" id="L184">			result.append(ti.toString());</span>
+		}
+<span class="nc" id="L186">		return result.toString();</span>
+	}
+
+	/**
+	 * Constructs a short human-readable representation of this time interval,
+	 * as a comma and semicolon-separated list, e.g.,
+	 * 
+	 * &lt;pre&gt;
+	 * Tue 11:00–12:15, 12:20–13:25; Thu 12:20–13:25
+	 * &lt;/pre&gt;
+	 * 
+	 * @return string representation of the schedule
+	 */
+	public String toString() {
+<span class="fc" id="L200">		StringBuffer result = new StringBuffer();</span>
+<span class="fc" id="L201">		DayOfWeek currentDay = null;</span>
+
+<span class="fc bfc" id="L203" title="All 2 branches covered.">		for (TimeInterval ti : schedule) {</span>
+<span class="fc" id="L204">			DayOfWeek day = ti.getStartDayOfWeek();</span>
+
+<span class="fc bfc" id="L206" title="All 2 branches covered.">			if (currentDay == null) {</span>
+<span class="fc" id="L207">				currentDay = day;</span>
+<span class="fc" id="L208">				result.append(TimeInterval.shortName(day));</span>
+<span class="fc" id="L209">				result.append(&quot; &quot;);</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">			} else if (!currentDay.equals(day)) {</span>
+<span class="fc" id="L211">				result.append(&quot;; &quot;);</span>
+<span class="fc" id="L212">				currentDay = day;</span>
+<span class="fc" id="L213">				result.append(TimeInterval.shortName(day));</span>
+<span class="fc" id="L214">				result.append(&quot; &quot;);</span>
+<span class="fc" id="L215">			} else {</span>
+<span class="fc" id="L216">				result.append(&quot;, &quot;);</span>
+			}
+<span class="fc" id="L218">			result.append(ti.timeString());</span>
+		}
+<span class="fc" id="L220">		return result.toString();</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

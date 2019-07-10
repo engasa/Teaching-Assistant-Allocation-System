@@ -1,0 +1,180 @@
+package edu.udel.cis.taschd.time;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.PrintStream;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+
+import org.junit.Test;
+
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.skill.SkillTest;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Tests of the {@link WeeklySchedule} class. This is only the beginning. It
+ * must be greatly expanded
+ * 
+ * @author siegel
+ */
+public class WeeklyScheduleTest {
+	/**
+	 * These 5 weekly schedules are for testing generate assignment.
+	 */
+	public static ArrayList<TimeInterval> ati1 = new ArrayList<TimeInterval>(){{add(TimeIntervalTest.ti3);add(TimeIntervalTest.ti4);add(TimeIntervalTest.ti5);}};
+	public static WeeklySchedule tiM = new WeeklySchedule(ati1);
+	
+	public static ArrayList<TimeInterval> ati2 = new ArrayList<TimeInterval>(){{add(TimeIntervalTest.ti4);add(TimeIntervalTest.ti5);add(TimeIntervalTest.ti6);}};
+	public static WeeklySchedule tiN = new WeeklySchedule(ati2);
+	
+	public static ArrayList<TimeInterval> ati3 = new ArrayList<TimeInterval>(){{add(TimeIntervalTest.ti4);add(TimeIntervalTest.ti5);add(TimeIntervalTest.ti7);}};
+	public static WeeklySchedule tiYL = new WeeklySchedule(ati3);
+	
+	public static ArrayList<TimeInterval> ati4 = new ArrayList<TimeInterval>(){{add(TimeIntervalTest.ti4);add(TimeIntervalTest.ti5);add(TimeIntervalTest.ti8);add(TimeIntervalTest.ti9);add(TimeIntervalTest.ti10);}};
+	public static WeeklySchedule tiJZ = new WeeklySchedule(ati4);
+	
+	public static ArrayList<TimeInterval> ati5 = new ArrayList<TimeInterval>(){{add(TimeIntervalTest.ti4);add(TimeIntervalTest.ti5);add(TimeIntervalTest.ti11);add(TimeIntervalTest.ti12);}};
+	public static WeeklySchedule tiJY = new WeeklySchedule(ati5);
+
+	private static PrintStream out = System.out;
+
+	/**
+	 * Tuesday 11:00 AM - 12:15 PM.
+	 */
+	private static TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 0,
+			75);
+
+	/**
+	 * Tuesday 12:20 PM - 1:25 PM.
+	 */
+	private static TimeInterval ti2 = new TimeInterval(DayOfWeek.TUESDAY, 12,
+			20, 65);
+
+	/**
+	 * Thursday 12:20 PM - 1:25 PM.
+	 */
+	private static TimeInterval ti3 = new TimeInterval(DayOfWeek.THURSDAY, 12,
+			20, 65);
+	
+	private static TimeInterval ti4 = new TimeInterval(DayOfWeek.MONDAY, 12,
+			20, 65);
+	
+	private static TimeInterval ti5 = new TimeInterval(DayOfWeek.WEDNESDAY, 12,
+			20, 65);
+	
+	private static TimeInterval ti6 = new TimeInterval(DayOfWeek.WEDNESDAY, 15,
+			40, 75);
+	
+	private static TimeInterval ti7 = new TimeInterval(DayOfWeek.THURSDAY, 13,
+			35, 65);
+	
+	private static TimeInterval ti8 = new TimeInterval(DayOfWeek.THURSDAY, 13,
+			35, 65);
+	
+	private static TimeInterval ti9 = new TimeInterval(DayOfWeek.THURSDAY, 13,
+			35, 65);
+	
+
+	@Test
+	public void test1() {
+		WeeklySchedule ws = new WeeklySchedule();
+
+		ws.addInterval(ti2);
+		ws.addInterval(ti1);
+		ws.addInterval(ti2);
+	//	out.println(ws);
+		Iterator<TimeInterval> iter = ws.getSchedule().iterator();
+		TimeInterval a1 = iter.next(), a2 = iter.next();
+		assertEquals(ti1, a1);
+		assertEquals(ti2, a2);
+	}
+
+	@Test
+	public void test2() {
+		WeeklySchedule ws = new WeeklySchedule();
+
+		ws.addInterval(ti1);
+		ws.addInterval(ti2);
+		ws.addInterval(ti3);
+	//	out.println(ws);
+		Iterator<TimeInterval> iter = ws.getSchedule().iterator();
+		TimeInterval a1 = iter.next(), a2 = iter.next(), a3 = iter.next();
+		
+		//out.println("Day: " + a1.getStartDayOfWeek().name() + " " + (a2.getStartTime()-a1.getEndTime()));
+		assertEquals(ti1, a1);
+		
+		assertEquals(ti2, a2);
+		assertEquals(ti3, a3);
+	}
+
+	@Test
+	public void test3() {
+		WeeklySchedule ws = new WeeklySchedule(Arrays.asList(ti3, ti1, ti2));
+		Iterator<TimeInterval> iter = ws.getSchedule().iterator();
+
+	//	out.println(ws);
+		
+		
+		assertEquals(ti1, iter.next());
+		assertEquals(ti2, iter.next());
+		assertEquals(ti3, iter.next());
+	}
+
+	@Test
+	public void test4() {
+		WeeklySchedule ws1 = new WeeklySchedule(Arrays.asList(ti3, ti1, ti2));
+		
+		WeeklySchedule ws2 = new WeeklySchedule(Arrays.asList(ti4, ti5));
+	
+		out.println(ws1);
+		out.println(ws2);
+		
+		assertEquals(1.0, ws1.wtpsScore(ws2),0);
+		
+	}
+	@Test
+	public void test5() {
+		WeeklySchedule ws1 = new WeeklySchedule(Arrays.asList(ti4, ti1, ti2));
+		
+		WeeklySchedule ws2 = new WeeklySchedule(Arrays.asList(ti4, ti5));
+		
+		
+		out.println(ws1);
+		out.println(ws2);
+		
+		assertEquals(0.0, ws1.wtpsScore(ws2),0);
+		
+	}
+	
+	@Test
+	public void test6() {
+		WeeklySchedule ws1 = new WeeklySchedule(Arrays.asList(ti3, ti1));
+		
+		WeeklySchedule ws2 = new WeeklySchedule(Arrays.asList(ti2, ti5));
+		
+		
+		
+		assertEquals(0.3, ws1.wtpsScore(ws2),0);
+		
+	}
+	
+	@Test
+	public void test7() {
+		WeeklySchedule ws1 = new WeeklySchedule(Arrays.asList(ti3, ti1, ti5));
+		
+		WeeklySchedule ws2 = new WeeklySchedule(Arrays.asList(ti2, ti6,ti7));
+		
+		
+		out.println(ws1);
+		out.println(ws2);
+		
+		
+		assertEquals(0.2, ws1.wtpsScore(ws2),0);
+		
+	}
+}

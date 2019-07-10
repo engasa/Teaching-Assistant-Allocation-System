@@ -1,0 +1,48 @@
+{
+    "Controller":"Reftracker.py",
+    "Path": [{
+        "id":1,
+        "name":"A51 Northern",
+        "Segment Details": [
+            {"Segment Number": 1},
+            {"Segment Number": 2},
+            {"Segment Number": 3},
+            {"Segment Number": 4},
+            {"Segment Number": 5},
+            {"Segment Number": 6},
+            {"Segment Number": 8}
+        ],
+        "Car Details": [
+            {"Vehicle Number": 5},
+            {"Vehicle Number": 2},
+            {"Vehicle Number": 3},
+            {"Vehicle Number": 6},
+            {"Vehicle Number": 8}
+        ]
+    },
+    {
+        "id":2,
+        "name":"C2",
+        "Segment Details": [
+            {"Segment Number": 12}
+        ],
+        "Car Details": [
+            {"Vehicle Number": 34}
+        ]
+    },
+    {
+        "id":3,
+        "name":"Intersect Northern",
+        "Segment Details": [
+            {"Segment Number": 2},
+            {"Segment Number": 3},
+            {"Segment Number": 4},
+            {"Segment Number": 5}
+        ],
+        "Car Details": [
+            {"Vehicle Number": 25},
+            {"Vehicle Number": 32}
+        ]
+    }
+] 
+}

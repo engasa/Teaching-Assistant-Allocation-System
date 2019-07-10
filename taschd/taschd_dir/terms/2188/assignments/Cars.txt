@@ -1,0 +1,23 @@
+Vehicle Id : 23
+Controller : IDM
+Segments : A1,B22,C43,A3
+posx : 3
+posy : 4
+
+Vehicle Id:24
+Controller : CAV
+Segments : A1,B22,C43,A3
+posx : 3
+posy : 4
+
+Vehicle Id:24
+Controller : CAV
+Segments : A1,B22,C43,A3
+posx : 3
+posy : 4
+
+Vehicle Id:24
+Controller : CAV
+Segments : A1,B22,C43,A3
+posx : 3
+posy : 4

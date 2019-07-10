@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CourseInstance.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.course</a> &gt; <span class="el_source">CourseInstance.java</span></div><h1>CourseInstance.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.course;
+
+import java.util.ArrayList;
+import java.util.ListIterator;
+
+/**
+ * &lt;p&gt;
+ * The {@link CourseInstance} represents an instance of a {@link Course} within
+ * a given term or semester. A {@link Course} does not keep same for every term.
+ * Given that, {@link CourseInstance}s instantiate when a given course is being
+ * offered. Examples include Fall 2018 CISC 675 which is a
+ * {@link CourseInstance} of the CISC 675 {@link Course}.
+ * &lt;/p&gt;
+ * 
+ * &lt;p&gt;
+ * {@link CourseInstance} is an instance of a {@link Course}, which contains all
+ * courses in the university.
+ * &lt;/p&gt;
+ * 
+ * @author matthew
+ */
+public class CourseInstance {
+
+	/**
+	 * The {@link Course} object that this {@link CourseInstance} references. For
+	 * example, CISC 675 Software Engineering. This is a Course object consisting of
+	 * prefix, courseCode, courseName, and skills attributes.
+	 */
+	private Course course;
+
+	/**
+	 * The identifier that this {@link CourseInstance} requires a lab section. This
+	 * is a boolean where TRUE indicates that the {@link CourseInstance} does have a
+	 * lab section and FALSE indicates that the {@link CourseInstance} does not have
+	 * a lab section.
+	 */
+	private boolean hasLab;
+
+	/**
+	 * The sequence of sections. They are unordered. The ordering is predetermined
+	 * by the university. It is predefined such that course information is gathered
+	 * from the course registration website (WebReg) and within that information,
+	 * the university defines the location and teachers for each
+	 * {@link CourseInstance}'s sections such that there is never any overlap.
+	 *
+	 */
+	private ArrayList&lt;Section&gt; sections;
+
+	/**
+	 * The university identifier representing the term or semester which this course
+	 * instance will be offered. This is an integer with an unbounded range.
+	 */
+	private int term;
+
+	/**
+	 * Constructs a new {@link CourseInstance} with given {@link Course} and term.
+	 *
+	 * @param course the {@link Course} at which this {@link CourseInstance}
+	 *               references.
+	 * @param term   the term (semester) at which this {@link CourseInstance} is
+	 *               offered, identified as an integer with an unbounded range.
+	 */
+<span class="fc" id="L63">	public CourseInstance(Course course, int term) {</span>
+<span class="fc" id="L64">		this.course = course;</span>
+<span class="fc" id="L65">		this.hasLab = false;</span>
+<span class="fc" id="L66">		this.sections = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L67">		this.term = term;</span>
+<span class="fc" id="L68">	}</span>
+
+	/**
+	 * Gets the {@link Course}, represented as Course object consisting of prefix,
+	 * courseCode, courseName, and skills attributes.
+	 *
+	 * @return the course corresponding with this {@link CourseInstance}.
+	 */
+	public Course getCourse() {
+<span class="fc" id="L77">		return course;</span>
+	}
+
+	/**
+	 * A getter to get the hasLab attribute initialized, represented as a boolean
+	 * value where TRUE indicates that the {@link CourseInstance} does have a lab
+	 * section and FALSE indicates that the {@link CourseInstance} does not have a
+	 * lab section.
+	 *
+	 * @return True if {@link CourseInstance} has lab, False if
+	 *         {@link CourseInstance} does not have lab.
+	 */
+	public boolean isHasLab() {
+<span class="fc" id="L90">		return hasLab;</span>
+	}
+
+	/**
+	 * A setter to get the hasLab attribute for this {@link CourseInstance}
+	 * initialized, represented as a boolean.
+	 *
+	 * @param hasLab a boolean represented as TRUE if the {@link CourseInstance} has
+	 *               Lab.
+	 */
+	public void setHasLab(boolean hasLab) {
+<span class="fc" id="L101">		this.hasLab = hasLab;</span>
+<span class="fc" id="L102">	}</span>
+
+	/**
+	 * A getter to get the term initialized, represented as an integer of unbounded
+	 * range.
+	 *
+	 * @return the term.
+	 */
+	public int getTerm() {
+<span class="fc" id="L111">		return term;</span>
+	}
+
+	/**
+	 * Gets the sections as an iterable sequence of {@link Section}s.
+	 *
+	 * @return the sections associated with this course instance.
+	 */
+	public Iterable&lt;Section&gt; getSections() {
+<span class="fc" id="L120">		return sections;</span>
+	}
+
+	/**
+	 * Adds a {@link Section} to this {@link CourseInstance}. If the given
+	 * {@link Section} is already in this {@link CourseInstance}, this is a no-op.
+	 *
+	 * @param sec a non-{@code null} {@link Section} to add to this
+	 *            {@link CourseInstance}.
+	 */
+	public void addSection(Section sec) {
+		// A simple linear-time insertion.
+		// These lists are expected to be very small, therefore it is
+		// a feasible solution.
+<span class="fc" id="L134">		ListIterator&lt;Section&gt; iter = sections.listIterator();</span>
+
+<span class="fc bfc" id="L136" title="All 2 branches covered.">		while (iter.hasNext()) {</span>
+<span class="fc" id="L137">			Section y = iter.next();</span>
+<span class="fc" id="L138">			int c = sec.compareTo(y);</span>
+
+<span class="fc bfc" id="L140" title="All 2 branches covered.">			if (c &gt; 0) // ti goes after y</span>
+<span class="fc" id="L141">				continue;</span>
+<span class="fc bfc" id="L142" title="All 2 branches covered.">			if (c == 0)</span>
+<span class="fc" id="L143">				return;</span>
+			// ... x y z ...
+			// y is the first item in list that comes after sec. You want to
+			// insert just before y.
+<span class="fc" id="L147">			iter.previous();</span>
+<span class="fc" id="L148">			break;</span>
+		}
+<span class="fc" id="L150">		iter.add(sec);</span>
+<span class="fc" id="L151">	}</span>
+
+	/**
+	 * Returns a human-readable representation of this {@link CourseInstance}, in
+	 * the form &quot;Prefix CourseCode CourseName&quot;.
+	 *
+	 * @return the formatted &quot;Prefix CourseCode CourseName Sections&quot; String
+	 */
+	@Override
+	public String toString() {
+<span class="fc" id="L161">		String course = getCourse().toString(), section = &quot;&quot;;</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">		for (Section s : sections) {</span>
+<span class="fc" id="L163">			section += &quot; &quot; + s.getSectionNumber() + s.getSectionType();</span>
+		}
+<span class="fc" id="L165">		String result = course + &quot; -&quot; + section;</span>
+
+<span class="fc" id="L167">		return result;</span>
+	}
+
+	/**
+	 * Displays all the {@link Section}s information in this term.
+	 */
+	public void display() {
+<span class="fc" id="L174">		getCourse().display();</span>
+<span class="fc" id="L175">		System.out.println(&quot;\nSection Information (Term &quot; + getTerm() + &quot;):&quot;);</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">		for (Section s : getSections())</span>
+<span class="fc" id="L177">			s.display();</span>
+<span class="fc" id="L178">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

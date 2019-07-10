@@ -1,0 +1,156 @@
+package edu.udel.cis.taschd.db;
+
+import edu.udel.cis.taschd.ca.*;
+import edu.udel.cis.taschd.course.*;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+import java.io.*;
+import java.util.*;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.JSONArray;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+
+/**
+ * The Database class is a component of the DB module. It stores and retrieves
+ * data by the request of the client.
+ * 
+ * @author Michael Oyefusi
+ * 
+ */
+
+public class Database {
+	private static boolean success = false;
+	/**
+	 * get Current directory of user
+	 */
+	static String directory = System.getProperty("user.dir");
+	File rootDir = new File(directory);
+	File taschdDirectory = new File(rootDir, "taschd_dir");
+	String[] taschdFolders = taschdDirectory.list();
+	static String course = "courses";
+	static String caPool = "ca_pool";
+	static String term = "terms";
+	
+	@SuppressWarnings("unchecked")
+	public static boolean storeCourse(CourseInstance c) throws FileNotFoundException {
+		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + ".json";
+		String courseDirectory = directory + "/taschd_dir/courses/" + fileToStore;
+		JSONObject value = new JSONObject();
+
+		// putting data into JSONObject value
+		value.put("Department ID", c.getCourse().getPrefix());
+		value.put("Course Code", c.getCourse().getCourseCode());
+		value.put("Course Name", c.getCourse().getCourseName());
+		value.put("Skills", c.getCourse().getSkills());
+		value.put("Has Lab", c.isHasLab());
+
+		JSONArray sectionData = new JSONArray();
+
+		Iterator<Section> iter = c.getSections().iterator();
+		HashMap<Object, Object> m = new HashMap<>();
+		while (iter.hasNext()) {
+			Section s = iter.next();
+			m.put("Section Number", s.getSectionNumber());
+			m.put("Section Type", s.getSectionType());
+			m.put("Instructor Name", s.getInstructorName());
+			m.put("Current Enrollment", s.getCurrentEnrollment());
+			m.put("Enrollment Cap", s.getEnrollmentCap());
+			m.put("Location", s.getLocation());
+			m.put("TA Assigned", s.isTaAssigned());
+			m.put("Num of TA", s.getNumOfTA());
+			m.put("Num of LA", s.getNumOfLA());
+			m.put("MTAC", s.isMtac());
+			m.put("CA Requirement", s.isTaAssigned());
+			// Check with Sri
+			m.put("WTPS schedule", s.getSchedule());
+
+			sectionData.add(m);
+			m.clear();
+
+		}
+
+		// putting Sections to JSONObject
+		value.put("Sections", sectionData);
+
+		// writing JSON to file:"CISC675.json" in current working directory
+		File file = new File(courseDirectory);
+		PrintWriter pw = new PrintWriter(file);
+		pw.write(value.toJSONString());
+
+		pw.flush();
+		pw.close();
+		success = true;
+
+		return success;
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	public static boolean storeCA(CourseAssistant ca) throws FileNotFoundException {
+		String storedCA = ca.getId() + ca.getLastName() + ".json";
+		String courseDirectory = directory + "/taschd_dir/ca_pool/" + storedCA;
+		JSONObject caobject = new JSONObject();
+		
+		// storing CA data fields into JSONObject caobject
+		caobject.put("CourseAssistant ID", ca.getId());
+		caobject.put("Last Name", ca.getLastName());
+		caobject.put("First Name", ca.getFirstName());
+		caobject.put("Email Address", ca.getEmailAddress());
+		caobject.put("Classification", ca.getGraduateStudent());
+		caobject.put("Skills", ca.getPossessedSkillset());
+		
+		//
+		File file = new File(courseDirectory);
+		PrintWriter print = new PrintWriter(file);
+		print.write(caobject.toJSONString());
+
+		print.flush();
+		print.close();
+		success = true;
+
+		return success;
+	}
+	
+	public CourseAssistant getCAById(CourseAssistant ca, String termOfCA) {
+		JSONParser parser = new JSONParser();
+
+		File fileToRead = new File(rootDir, "BenjaminFranklin.json");
+		try {
+			Object ob1 = parser.parse(new FileReader(""));
+			JSONObject jsonObj = (JSONObject) ob1;
+
+			String fName = (String) jsonObj.get("firstName");
+			String lName = (String) jsonObj.get("lastName");
+			int id = Integer.parseInt((String) jsonObj.get("id"));
+			String emailAddress = (String) jsonObj.get("email");
+			boolean graduateStudent = (boolean) (jsonObj.get("degree").equals("Grad") ? true : false);
+			String possessedSkillset = (String) jsonObj.get("Skills");
+			WeeklySchedule wtps = new WeeklySchedule();
+			/*JSONArray schedule = (JSONArray) jsonObj.get("wtps");
+			Iterator<String> it1 = schedule.iterator();
+				while (it1.hasNext()) {
+					wtps.addInterval(it1.next());
+				}
+			CourseAssistant ca1 = new CourseAssistant(fName, lName, id,
+			emailAddress, graduateStudent, wtps, possessedSkillset);*/
+			
+			System.out.println(fName);
+			System.out.println(lName);
+			System.out.println(id);
+			System.out.println(emailAddress);
+			System.out.println(graduateStudent);
+			System.out.println(wtps);
+			System.out.println(possessedSkillset);
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		return ca;
+	}
+
+}

@@ -1,0 +1,10 @@
+{
+  "Email" : "yeswecan@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "C", ".NET", "Swift", "Bash", "SQL", "Matlab" ],
+  "First Name" : "Barack",
+  "Time Schedule" : [ "Tue 14:00–15:15", "Thu 14:00–15:15", "Fri 11:00–12:15" ],
+  "ID" : 111,
+  "Graduate Student" : true,
+  "Last Name" : "Obama"
+}

@@ -1,0 +1,8 @@
+{
+  "Email" : "m@udel.edu",
+  "Skills" : [ "Java", "C", "Javascript", ".NET", "Swift", "Bash", "Python", "SQL", "Matlab" ],
+  "First Name" : "Michael",
+  "ID" : 1231234,
+  "Graduate Student" : true,
+  "Last Name" : "Oyefusi"
+}

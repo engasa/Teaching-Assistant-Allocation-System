@@ -1,0 +1,186 @@
+/**
+ * 
+ */
+package edu.udel.cis.taschd.db;
+
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.json.simple.parser.ParseException;
+import org.junit.Before;
+import org.junit.Test;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Tests for Database Class
+ * 
+ * @author sumeetgupta
+ *
+ */
+public class DatabaseTest {
+
+	private Database obj1 = new Database();
+	/**
+	 * CISC 675 Software Engineering Fall 2018
+	 */
+	// private Course c1 = new Course("CISC", "675", "Advanced Software
+	// Engineering");
+	private Course c2 = new Course("CISC", "375", "Software Engineering");
+	private Course c3 = new Course("CISC", "642", "Introduction to Computer Vision");
+	private CourseInstance ci1 = new CourseInstance(c2, 2188);
+	private CourseInstance ci2 = new CourseInstance(new Course("CISC", "642", "Introduction to Computer Vision"), 2198);
+	// private CourseInstance ci3 = new CourseInstance(c1, 2198);
+
+	Collection<TimeInterval> cti1 = new ArrayList<TimeInterval>();
+	TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+	TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+	Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+	TimeInterval ti3 = new TimeInterval(DayOfWeek.WEDNESDAY, 16, 40, 75);
+
+	private CourseAssistant ca1 = new CourseAssistant(1231234);
+	private String directory = System.getProperty("user.dir");
+
+	@Before
+	public void setUp() throws Exception {
+		ci1.setHasLab(true);
+		cti1.add(ti1);
+		cti1.add(ti2);
+		cti2.add(ti3);
+		ci1.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1)));
+		ci1.addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule(cti2)));
+
+		SkillSet skillSet1 = new SkillSet(new HashSet<Skill>());
+		skillSet1.addSkill(new Skill("Java"));
+		skillSet1.addSkill(new Skill("Python"));
+		skillSet1.addSkill(new Skill("Javascript"));
+
+		WeeklySchedule w1 = new WeeklySchedule(cti1);
+
+		Set<CourseInstance> caOneCourseEnrolled = new HashSet<CourseInstance>();
+		caOneCourseEnrolled.add(ci1);
+		caOneCourseEnrolled.add(ci2);
+
+		ca1.setFirstName("Michael");
+		ca1.setLastName("Oyefusi");
+		ca1.setEmailAddress("m@udel.edu");
+		ca1.setPossessedSkillset(skillSet1);
+		ca1.setWtps(w1);
+		ca1.setCourseEnrolled(caOneCourseEnrolled);
+		ca1.setGraduateStudent(true);
+
+	}
+
+	public boolean checkDyanmicCourseDirectory(int term, String fileToStore) {
+
+		boolean success = false;
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, "terms");
+		File termNumberDirectory = new File(termsDirectory, String.valueOf(term));
+		File termNumberCourseDirectory = new File(termNumberDirectory, "courses");
+		String[] termNumberCourseFolder = termNumberCourseDirectory.list();
+
+		if (termNumberCourseFolder != null) {
+			for (int i = 0; i < termNumberCourseFolder.length; i++) {
+				if (termNumberCourseFolder[i].equalsIgnoreCase(fileToStore)) {
+					success = true;
+					break;
+				}
+			}
+		}
+		return success;
+	}
+
+	public boolean checkStaticCourseDirectory(int term, String fileToStore) {
+
+		boolean success = false;
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File courseDirectory = new File(taschdDirectory, "courses");
+		String[] coursesFolder = courseDirectory.list();
+
+		if (coursesFolder != null) {
+			for (int i = 0; i < coursesFolder.length; i++) {
+				if (coursesFolder[i].equalsIgnoreCase(fileToStore)) {
+					success = true;
+					break;
+				}
+			}
+		}
+		return success;
+	}
+
+	@Test
+	public void testStoreCourseStatic() throws IOException {
+		obj1.store(ci1);
+		if (true && checkStaticCourseDirectory(2188, "CISC375.json")) {
+			System.out.println("Successful static storage");
+		}
+
+	}
+
+	@Test
+	public void testStoreCourseDynamic() throws IOException, ParseException {
+		obj1.storeDynamic(ci1);
+		if (true && checkDyanmicCourseDirectory(2188, "CISC375.json")) {
+			System.out.println("Successful dyanmic storage");
+		}
+	}
+
+	@Test
+	public void testRetrieveCourseByCode() throws IOException, ParseException {
+		assertEquals(ci1, obj1.retrieveCourseByCode("CISC", "375", 2188));
+	}
+
+	@Test
+	public void testRetrieveCAByID() throws IOException, NullPointerException, ParseException {
+		assertEquals(ca1, obj1.retrieveCAById(1231234, 2188));
+	}
+
+	@Test
+	public void testStoreCAStatic() throws IOException {
+		obj1.store(ca1);
+
+	}
+
+	@Test
+	public void testStoreCADynamic() throws IOException, ParseException {
+		obj1.storeDynamic(ca1, 2188);
+	}
+
+	@Test
+	public void testRetrieveCourse() throws IOException, ParseException {
+		assertEquals(c3, obj1.retrieveCourse("CISC", "642"));
+	}
+
+	@Test
+	public void testRetrieveCourseAssistant() throws IOException, NullPointerException, ParseException {
+		assertEquals(ca1, obj1.retrieveCourseAssistant(1231234));
+	}
+
+	@Test
+	public void testRetrieveCourseInstancePool() throws IOException, ParseException {
+		obj1.retrieveCourseInstancePool(2188);
+	}
+
+	@Test
+	public void testRetrieveCourseAssistantPool() throws IOException, NullPointerException, ParseException {
+		obj1.retrieveCourseAssistantPool(2188);
+	}
+
+}

@@ -1,0 +1,397 @@
+Test Case1(Term 2191) Documentation  
+@Author Yi Liu
+Test Case 2 --- Term 2192
+The result Test 2 should be as following (Manually examined this test cases.)
+Details of sections and course assistants will be shown at the end of this doucument;
+Note: Each TA will have a maximum workload of 60
+
+Course 1(Sections 100, 110, 120, 130)
+ 	All TA except undergrad girl in this tests cases are graduate student;
+Skill will be qualified TA: Obama, Franklin,Clinton,Donald
+  
+
+Section 100:
+	Number of TA required is 2;
+Workload for this section is 40; 
+wtps will be qualified TA:  Obama, Franklin, Clinton, Washington, MtacGuy, Undergrad Girl 
+	Final result should be:  Obama or  Franklin or Clinton
+Section 110: 
+	Number of TA required is 1;
+Workload for this section is 20; 
+wtps will be qualified TA:  Obama Franklin Clinton Washington, MtacGuy, Undergrad Girl 
+	Final result should be:  Obama or  Franklin or Clinton
+Section 120: 
+
+	Number of TA required is 1;
+Workload for this section is 20; 
+wtps will be qualified TA:  Obama Franklin Clinton Washington, MtacGuy, Undergrad Girl 
+	Final result should be:  Obama or  Franklin or Clinton, 
+Section 130: 
+
+	Number of TA required is 1;
+Workload for this section is 20; 
+wtps will be qualified TA:  Obama Franklin Clinton Washington, MtacGuy, Undergrad Girl 
+	Final result should be:  Obama or  Franklin or Clinton, MtacGuy
+
+Course 2(Sections 210, 220)
+ 	All TA except undergrad girl in this tests cases are graduate student;
+Skill will be qualified TA: Franklin, Clinton, Washington
+  
+Section 210:
+	Number of TA required is 1;
+Workload for this section is 40; 
+wtps will be qualified TA:  Obama, Franklin,Clinton,Washington, Donald, Dummy, MtacGuy, Undergrad Girl 
+	Final result should be: Clinton or Washington
+Section 220: 
+	Number of TA required is 1;
+	Workload for this section is 40; 
+	wtps will be qualified TA:  Obama, Clinton, Washington, MtacGuy, Undergrad Girl 
+	Final result should be:  Obama or  Clinton
+
+Course 3(Sections 310)
+ 	All TA except undergrad girl in this tests cases are graduate student;
+	Skill will be qualified TA: Donald
+  
+Section 310:
+	Number of TA required is 1;
+	Workload for this section is 35; 
+	wtps will be qualified TA:  Obama, Clinton, Washington, Donald, Dummy, MtacGuy, Undergrad Girl 
+	Final result should be: Donald
+
+Course 4(section 410)
+Skill will be qualified TA: Lucky mtacGuy
+
+Section 410:
+	Number of TA required is 1;
+	Workload for this section is 20; 
+Because this section doesn't require the ta show up in the class.(mtac = false)
+So, all ta will be availe regards wtps even if Lucky mtacGuy's schedule is conflicting with the sections's schedule
+	wtps will be qualified TA: all TA 
+	Final result should be:  Lucky mtacGuy
+
+
+
+
+Course 5(section 510)
+Skill will be qualified TA: Undergrad Girl, Washington
+This course's code is "999", it is a graduate course course, ONLY washinton will be assigned to this section
+Section 510:
+	Number of TA required is 1;
+	Workload for this section is 20; 
+	wtps will be qualified TA: all TA
+	Final result should be: Washington
+
+
+Course 6(section 610)
+All TA except undergrad girl in this tests cases are graduate student;
+This course's code is "499", it is a undergraduate course
+Skill will be qualified TA: Undergrad Girl, Washington
+Note: Washington will be ocuppied by section 510 and another section of 210(which takes 40 students)
+      In total washington will not be available for this course.
+      The undergrad girl has be assigned for this section.
+Section 610:
+	Number of TA required is 1;
+	Workload for this section is 20; 
+	wtps will be qualified TA: all TA
+	Final result should be: Undergrad Girl
+
+
+
+
+
+In this test case, 9 CA 
+1.{
+  "Email" : "yeswecan@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "C", ".NET", "Swift", "Bash", "SQL", "Matlab" ],
+  "First Name" : "Barack",
+  "Time Schedule" : [ "Tue 14:00–15:15", "Thu 14:00–15:15", "Fri 11:00–12:15" ],
+  "ID" : 111,
+  "Graduate Student" : true,
+  "Last Name" : "Obama"
+}
+2.{
+  "Email" : "bfrank@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "JAVA", "C", "ASP.NET", "Matlab" ],
+  "First Name" : "Benjamin",
+  "Time Schedule" : [ "Tue 10:52–12:07", "Tue 11:00–12:15", "Thu 11:00–12:15" ],
+  "ID" : 222,
+  "Graduate Student" : true,
+  "Last Name" : "Franklin"
+}
+3.{
+  "Email" : "billclinton@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "Java", "C", "Matlab" ],
+  "First Name" : "Bill",
+  "Time Schedule" : [ "Fri 15:30–16:45" ],
+  "ID" : 333,
+  "Graduate Student" : true,
+  "Last Name" : "Clinton"
+}
+4.{
+  "Email" : "trainingday@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "Java", "only", "Alloy" ],
+  "First Name" : "Denzel",
+  "Time Schedule" : [ "Fri 11:00–12:15" ],
+  "ID" : 444,
+  "Graduate Student" : true,
+  "Last Name" : "Washington"
+}
+5.{
+  "Email" : "dduck@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "000", "C", "Matalb", "PHP", "604", "Python" ],
+  "First Name" : "Donald",
+  "Time Schedule" : [ "Mon 0:00–1:00", "Tue 0:00–1:00", "Wed 0:00–1:00", "Fri 8:40–9:55" ],
+  "ID" : 555,
+  "Graduate Student" : true,
+  "Last Name" : "Duck"
+}
+6.{
+  "Email" : "dduck@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ ],
+  "First Name" : "Dummy",
+  "Time Schedule" : [ "Mon 0:00–1:00", "Tue 0:00–1:00", "Wed 0:00–1:00", "Fri 8:40–9:55" ],
+  "ID" : 666,
+  "Graduate Student" : true,
+  "Last Name" : "Dummy"
+}
+7.{
+  "Email" : "Good1@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "unique" ],
+  "First Name" : "Lucky",
+  "Time Schedule" : [ "Sat 0:00–0:10"],
+  "ID" : 777,
+  "Graduate Student" : true,
+  "Last Name" : "MtacGuy"
+}
+
+8.{
+  "Email" : "undergrad@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "only" ],
+  "First Name" : "undergrad",
+  "Time Schedule" : [ ],
+  "ID" : 888,
+  "Graduate Student" : false,
+  "Last Name" : "Girl Knows"
+}
+
+
+
+
+3 Courses:
+Course 1:
+Course Information:
+        "Skills" : [ "C", "Matlab" ],
+        "Course Code" : "210",
+        "Prefix" : "CISC",
+  	"Has Lab" : true,
+	"Course Name" : "AAA-Introduction to Systems Programming”
+	Sections of this course
+	{
+  	"Sections" : [ {
+   	 "Section Number" : "110",
+  	  "Section Type" : "L",
+  	  "Instructor name" : "Silber",
+ 	   "Location" : "A-B-PRS101",
+  	  "Current Enrollment" : "20",
+	    "Enrollment Cap" : "20",
+ 	   "TA Assigned" : false,
+	    "Num of TA" : "1",
+ 	   "Num of LA" : "0",
+    	"MTAC" : true,
+   	 "Time Schedule" : [ "Tue 0:00–1:00" ]
+ 	 }, {
+  	  "Section Number" : "120",
+  	  "Section Type" : "L",
+	    "Instructor name" : "Silber",
+ 	   "Location" : "A-C-PRS101",
+ 	   "Current Enrollment" : "20",
+ 	   "Enrollment Cap" : "20",
+  	  "TA Assigned" : false,
+  	  "Num of TA" : "1",
+  	  "Num of LA" : "0",
+  	  "MTAC" : true,
+   	 "Time Schedule" : [ "Wed 0:00–1:00" ]
+  	}, {
+   	 "Section Number" : "130",
+  	  "Section Type" : "L",
+  	  "Instructor name" : "Silber",
+  	  "Location" : "A-D-PRS101",
+  	  "Current Enrollment" : "20",
+  	  "Enrollment Cap" : "20",
+  	  "TA Assigned" : false,
+  	  "Num of TA" : "1",
+   	 "Num of LA" : "0",
+  	  "MTAC" : true,
+  	  "Time Schedule" : [ "Thu 0:00–1:00" ]
+ 	 }, {
+ 	   "Section Number" : "100",
+  	  "Section Type" : "Lec",
+ 	   "Instructor name" : "Silber",
+  	  "Location" : "A-A-GOR208",
+   	 "Current Enrollment" : "40",
+  	  "Enrollment Cap" : "40",
+  	  "TA Assigned" : false,
+  	  "Num of TA" : "2",
+   	 "Num of LA" : "0",
+   	 "MTAC" : true,
+  	  "Time Schedule" : [ "Mon 0:00–1:00" ]
+ 	 } ],
+
+
+
+Course 2:
+ 	 "Skills" : [ "Java" ],
+ 	 "Course Code" : "275",
+ 	 "Prefix" : "CISC",
+ 	 "Has Lab" : true,
+ 	 "Course Name" : "BBB-Introduction to Software Engineering"
+	}
+	Sections
+	{
+ 	 "Sections" : [ {
+ 	   "Section Number" : "210",
+  	  "Section Type" : "Lec",
+  	  "Instructor name" : "Harvey",
+　　　    "Location" : "B-A-GOR117",
+   	 "Current Enrollment" : "40",
+　　　    "Enrollment Cap" : "40",
+    	"TA Assigned" : false,
+   　　 "Num of TA" : "1",
+    	"Num of LA" : "0",
+    	"MTAC" : true,
+    	"Time Schedule" : [ "Tue 9:30–10:45" ]
+  	}, {
+    	"Section Number" : "220",
+    	"Section Type" : "Lec",
+    	"Instructor name" : "Harvey",
+   	 "Location" : "B-B-GOR117",
+    	"Current Enrollment" : "40",
+    	"Enrollment Cap" : "40",
+    	"TA Assigned" : false,
+    	"Num of TA" : "1",
+    	"Num of LA" : "0",
+    	"MTAC" : true,
+   	 "Time Schedule" : [ "Tue 11:00–12:15", "Thu 11:00–12:15" ]
+  	} ]
+
+Course 3
+	{
+  	"Skills" : [ "604" ],
+  	"Course Code" : "304",
+ 	 "Prefix" : "CISC",
+  	"Has Lab" : false,
+  	"Course Name" : "Logic and Programming"
+	}
+
+  	"Sections" : [ {
+    	"Section Number" : "310",
+    	"Section Type" : "Lec",
+    	"Instructor name" : "Carberry",
+    	"Location" : "SHL120",
+    	"Current Enrollment" : "35",
+    	"Enrollment Cap" : "35",
+    	"TA Assigned" : false,
+    	"Num of TA" : "1",
+    	"Num of LA" : "0",
+    	"MTAC" : true,
+    	"Time Schedule" : [ "Tue 11:00–12:15", "Thu 11:00–12:15" ]
+  	} ]
+
+
+Course 4
+	{
+ 	 "Skills" : [ "unique" ],
+ 	 "Course Code" : "699",
+ 	 "Prefix" : "CISC",
+ 	 "Has Lab" : false,
+ 	 "Course Name" : "NOmATACCourse"
+}
+
+  	"Sections" : [ {
+    	"Section Number" : "410",
+   	 "Section Type" : "Lec",
+   	 "Instructor name" : "onlyForLuckyguy",
+   	 "Location" : "SHL120",
+   	 "Current Enrollment" : "35",
+  	  "Enrollment Cap" : "35",
+ 	   "TA Assigned" : false,
+  	  "Num of TA" : "1",
+  	  "Num of LA" : "0",
+ 	   "MTAC" : false,
+  	  "Time Schedule" : [ "Sat 0:00–0:10" ]
+ 	 } ]
+
+Course 5
+	{
+ 	"Skills" : [ "only" ],
+  	"Course Code" : "999",
+  	"Prefix" : "CISC",
+  	"Has Lab" : false,
+  	"Course Name" : "ONLY skill for UnderGilr and Danzel"
+	}
+	{
+ 	 "Sections" : [ {
+ 	   "Section Number" : "510",
+ 	   "Section Type" : "Lec",
+ 	   "Instructor name" : "onlyForDanzel",
+ 	   "Location" : "SHL120",
+ 	   "Current Enrollment" : "20",
+  	   "Enrollment Cap" : "20",
+    	   "TA Assigned" : false,
+    	   "Num of TA" : "1",
+ 	   "Num of LA" : "0",
+ 	   "MTAC" : true,
+ 	   "Time Schedule" : [ "Sun 0:00–0:10" ]
+ 	   } ],
+
+	
+
+
+Course 6
+
+	{
+  	"Skills" : [ "only" ],
+  	"Course Code" : "499",
+  	"Prefix" : "CISC",
+  	"Has Lab" : false,
+  	"Course Name" : "ONLY skill for UnderGilr and Danzel"
+	}
+
+	{
+  	"Sections" : [ {
+    	"Section Number" : "610",
+    	"Section Type" : "Lec",
+    	"Instructor name" : "onlyForUnderGirl",
+    	"Location" : "SHL120",
+   	 "Current Enrollment" : "20",
+   	 "Enrollment Cap" : "20",
+   	 "TA Assigned" : false,
+    	"Num of TA" : "1",
+    	"Num of LA" : "0",
+    	"MTAC" : true,
+    	"Time Schedule" : [ "Sun 0:00–0:10" ]
+  	} ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

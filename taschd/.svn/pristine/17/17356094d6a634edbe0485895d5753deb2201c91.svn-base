@@ -1,0 +1,651 @@
+package edu.udel.cis.taschd.gen;
+
+import java.util.ArrayList;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+import edu.udel.cis.taschd.assign.Assignment;
+import ilog.cplex.*;
+import ilog.concert.*;
+
+/**
+ * <p>
+ * 
+ * CPLEX downloaded from. 
+ *  https://ibm.onthehub.com/
+ *  Note the license term of cplex.
+ * 
+ * The {@link LPSolver} represents a generator tool for a
+ * {@link CourseAssistantPool} and a {@link CourseInstancePool}. A
+ * {@link CourseAssistantPool} is a set of {@link CourseAssistant}s available
+ * for a given term. A {@link CourseInstancePool} is a set of
+ * {@link CourseInstance}s available for a given term. It provides the methods
+ * to generate the assignment by applying linear programming method. It hides
+ * the details of the internal representation of this generation process.
+ * 
+ * IF THERE IS NO VALID SOLUTION. IT WILL GIVE "problem not solved"
+ * 
+ * 
+ * </p>
+ * 
+ * <p>
+ * {@link LPSolver} uses modules ca, course, skill, time and assign, cplex.
+ * </p>
+ *
+ * @author Yi Liu
+ */
+public class LPSolver {
+
+	/**
+	 * This is the {@link CourseAssistantPool} regarding as one of the input of the
+	 * generator.
+	 */
+	private CourseAssistantPool cap;
+
+	/**
+	 * This is the {@link CourseInstancePool} regarding as one of the input of the
+	 * generator.
+	 */
+	private CourseInstancePool cip;
+
+	/**
+	 * This is the {@link scoreTable} which is a n by m table each entries is a
+	 * double number to store the score between each section and couseAssistant; The
+	 * score represents how good it is to assign the courseAssistant to the section.
+	 */
+	private ArrayList<ArrayList<Double>> scoreTable;
+
+	/**
+	 * This is the {@link tableMaping} which is a n by m table each entries is a
+	 * {@link TableInstance}, which is used to store the information of each section
+	 * and couseAssistant; It will be used to find valid assignment and
+	 * corresponding CourseAssisant and sections after the analysis;
+	 */
+	private ArrayList<ArrayList<TableInstance>> tableMaping;
+
+	/**
+	 * This is the result we need to return as {@link Assignment}.
+	 */
+	private Assignment assignment;
+
+	/**
+	 * This is the number of {@link Sections}.
+	 */
+	private int numOfSections;
+
+	/**
+	 * This is the number of {@link CourseAssisants}.
+	 */
+	private int numOfCourseAssistants;
+
+	/**
+	 * This is the {@link cost} table which is a n by m table each entries is a
+	 * double number to store the score between each section and couseAssistant;
+	 * This table is actually obtained from {@link ScoreTable}, which is Double
+	 * Type. So this cost will be double type; and then it can be used in cplex.
+	 * 
+	 * This cost have taken the following constrains into consideration:
+	 *  1. MTAC (Mandatory TA Attendance Course).
+	 *  2. WTPS (Weekly Time Period Specification, for both course & student).
+     *  3. Skills (For both course & student).
+	 *  4. Course's level to student's education level. 
+	 */
+	private double[][] cost;
+	
+	/**
+	 * This is array of the number of CA that a section required,
+	 * each entries represent the requirement of a {@link Sections}.
+	 */
+	private int[] numOfTARequired;
+	
+	/**
+	 * This is array of the workLoad of each section,
+	 * Now, the number is the Enrollment Capacity of the 
+	 * section.
+	 * each entries represent the current enrollment of a {@link Sections}.
+	 */
+	private int[] workLoad;
+	
+	/**
+	 * This is the maximum WorkLoad of each Ca {@link CourseAssisant}
+	 * The TA can't be assigned number of students more than this 
+	 * number.
+	 * The default value is 60;
+	 */
+	private double maxWorkLoadEachTA;
+	
+	
+	/**
+	 * 
+	 * IBM ILOG CPLEX Optimization Studio (often informally referred to simply as CPLEX)
+	 * is an optimization software package.
+	 * 
+	 * This is a IloCplex Object which is derives from IBM ILOG CPLEX Optimization Studio .
+	 * We use IloCplex solve Mathematical Programming models, such as:
+	 * LP (linear programming) problems.
+	 */
+	private IloCplex cplex; // its cplex sovler.
+	
+
+
+	
+
+	/**
+	 * Constructs a new {@link LPSolver} with the given {@link CourseAssistantPool}
+	 * and {@link CourseInstancePool}.
+	 * 
+	 * @param cap
+	 * 			      a non-{@code null} {@link CourseAssistantPool}.
+	 * @param cip
+	 *                a non-{@code null} {@link CourseInstancePool}.
+	 *
+	 * This  {@link LPSolver} Object will run a series of method and store 
+	 * the assignment in {@link assignment}
+	 */
+	public LPSolver(CourseAssistantPool cap, CourseInstancePool cip) {
+		this.cap = cap;
+		this.cip = cip;
+		this.cost = null;
+		this.assignment = new Assignment();
+		this.scoreTable = new ArrayList<ArrayList<Double>>();
+		this.tableMaping = new ArrayList<ArrayList<TableInstance>>();
+		
+		this.numOfSections = 0;
+		this.numOfCourseAssistants = 0;
+		this.workLoad = null;
+		this.numOfTARequired = null;
+		this.maxWorkLoadEachTA = 60.0; // default
+		this.cplex = null;
+		
+
+		
+		// Modeling the problem into a linear programing problem.
+		// And find the Optimized solution.
+		// Store the result in assignment.
+		//this.cplexObject();
+
+	}
+
+	
+	/**
+	 * This method is responsible for setting up the {@link cost}, {@link ScoreTable} {@link tableMaping}
+	 * The following contrain will be considered.
+	 *  1. MTAC (Mandatory TA Attendance Course).
+	 *  2. WTPS (Weekly Time Period Specification, for both course & student).
+     *  3. Skills (For both course & student).
+	 *  4. Course's level to student's education level. 
+	 * 
+	 * Only if the courseAssitant meet all the requirement listed above, then the score will 
+	 * be 1.0. or score will be 0;
+	 *  
+	 * It will set up {@link scoreTable} first, then convert it into {@link cost}, which is a n by m array.
+	 * It will also set up {@link tableMaping}
+	 */
+
+	private void setCost() {
+		int i = 0;
+		int j = 0;
+		double finalScore = 0;
+		double skillScore, wtpsScore;
+		ArrayList<ArrayList<Double>> table = new ArrayList<ArrayList<Double>>();
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+        
+		//For each course
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+              
+			courseSkills = ci.getCourse().getSkills(); // Required Skill of this course.
+            // For each section
+			for (Section sec : ci.getSections()) {
+				//a new row for score table
+				ArrayList<Double> secCa = new ArrayList<Double>();
+				
+				//a new row for TableMapping
+				ArrayList<TableInstance> rowTable = new ArrayList<TableInstance>();
+
+				//get sectionSchedule
+				sectionSchedule = sec.getSchedule();
+				
+				//For each section
+				for (CourseAssistant ca : cap.getCourseAssistantSet()) {
+
+					//Obtaining SkillScore of this CA to this section.
+					skillScore = courseSkills.skillScore(ca.getPossessedSkillset());
+
+					//Skill score will return a value between 0 to 1;
+					//Only if the skillScore is larger than 1 which indicate
+			        //this ca's Skill can cover the required skill.
+					//we assign one to skill score;
+					if (skillScore >= 1) {
+						skillScore = 1;
+					}else {
+						skillScore = 0;
+					}
+
+							//System.out.println("sk score:" + skillScore);
+                    
+					//Obtaining SkillScore of this CA to this section.
+					//wtpsScoreHardCore takes two input, first is the other's wtps. The double value
+					//is the threshold.
+					// Here we set it up as 10. If the gap is larger than 10. 
+					// then wtpsScore is 1; else it is 0;
+					wtpsScore = sectionSchedule.wtpsScoreHardCore(ca.getWtps(), 10);
+
+
+							//System.out.println("time score:" + wtpsScore);
+					
+					// If the section doesn't require the TA to show up;
+					// there is no limitation on schedule.
+					// then set WtpsScore to 1.0
+					if (!sec.isMtac())
+						wtpsScore = 1.0; // I think this should be included in wtps score, but deal with it later -- Yi
+
+					// If the course is graduate level, and the Ca is not a graduate student;
+					// graduateRequire will be set to 0; 
+					// else it will be set to 1;
+					int graduateRequire = 1;
+					if (!ca.getGraduateStudent()) {
+						int courseCode = Integer.parseInt(ci.getCourse().getCourseCode());
+						if (courseCode >= 600) {
+							graduateRequire = 0;
+						}
+					}
+
+					// If all the requirement are satisfied. 
+					// the score will be 1;
+					// else the score will be 01;
+					if (wtpsScore * skillScore * graduateRequire >= 1) {
+						finalScore = 1;
+					} else {
+						finalScore = -1;
+					}
+                    
+					// add this to current Row Arraylist
+					secCa.add(finalScore);
+
+					// Create a new TableInstance
+					// save current row, Col, ca, sec, course, finalScore
+					TableInstance oneEntry = new TableInstance(i, j, ca, sec, ci, finalScore);
+					
+                    
+					// add this to current rowTable
+					rowTable.add(oneEntry);
+						//System.out.println(finalScore);
+					    //System.out.println("_________________");
+					i++;
+					
+				}
+				
+				//add the row. Go to next section.
+				table.add(secCa);
+				tableMaping.add(rowTable);
+				i = 0;
+			}
+			j++;
+
+		}
+			//System.out.println(table.toString());
+			//System.out.println("-------");
+		
+		// set up numOfSections
+		this.numOfSections = table.size();
+		// set up numOfCourseAssistants
+		if (numOfSections != 0) {
+			this.numOfCourseAssistants = table.get(0).size();
+		}
+		// set up scoreTable
+		this.scoreTable = table;
+		// Covert scoreTable to double array;
+		this.tableToLittleDouble();
+	}
+
+	
+	/**
+	 * This method is responsible for convert {@link scoreTable} which is ArrayList<ArrayList<Double>> 
+	 * to double array[][]; 
+	 * and save in  {@link cost}
+	 */
+	private void tableToLittleDouble() {
+		int a = scoreTable.size();
+		int b = 0;
+		if (a!= 0) {
+			b = scoreTable.get(0).size();
+		} 
+		double[][] arrayTable = new double[a][b];
+		for (int i = 0; i < a; i++) {
+			for (int j = 0; j < b; j++) {
+				arrayTable[i][j] = scoreTable.get(i).get(j);
+			}
+		}
+		this.cost = arrayTable;
+	}
+
+	
+	/**
+	 * This method is responsible for setting up array of WorkLoad and NumOfTARequired 
+	 * {@link workLoad} and {@link numOfTARequired} will be used for linear programming solver
+	 */
+	private void setWorkLoadAndNumOfTARequired() {
+		int[] tmpWorkLoad = new int[numOfSections];
+		int[] tmpNumOfTARequired = new int[numOfSections];
+		int i = 0;
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+			for (Section sec : ci.getSections()) {
+				tmpWorkLoad[i] = sec.getEnrollmentCap();
+				tmpNumOfTARequired[i] = sec.getNumOfTA();
+				i++;
+			}
+		}
+		this.workLoad = tmpWorkLoad;
+		this.numOfTARequired = tmpNumOfTARequired;
+	}
+
+	
+	
+	/**
+	 * This method is responsible for Modeling the problem to linear Programming problem;
+	 * This method will apply package from ilog.cplex.* and ilog.concert.*;
+	 * It will create a IloCplex Object,
+	 * Modeling the problem;
+	 * And find the solution;
+	 * and save the solution in
+	 * 
+	 * {@link assignment}
+	 */
+	public void cplexObject() {
+		// cost, scoreTable, tableMaping, numOfSections, NumOfCourseAssisants, 
+		this.setCost(); 
+		
+		// Setup workLoad, NumOfTARequired
+		this.setWorkLoadAndNumOfTARequired();
+		
+		// define new model
+		try {
+			cplex = new IloCplex();
+			// variables
+			// Course assistant to Section match
+			// the value is either 0 or 1; Namely assign or not assign
+			IloNumVar[][] x = new IloNumVar[numOfSections][];
+			for (int i = 0; i < numOfSections; i++) {
+				x[i] = cplex.intVarArray(numOfCourseAssistants, 0, 1);
+			}
+			
+			// Course assistant to Course match
+			// the value is either 0 or 1; Namely Whether this courseAssistant is 
+			// assigned to this course; 
+			IloNumVar[][] y = new IloNumVar[cip.getSize()][];
+			for (int i = 0; i < cip.getSize(); i++) {
+				y[i] = cplex.intVarArray(numOfCourseAssistants, 0, 1);
+			}
+				// IloNumVar y = cplex.boolVar();
+
+			// expressions;
+			
+			// A. Each entry of usedWorkLoad represent Total workload of each CourseAssistant;
+			IloLinearNumExpr[] usedWorkLoad = new IloLinearNumExpr[numOfCourseAssistants];
+			for (int j = 0; j < numOfCourseAssistants; j++) {
+				usedWorkLoad[j] = cplex.linearNumExpr(); // each ta's UsedworkLoad
+				for (int i = 0; i < numOfSections; i++) {
+					usedWorkLoad[j].addTerm(workLoad[i], x[i][j]); // assigned sections's work load sum up;
+				}
+			}
+			
+			
+   
+            // B. summation of y
+			// it is the objective funtion;
+			// we want to minimize it;
+			// Namely, we want one courseAssisstant be assigned to the sections of 
+			// the same course if it is possible.
+			IloLinearNumExpr objective = cplex.linearNumExpr();
+			for (int i = 0; i <  cip.getSize(); i++) {
+				for (int j = 0; j < numOfCourseAssistants; j++) {
+					objective.addTerm(1, y[i][j]);
+				}
+			}
+
+
+        		
+
+			// define objective
+
+			cplex.addMinimize(objective);
+
+			// constraints;
+			
+			// A. number of ta assigned to the sections should be equal to the number of Ta required
+			for (int i = 0; i < numOfSections; i++) {
+				cplex.addEq(cplex.sum(x[i]), numOfTARequired[i]);
+			}
+			
+			// B. number of sections assigned to the CourseAssistant
+			//    The total number of student enrolled should be 
+			//    less than the maximum workload for each TA.
+			for (int i = 0; i < numOfCourseAssistants; i++) {
+				cplex.addLe(usedWorkLoad[i], maxWorkLoadEachTA);
+			}
+
+			// C. If the TA is not qualified of the section;
+			//    The value should be equal to 0;
+			for (int i = 0; i < numOfSections; i++) {
+				for (int j = 0; j < numOfCourseAssistants; j++) {
+					if (cost[i][j] == -1.0) {
+						cplex.addEq(x[i][j], 0);
+					}
+				}
+			}
+			
+			// D. Set lower bound and upper bound for y[i][j]
+			int courseRow = 0; 	 // course row  : for y[courseRow][caCol]
+			int caCol = 0;     	 // caCol       : for y[courseRow][caCol] and x [secRow][caCol]
+			int startSecRow = 0; // startSecRow : to locate secRow in the next course 
+			int secRow = 0;		 // secRow	    : for x[secRow][caCol]. For each course, the first Section of the course
+			                     //               secRow will be setted as startRow;
+			
+			//expression of each y[i][j]
+			IloLinearNumExpr[][] caDistribution = new IloLinearNumExpr[cip.getSize()][cap.getSize()];
+			
+			// for each course
+			for (CourseInstance ci : cip.getCourseInstanceSet()) {
+				
+				// there is no function to get the number of sections under each course;
+				// this variable numOfSectionsUnderThisCourse is to count that;
+				int numOfSectionsUnderThisCourse  = 0;
+				
+				//for each courseAssistant;
+        		for (@SuppressWarnings("unused") CourseAssistant ca : cap.getCourseAssistantSet()) {
+        			
+        			// each entry is a linear expression;
+        			caDistribution[courseRow][caCol] = cplex.linearNumExpr(); 
+        			
+        			// numOfSectionsUnderThisCourse set to 0;
+        			numOfSectionsUnderThisCourse = 0;
+        			secRow = startSecRow; // go to the first section of this course
+        			for (@SuppressWarnings("unused") Section sec : ci.getSections()) {
+        				caDistribution[courseRow][caCol].addTerm(1, x[secRow][caCol]);        				
+        				
+        					//System.out.println("course Row " + courseRow);
+        					//System.out.println("Sec Row " + secRow);
+        					//System.out.println("ca Col-------- " + caCol);
+        				secRow ++; // next row
+        				numOfSectionsUnderThisCourse ++; //count ++
+        			}
+
+        			
+        			
+        			// add constrain: y[i][j] <= sum(x[ii][j]) where ii is sections of course i; Upper bound;
+        			cplex.addLe(y[courseRow][caCol],caDistribution[courseRow][caCol]); 
+        			
+        			// add constrain: 200y[i][j] >= sum(x[ii][j]) where ii is sections of course i;
+        			caDistribution[courseRow][caCol].addTerm(-200, y[courseRow][caCol]);
+        			cplex.addLe(caDistribution[courseRow][caCol], 0);
+        			
+        			//Go to next course assistant;
+        			caCol++;
+        		}
+        		
+        		//Section StartRow of the next course;
+        		startSecRow = startSecRow + numOfSectionsUnderThisCourse;
+        		
+        		//caCol reset;
+        		caCol = 0;
+        		//next course;
+        		courseRow ++;
+        		
+			}
+				//if (secRow != numOfSections) {
+				//	System.out.println("soooo Wrong");
+				//}
+			
+			// solve model
+			
+			// if cplex has a solution;
+			if (cplex.solve()) {
+
+				System.out.println("obj = " + cplex.getObjValue());
+				//int count = 1;
+				// solve model
+				for (int i = 0; i < numOfSections; i++) {
+					for (int j = 0; j < numOfCourseAssistants; j++) {
+						
+						//current entry in tableMaping
+								//TableInstance currTableInstance = this.tableMaping.get(i).get(j);
+						
+						//set up the flag. 
+						this.tableMaping.get(i).get(j).setFlag(cplex.getValue(x[i][j]));
+                        
+						//if flag is 1; then assign the section to the course Assistant;
+						if (cplex.getValue(x[i][j]) >= 1.0) {
+							//add it too assignment;
+						//	assignment.setCaForSection(tableMaping.get(i).get(j).getSec(),
+						//			tableMaping.get(i).get(j).getCa());
+								
+							
+							////I know it is not efficient. but time is limited, Improve it in the 
+							// future --12.16
+							int countSec = 0;
+							    for (CourseInstance tmpci : cip.getCourseInstanceSet()) {
+							    	
+							    	for (Section tmpSec : tmpci.getSections()) {
+							    		if (countSec == i) {
+							    			int countCa = 0;
+							    			for (CourseAssistant tmpca : cap.getCourseAssistantSet()) {
+							    				if (countCa == j) {
+							    					tmpSec.addAssignedCourseAssistant(tmpca);
+							    					tmpSec.setTaAssigned(true);
+							    					//assignment.setCaForSection(tmpSec, tmpca);
+							    				}
+							    				countCa ++;
+							    			}
+							    		}
+							    		countSec ++;
+							    	}
+							    }
+								//System.out.println("Pairing: " + count);
+							    //System.out.println("------------");
+							    //System.out.println("Section: ");
+							    //tableMaping.get(i).get(j).getSec().display();
+							    // System.out.println("CourseAssistant：");
+							    //tableMaping.get(i).get(j).getCa().display();
+							    //System.out.println("---------------");
+							    //System.out.println("\n");
+							    //count++;
+						}
+
+//						System.out.println("Course: " + currTableInstance.getCourse().getCourse().toString()
+//								+ "\nSection: " + currTableInstance.getSec().toString() + "\nCourseAssistant: "
+//								+ currTableInstance.getCa() + "\nAssign Flag: " + cplex.getValue(x[i][j]) + "\n"
+//								+ "Score: " + currTableInstance.getScore() + "\n\n");
+					}
+				}
+
+				cplex.end();
+
+			} else {
+				System.out.println("problem not solved");
+			}
+			cplex.end();
+
+		} catch (IloException exc) {
+			exc.printStackTrace();
+		}
+	}
+
+	
+	/**
+	 * This method is responsible for getting  {@link assignment}
+	 * @return assignment
+	 */
+	public Assignment getAssignment() {
+		return assignment;
+	}
+
+	/**
+	 * This method is responsible for getting {@link tableMaping}
+	 * @return tableMaping
+	 */
+	public ArrayList<ArrayList<TableInstance>> getTableMaping() {
+		return tableMaping;
+	}
+	
+	/**
+	 * This method is responsible for getting {@link scoreTable}
+	 * @return scoreTable
+	 */
+	public ArrayList<ArrayList<Double>> getScoreTable() {
+		return scoreTable;
+	}
+
+	/**
+	 * This method is responsible for getting {@link cost}
+	 * @return cost
+	 */
+	public double[][] getCost() {
+		return cost;
+	}
+
+	
+	/**
+	 * This method is responsible for getting {@link maxWorkLoadEachTA}
+	 * @return maxWorkLoadEachTA
+	 */
+	public void setMaxWorkLoadEachTA(int maxWorkLoadEachTA) {
+		this.maxWorkLoadEachTA = maxWorkLoadEachTA;
+	}
+	
+	
+	
+	/**
+	 * This method is responsible for returning the assignment based on the
+	 * {@link #cplexObject()} method, which model the problem into 
+	 * Linear programming solution.
+	 * For each {@link Section} in each {@link CourseInstance}, it will give the assignment.
+	 * Finally, it returns a {@link Assignment} as the assignment.
+	 * 
+	 * @return a {@link Assignment} representing the final assignment.
+	 */
+	public Assignment assign() {
+
+
+		this.cplexObject();
+
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+
+			for (Section sec : ci.getSections()) {
+
+				if (sec.isTaAssigned()) {
+
+					for (CourseAssistant ca : sec.getAssignedCourseAssistants())
+						assignment.setCaForSection(sec, ca);
+				}
+			}
+		}
+
+		return assignment;
+	}
+}

@@ -1,0 +1,76 @@
+package edu.udel.cis.taschd.userinterface;
+
+import edu.udel.cis.taschd.userinterface.UserInterface;
+/**
+ *   <p>
+ *   
+ *   The {@link display} class contains the main function. It processes the command line 
+ *   and executes commands. Command line arguments are provided by the user.
+ *   
+ *   </p>
+ *   
+ *   @author yasha
+ */
+public class display {
+	/**
+	 * 
+	 * @param args
+	 *            command line arguments
+	 */
+	public final static void main(String[] args) {
+		System.out.println("taschd v0: The TA Scheduler.  http://taschd.cis.udel.edu");
+		int count = args.length;
+		UserInterface ui = new UserInterface();
+		for(int i=0;i<count;i++) 
+		switch(args[0]){
+		
+		case "init":
+			System.out.println("Creating the directory structure\n");
+			ui.init();
+			break;
+			
+		case "addterm":
+			if(i==1){
+				//int x = Integer.parseInt(args[i]);
+			    ui.addTerm(args[i]);
+			    System.out.println("Adding the term " + args[i] );
+			}
+			else if (i>1) {
+				System.out.println("Error: Second argument (term) not added i.e. " + args[i]);
+				System.out.println("Add one term at a time");
+				break;
+			}
+				
+		case "getcaschd":
+			// getcaschd
+			break;
+			
+		case "getcrsschd":
+			break;
+			
+		case "display":
+			break;
+			
+		case "posslist":
+			break;
+			
+		case "optassignment":
+			break;
+			
+		case "addCASkill":
+		//	addCASkill();
+			break;
+
+		case "addCourse":
+		//addCourse
+			break;
+			
+		case "addCA":
+		// addCA()
+			break;
+			
+		}
+		
+	}
+	
+}

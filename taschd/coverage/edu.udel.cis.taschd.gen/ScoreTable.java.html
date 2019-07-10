@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ScoreTable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.gen</a> &gt; <span class="el_source">ScoreTable.java</span></div><h1>ScoreTable.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.gen;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Represents a generator tool for a {@link CourseAssistantPool} and a set of
+ * {@link CourseInstancePool}s. A course assistant pool is a set of course
+ * assistants available for a given term. A course instancePool is a set of
+ * courseInstancePool. The assignment result will stored as indexes. The final
+ * assignment can be find by search tableMapping using the indexes stored.
+ * 
+ * @author yiliu
+ * 
+ * @author Nikhil;
+ */
+public class ScoreTable {
+	private CourseAssistantPool cap;
+	private CourseInstancePool cip; // course instance pool
+	// private CourseAssistantPool leftOver; // courseAssistant who didn't reach to
+	// maximum work load;
+	// private ArrayList&lt;Section&gt; noCa; //Sections with no ca after first iteration.
+	// Because ca is in shortage.
+
+	private ArrayList&lt;ArrayList&lt;Double&gt;&gt; scoreTable;
+	private ArrayList&lt;ArrayList&lt;TableInstance&gt;&gt; tableMaping;
+	private double[][] tableForHungarian; // double table, it can be used in hungarian method
+	private Hungarian hunOpt;
+	private int[] result;
+	private HashMap&lt;Section, CourseAssistant&gt; assignment;
+<span class="fc" id="L42">	int capSize = 0;</span>
+<span class="fc" id="L43">	int cipSize = 0;</span>
+
+	/**
+	 * Constructs a new {@link ScoreTable} with given {@link CourseAssistantPool}
+	 * and {@link CourseInstancePool};
+	 *
+	 * @param CourseInstancePool, CourseAssistantPool This score table will obtain
+	 *        result of assignment. which is stored in field of result. It is an
+	 *        array, the index of the array representing course. and the value of
+	 *        that index representing ca.
+	 * 
+	 *        THIS METHOD CAN ONLY ASSIGN ONE TA TO ONE SECTION. IT CAN NOT ASSIGN
+	 *        ONE TA TO MULTIPUL SECTION FOR NOW. MORE CONSTRAIN WILL BE ADDED IN
+	 *        THE FUTURE TO ACHEIVE ONE TO MANY ASSGINMENT.
+	 */
+<span class="fc" id="L58">	public ScoreTable(CourseAssistantPool cap, CourseInstancePool cip) {</span>
+<span class="fc" id="L59">		this.cap = cap;</span>
+<span class="fc" id="L60">		this.cip = cip;</span>
+<span class="fc" id="L61">		this.capSize = cap.getSize();</span>
+<span class="fc" id="L62">		this.cipSize = cip.getSize();</span>
+<span class="fc" id="L63">		this.scoreTable = new ArrayList&lt;ArrayList&lt;Double&gt;&gt;();</span>
+<span class="fc" id="L64">		this.tableMaping = new ArrayList&lt;ArrayList&lt;TableInstance&gt;&gt;();</span>
+<span class="fc" id="L65">		this.tableForHungarian = null;</span>
+<span class="fc" id="L66">		this.hunOpt = null;</span>
+<span class="fc" id="L67">		this.result = null;</span>
+		// this.leftOver = null;
+
+<span class="fc" id="L70">		this.fillTable(); // fille the score table.</span>
+<span class="fc" id="L71">		this.tableTo2DArray(); // turn the score table to 2D array with double type.</span>
+								// set up the value of tableForHungarian.
+<span class="fc" id="L73">		this.setUpHungarian(); // set up hunOpt</span>
+<span class="fc" id="L74">		this.calculateResult(); // set up the result.</span>
+<span class="fc" id="L75">	}</span>
+
+	/**
+	 * Create a method for filling in the empty &quot;table&quot;
+	 * 
+	 * @param cou Course object in {@link Course}
+	 * @param sec Section object in {@link Section}
+	 * @param ca  CourseAssistant object in {@link CourseAssistant}
+	 * @return double double arrayList with computed scores for each CA to each
+	 *         course
+	 * @return it will also return arrayList&lt;ArrayList&lt;TableInstance&gt;&gt; which can
+	 *         mapping the score table and store all the information of
+	 *         courseAssistant and sections, and course in each table instance;
+	 */
+	private void fillTable() {
+
+<span class="fc" id="L91">		int i = 0;</span>
+<span class="fc" id="L92">		int j = 0;</span>
+<span class="fc" id="L93">		double finalScore = 0;</span>
+		double skillScore, wtpsScore;
+		// double[] temp = new double[capSize];
+<span class="fc" id="L96">		ArrayList&lt;ArrayList&lt;Double&gt;&gt; table = new ArrayList&lt;ArrayList&lt;Double&gt;&gt;();</span>
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+
+<span class="fc bfc" id="L100" title="All 2 branches covered.">		for (CourseInstance ci : cip.getCourseInstanceSet()) {</span>
+
+<span class="fc" id="L102">			courseSkills = ci.getCourse().getSkills();</span>
+
+			// int load = 0;
+<span class="fc bfc" id="L105" title="All 2 branches covered.">			for (Section sec : ci.getSections()) {</span>
+<span class="fc" id="L106">				ArrayList&lt;Double&gt; secCa = new ArrayList&lt;Double&gt;();</span>
+<span class="fc" id="L107">				ArrayList&lt;TableInstance&gt; rowTable = new ArrayList&lt;TableInstance&gt;();</span>
+
+<span class="fc" id="L109">				sectionSchedule = sec.getSchedule();</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">				for (CourseAssistant ca : cap.getCourseAssistantSet()) {</span>
+<span class="fc" id="L111">					System.out.println(&quot;-------------matching:&quot;);</span>
+<span class="fc" id="L112">					System.out.println(&quot;skill&quot;);</span>
+<span class="fc" id="L113">					System.out.println(courseSkills.toString());</span>
+<span class="fc" id="L114">					sec.display();</span>
+<span class="fc" id="L115">					System.out.println(&quot;-------&quot;);</span>
+<span class="fc" id="L116">					ca.display();</span>
+
+<span class="fc" id="L118">					skillScore = courseSkills.skillScore(ca.getPossessedSkillset());</span>
+
+<span class="fc" id="L120">					System.out.println(&quot;sk score:&quot; + skillScore);</span>
+
+<span class="fc" id="L122">					wtpsScore = sectionSchedule.wtpsScore(ca.getWtps());</span>
+
+<span class="fc" id="L124">					System.out.println(&quot;time score:&quot; + wtpsScore);</span>
+
+<span class="fc bfc" id="L126" title="All 2 branches covered.">					if (!sec.isMtac())</span>
+<span class="fc" id="L127">						wtpsScore = 1.0; // I think this should be included in wtps score, but deal with it later</span>
+
+					// 1. graduate
+					// 2. consequetive sections.
+					// 3.
+<span class="fc" id="L132">					int graduateWeight = 0;</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">					if (!ca.getGraduateStudent()) {</span>
+<span class="fc" id="L134">						int courseCode = Integer.parseInt(ci.getCourse().getCourseCode());</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">						if (courseCode &gt;= 600) {</span>
+<span class="fc" id="L136">							graduateWeight = 10;</span>
+						}
+					}
+
+<span class="fc" id="L140">					finalScore = 2 - skillScore * wtpsScore + graduateWeight;</span>
+
+<span class="fc" id="L142">					secCa.add(finalScore);</span>
+
+<span class="fc" id="L144">					TableInstance oneEntry = new TableInstance(i, j, ca, sec, ci, finalScore);</span>
+<span class="fc" id="L145">					rowTable.add(oneEntry);</span>
+					//// The following is a temporary solution
+					// when the number of sections is more than courseAssistants.
+					// we will double the courseAssisants. which means one courseAssisant will be
+					//// assigned to
+					// at most 2 more sections
+<span class="fc bfc" id="L151" title="All 2 branches covered.">					if (capSize &lt; cipSize) {</span>
+<span class="fc" id="L152">						secCa.add(finalScore);</span>
+<span class="fc" id="L153">						rowTable.add(oneEntry);</span>
+					}
+<span class="fc" id="L155">					i++;</span>
+
+<span class="fc" id="L157">					System.out.println(finalScore);</span>
+<span class="fc" id="L158">					System.out.println(&quot;________End Matching___________&quot;);</span>
+
+				}
+
+<span class="fc" id="L162">				System.out.println(secCa.toString());</span>
+<span class="fc bfc" id="L163" title="All 2 branches covered.">				for (int k = 0; k &lt; sec.getNumOfTA(); k++) { /// this can be a problem in the future.</span>
+<span class="fc" id="L164">					table.add(secCa);</span>
+<span class="fc" id="L165">					tableMaping.add(rowTable);</span>
+				}
+
+<span class="fc" id="L168">				i = 0;</span>
+<span class="fc" id="L169">				System.out.println(&quot;---------------------------&quot;);</span>
+			}
+
+		}
+<span class="fc" id="L173">		System.out.println(table.toString());</span>
+<span class="fc" id="L174">		int row = table.size();</span>
+<span class="fc" id="L175">		int col = table.get(0).size();</span>
+
+<span class="pc bpc" id="L177" title="1 of 2 branches missed.">		if (row &lt; col) {</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">			for (int ii = 0; ii &lt; col - row; ii++) {</span>
+<span class="fc" id="L179">				ArrayList&lt;Double&gt; ghostSection = new ArrayList&lt;Double&gt;();</span>
+<span class="fc" id="L180">				ArrayList&lt;TableInstance&gt; rowTable = new ArrayList&lt;TableInstance&gt;();</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">				for (int jj = 0; jj &lt; col; jj++) {</span>
+<span class="fc" id="L182">					ghostSection.add(0.0);</span>
+
+<span class="fc" id="L184">					TableInstance oneEntry = new TableInstance(0, 0, null, null, null, 0.0);</span>
+<span class="fc" id="L185">					rowTable.add(oneEntry);</span>
+				}
+<span class="fc" id="L187">				table.add(ghostSection);</span>
+<span class="fc" id="L188">				tableMaping.add(rowTable);</span>
+			}
+		}
+
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">		if (row &gt; col) {</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">			for (int ii = 0; ii &lt; row; ii++) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">				for (int jj = 0; jj &lt; row - col; jj++) {</span>
+<span class="nc" id="L195">					table.get(ii).add(99999.9);</span>
+
+<span class="nc" id="L197">					TableInstance oneEntry = new TableInstance(0, 0, null, tableMaping.get(ii).get(0).getSec(), null,</span>
+<span class="nc" id="L198">							99999.9);</span>
+<span class="nc" id="L199">					tableMaping.get(ii).add(oneEntry);</span>
+				}
+			}
+
+		}
+<span class="fc" id="L204">		i++;</span>
+
+<span class="fc" id="L206">		this.scoreTable = table;</span>
+
+<span class="fc" id="L208">	}</span>
+
+	/**
+	 * Create a method for display the final result This method will take the
+	 * result, and tableMaping. By look into the index stored in result. it will
+	 * print out the final assignment result.
+	 */
+	public void display() {
+<span class="fc" id="L216">		int count = 1;</span>
+<span class="fc bfc" id="L217" title="All 2 branches covered.">		for (int i = 0; i &lt; result.length; i++) {</span>
+<span class="fc" id="L218">			CourseInstance courseOne = tableMaping.get(i).get(result[i]).getCourse();</span>
+<span class="fc" id="L219">			Section secOne = tableMaping.get(i).get(result[i]).getSec();</span>
+<span class="fc" id="L220">			CourseAssistant caOne = tableMaping.get(i).get(result[i]).getCa();</span>
+<span class="pc bpc" id="L221" title="1 of 4 branches missed.">			if (secOne != null &amp;&amp; caOne != null) {</span>
+<span class="fc" id="L222">				System.out.println(&quot;Pairing: &quot; + count);</span>
+				// System.out.println(&quot;Course:&quot;);
+<span class="fc" id="L224">				courseOne.display();</span>
+<span class="fc" id="L225">				System.out.println(&quot;------------&quot;);</span>
+<span class="fc" id="L226">				System.out.println(&quot;Section: &quot;);</span>
+<span class="fc" id="L227">				secOne.display();</span>
+				// System.out.println(&quot;CourseAssistant：&quot;);
+<span class="fc" id="L229">				caOne.display();</span>
+<span class="fc" id="L230">				System.out.println(&quot;---------------&quot;);</span>
+<span class="fc" id="L231">				System.out.println(&quot;\n&quot;);</span>
+<span class="fc" id="L232">				count++;</span>
+
+			}
+		}
+<span class="fc" id="L236">	}</span>
+
+	/**
+	 * A getter to get the score table.
+	 *
+	 * @return scoreTable.
+	 */
+	public ArrayList&lt;ArrayList&lt;Double&gt;&gt; getTable() {
+<span class="fc" id="L244">		return scoreTable;</span>
+	}
+
+	/**
+	 * change the type of scoreTable, From Double to double stored in
+	 * tableForHungarian
+	 */
+	private void tableTo2DArray() {
+<span class="fc" id="L252">		int a = scoreTable.size();</span>
+<span class="fc" id="L253">		double[][] arrayTable = new double[a][a];</span>
+<span class="fc bfc" id="L254" title="All 2 branches covered.">		for (int i = 0; i &lt; a; i++) {</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">			for (int j = 0; j &lt; a; j++) {</span>
+<span class="fc" id="L256">				arrayTable[i][j] = scoreTable.get(i).get(j);</span>
+			}
+		}
+<span class="fc" id="L259">		tableForHungarian = arrayTable;</span>
+<span class="fc" id="L260">	}</span>
+
+	/**
+	 * using tableForHungarian to create a new Hungarian object and save in hunOpt.
+	 */
+	private void setUpHungarian() {
+<span class="fc" id="L266">		this.hunOpt = new Hungarian(tableForHungarian);</span>
+<span class="fc" id="L267">	}</span>
+
+	/**
+	 * Execute hungarian method on hunOpt object. and store the output in result
+	 * field.
+	 */
+	private void calculateResult() {
+<span class="fc" id="L274">		this.result = hunOpt.execute();</span>
+<span class="fc" id="L275">	}</span>
+
+	/**
+	 * A getter to get the Result.
+	 *
+	 * @return result.
+	 */
+	public int[] getResult() {
+<span class="fc" id="L283">		return result;</span>
+	}
+
+	/**
+	 * A getter to get the tableForHungarian.
+	 *
+	 * @return tableForHungarian.
+	 */
+	public double[][] getTableForHungarian() {
+<span class="nc" id="L292">		return tableForHungarian;</span>
+	}
+
+	/**
+	 * A getter to get the hunOpt.
+	 *
+	 * @return hunOpt.
+	 */
+	public Hungarian getHunOpt() {
+<span class="nc" id="L301">		return hunOpt;</span>
+	}
+
+	/**
+	 * A getter to get the cap.
+	 *
+	 * @return cap.
+	 */
+	public CourseAssistantPool getCap() {
+<span class="nc" id="L310">		return cap;</span>
+	}
+
+	/**
+	 * A getter to get the Cip.
+	 *
+	 * @return Cip.
+	 */
+	public CourseInstancePool getCip() {
+<span class="nc" id="L319">		return cip;</span>
+	}
+
+	/**
+	 * A getter to get the ScoreTable.
+	 *
+	 * @return ScoreTable.
+	 */
+	public ArrayList&lt;ArrayList&lt;Double&gt;&gt; getScoreTable() {
+<span class="nc" id="L328">		return scoreTable;</span>
+	}
+
+	/**
+	 * A getter to get the TableMaping.
+	 *
+	 * @return TableMaping.
+	 */
+	public ArrayList&lt;ArrayList&lt;TableInstance&gt;&gt; getTableMaping() {
+<span class="nc" id="L337">		return tableMaping;</span>
+	}
+
+	/**
+	 * A getter to get the capSize.
+	 *
+	 * @return capSize.
+	 */
+	public int getCapSize() {
+<span class="nc" id="L346">		return capSize;</span>
+	}
+
+	/**
+	 * A getter to get the cipSize.
+	 *
+	 * @return cipSize.
+	 */
+	public int getCipSize() {
+<span class="nc" id="L355">		return cipSize;</span>
+	}
+
+	/**
+	 * This method will store the final assignment as a hashMap in assignment.
+	 */
+	public void assign() {
+<span class="nc" id="L362">		HashMap&lt;Section, CourseAssistant&gt; tempAssign = new HashMap&lt;Section, CourseAssistant&gt;();</span>
+		// int count = 1;
+<span class="nc bnc" id="L364" title="All 2 branches missed.">		for (int i = 0; i &lt; result.length; i++) {</span>
+			// CourseInstance courseOne = tableMaping.get(i).get(result[i]).getCourse();
+<span class="nc" id="L366">			Section secOne = tableMaping.get(i).get(result[i]).getSec();</span>
+<span class="nc" id="L367">			CourseAssistant caOne = tableMaping.get(i).get(result[i]).getCa();</span>
+<span class="nc bnc" id="L368" title="All 4 branches missed.">			if (secOne != null &amp;&amp; caOne != null) {</span>
+
+<span class="nc" id="L370">				tempAssign.put(secOne, caOne);</span>
+			}
+
+		}
+<span class="nc" id="L374">		assignment = tempAssign;</span>
+<span class="nc" id="L375">	}</span>
+
+	/**
+	 * Create a method for display the assignment.
+	 */
+	public void displayHash() {
+<span class="nc" id="L381">		int count = 1;</span>
+<span class="nc" id="L382">		Set&lt;Section&gt; keys = assignment.keySet();</span>
+<span class="nc" id="L383">		Iterator&lt;Section&gt; itr = keys.iterator();</span>
+		// Displaying Key and value pairs
+		Section oneSec;
+		CourseAssistant oneCa;
+<span class="nc bnc" id="L387" title="All 2 branches missed.">		while (itr.hasNext()) {</span>
+			// Getting Key
+<span class="nc" id="L389">			oneSec = itr.next();</span>
+<span class="nc" id="L390">			oneCa = assignment.get(oneSec);</span>
+
+<span class="nc" id="L392">			System.out.println(&quot;Pairing: &quot; + count);</span>
+<span class="nc" id="L393">			System.out.println(&quot;------------&quot;);</span>
+<span class="nc" id="L394">			System.out.println(&quot;Section: &quot;);</span>
+<span class="nc" id="L395">			oneSec.display();</span>
+			// System.out.println(&quot;CourseAssistant：&quot;);
+<span class="nc" id="L397">			oneCa.display();</span>
+<span class="nc" id="L398">			System.out.println(&quot;---------------&quot;);</span>
+<span class="nc" id="L399">			System.out.println(&quot;\n&quot;);</span>
+
+		}
+
+<span class="nc" id="L403">	}</span>
+//////////////////////////	
+//	public void manualAssign(CourseAssistant ca, Section sec) {
+
+//	}
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	public void keepAssign() {		
+//		int count = 1;
+//		for (int i =0; i &lt;= result.length; i++) {
+//			CourseInstance courseOne = tableMaping.get(i).get(result[i]).getCourse();
+//			Section secOne = tableMaping.get(i).get(result[i]).getSec();
+//			CourseAssistant caOne = tableMaping.get(i).get(result[i]).getCa();
+//			if (secOne != null &amp;&amp; caOne != null) {
+//				secOne.addAssignedCourseAssistant(caOne);
+//				int currLoad = caOne.getCourseLoad();
+//				currLoad =+ secOne.getEnrollmentCap();
+//				                                       //this should be fix in the future, because the courseLoad changes 
+//                                                       // for different courses
+//				if (currLoad &lt; caOne.getCourseLoad()) {
+//					leftOver.addCourseAssistant(caOne);	
+//				}
+//				System.out.println(&quot;Pairing: &quot; + count);
+//				//System.out.println(&quot;Course:&quot;);
+//				courseOne.display();
+//				System.out.println(&quot;------------&quot;);
+//				System.out.println(&quot;Section: &quot;);
+//				secOne.display();
+//				//System.out.println(&quot;CourseAssistant：&quot;);
+//				caOne.display();
+//				System.out.println(&quot;---------------&quot;);
+//				System.out.println(&quot;\n&quot;);
+//				count ++;			
+//			}
+//		    if (SecOne != null) {
+//			
+//		}
+//	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

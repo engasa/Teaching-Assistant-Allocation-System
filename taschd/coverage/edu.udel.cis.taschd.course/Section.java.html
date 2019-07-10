@@ -1,0 +1,796 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Section.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.course</a> &gt; <span class="el_source">Section.java</span></div><h1>Section.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.course;
+
+import java.util.ListIterator;
+import java.util.Objects;
+import java.util.ArrayList;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * &lt;p&gt;
+ * The {@link Section} class contains the attributes for each {@link Section}. There
+ * is a relationship between lab and lecture sections for course instances of a
+ * given instructor. If a {@link CourseInstance}'s {@link CourseInstance#isHasLab}
+ * attribute is TRUE, there is a corresponding lecture section for that lab section.
+ * For example, Fall 2018 CISC 675 Software Engineer's lecture section is &quot;010&quot; and
+ * the {@link CourseInstance#isHasLab()} is TRUE, therefore, the lab section for this
+ * {@link CourseInstance} is &quot;020L&quot;. Note that {@link Course}s CISC 106 and CISC 108 are the
+ * only 2 Courses that require lab assistants, as specified by Dr. Daniel Chester.
+ * &lt;/p&gt;
+ * 
+ * &lt;p&gt;
+ * {@link Section}s are belong to a {@link Course}.
+ * &lt;/p&gt;
+ * 
+ * @author matthew
+ */
+
+public class Section implements Comparable&lt;Section&gt;{
+    /**
+     * The university department identifier that this {@link Section} has. For example,
+     * &quot;L&quot; stands for Lab. This is a String consisting of only capital letters.
+     */
+    private String sectionType;
+
+    /**
+     * The university 3-digit section identifier that this {@link Course} has. This is 
+     * a String in the range [000,999]. Note that all sections have leading 0's. 
+     * For example, 10 represents 010 and 1 represents 001.
+     */
+    private String sectionNumber;
+
+    /**
+     * The name of the instructor teaching this {@link Section} represented as &quot;LastName,
+     *  FirstName&quot;. For example, &quot;Siegel, Stephen&quot;. This is a comma-separated proper-case String.
+     */
+    private String instructorName;
+
+    /**
+     * The number of students currently enrolled in the {@link Section}. This is an integer 
+     * in the range [0,{@link Section#enrollmentCap}]. Note that a {@link Section} needs at least 10
+     * students to be offered within a given {@link CourseInstance}. Otherwise, the university may
+     * cancel registration for that {@link CourseInstance} for that given term.
+     */
+    private int currentEnrollment;
+
+    /**
+     * The maximum number of students that can enroll in this {@link Section}. This is an integer that
+     * is predetermined by the university.
+     */
+    private int enrollmentCap;
+
+    /**
+     * The university 3-character building name and 3-digit room number identifier
+     * which is the meeting place for this {@link Section} during the term.
+     * For example, &quot;MEM215&quot; stands for Memorial Hall Room 215. This is a String
+     * consisting of a 3-character prefix of only capital letters and a 3-digit
+     * post-fix of integers in the range of [000-999]. Note that all course codes
+     * have leading 0's. For example, 10 represents 010 and 1 represents 001.
+     */
+    private String location;
+
+    /**
+     * The {@link WeeklySchedule} that this {@link Section} will meet.
+     * For example, &quot;MWF 11:00AM - 12:15PM&quot; stands for Computer and Information Science.
+     * This is an ordered set of {@link edu.udel.cis.taschd.time.TimeInterval}s.
+     */
+    private WeeklySchedule schedule;
+
+    /**
+     * The identifier that this {@link Section} has assigned a Teacher's Assistant. This is
+     * only necessary if the {@link Section#isMtac()} is TRUE, hence the {@link Section}
+     * requires a Teacher's Assistant present. This is a boolean where TRUE indicates
+     * that the {@link CourseInstance} does have an assignment made and FALSE indicates that the
+     * {@link CourseInstance} does not have an assignment made.
+     */
+    private boolean taAssigned;
+
+    /**
+     * The mandatory number of Teacher's Assistants that are required for the {@link Section}.
+     * This is an integer in the range [0,3] that is predetermined by the university.
+     */
+    private int numOfTA;
+
+    /**
+     * The mandatory number of Lab Assistants that are required for the {@link Section}.
+     * This is an integer in the range [0,2] that is predetermined by the university.
+     */
+    private int numOfLA;
+
+    /**
+     * The identifier that this {@link Section} requires a Teacher's Assistant present.
+     * This is a boolean where TRUE indicates that the {@link CourseInstance} does require
+     * attendance and FALSE indicates that the {@link CourseInstance} does not require attendance.
+     */
+    private boolean mtac;
+
+    /**
+     * The sequence of courseAssistants. They are ordered by Last Name, then First Name,
+     * and Id Number. The ordered is determined by the method
+     * {@link CourseAssistant#compareTo(CourseAssistant)}. If LastName are equal,
+     * the fisrtNames are used to break the tie. If firstName are equal,
+     * the Id are used to break the tie.
+     */
+    private ArrayList&lt;CourseAssistant&gt; assignedCourseAssistants;
+    
+    /**
+     * The lecture {@link Section} object that this lab {@link Section} references.
+     * For example, Section 010 has a lab of 020L.
+     */
+    private Section correspondingLecture;
+    
+    /**
+     * The lab {@link Section} object that this lecture {@link Section} references.
+     * For example, Section 020L has a lab of 010.
+     */
+    private Section correspondingLab;
+
+    /**
+     * Constructs a new {@link Section} with given {@link CourseInstance} for a specified term.
+     *
+     * @param sectionType
+     *                          the type of section which is either lecture (LEC) or lab (LAB),
+     *                          a String.
+     * @param sectionNumber
+     *                          the university 3-digit section identifier,
+     *                          a String consisting of only digits with leading zeros (0).
+     * @param instructorName
+     *                          the instructor's full name who is teaching this {@link Section},
+     *                          a comma-separated proper-case String such as &quot;LastName, FirstName&quot;.
+     * @param currentEnrollment
+     *                          the number currently enrolled in this {@link Section},
+     *                          an integer in the range [0,{@link Section#enrollmentCap}].
+     * @param enrollmentCap
+     *                          the max number of students that can enroll in this {@link Section},
+     *                          an integer predetermined by the university.
+     * @param location
+     *                          the university 3-character building name and 3-digit
+     *                          room number identifier, a String with a 3-character prefix of
+     *                          only capital letters and a 3-digit post-fix of integers in
+     *                          the range of [000-999].
+     * @param schedule
+     *                          the {@link WeeklySchedule} that this {@link Section} will meet,
+     *                          an ordered set of {@link edu.udel.cis.taschd.time.TimeInterval}s.
+     */
+<span class="fc" id="L157">    public Section(String sectionType, String sectionNumber, String instructorName, int currentEnrollment,</span>
+                   int enrollmentCap, String location, WeeklySchedule schedule) {
+<span class="fc" id="L159">        this.sectionType = sectionType;</span>
+
+<span class="pc bpc" id="L161" title="1 of 4 branches missed.">        if (sectionNumber.length() != 3 || sectionNumber.matches(&quot;[0-9]&quot;))</span>
+<span class="fc" id="L162">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L163">                    &quot;the section number must be a 3-digit String&quot;);</span>
+<span class="fc" id="L164">        this.sectionNumber = sectionNumber;</span>
+
+<span class="fc" id="L166">        this.instructorName = instructorName;</span>
+<span class="fc" id="L167">        this.currentEnrollment = currentEnrollment;</span>
+<span class="fc" id="L168">        this.enrollmentCap = enrollmentCap;</span>
+<span class="fc" id="L169">        this.location = location;</span>
+<span class="fc" id="L170">        this.schedule = schedule;</span>
+<span class="fc" id="L171">        this.numOfTA = 0;</span>
+<span class="fc" id="L172">        this.numOfLA = 0;</span>
+<span class="fc" id="L173">        this.mtac = false;</span>
+<span class="fc" id="L174">        this.taAssigned = false;</span>
+<span class="fc" id="L175">        this.assignedCourseAssistants = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L176">    }</span>
+
+    /**
+     * A getter to get the university section type initialized, represented as a String.
+     *
+     * @return the section type for this {@link Section}, a String which is lecture (LEC) or lab (LAB).
+     */
+    public String getSectionType() {
+<span class="fc" id="L184">        return sectionType;</span>
+    }
+
+    /**
+     * A getter to get the university section number initialized, represented as 
+     * a 3-digit String in the range of [000,999], e.g., 
+     * &lt;pre&gt;
+     * &quot;010&quot;.
+     * &lt;/pre&gt;
+     *
+     * @return the section number.
+     */
+    public String getSectionNumber() {
+<span class="fc" id="L197">        return sectionNumber;</span>
+    }
+
+    /**
+     * A getter to get the instructor's full name initialized, represented as 
+     * a comma-separated proper-case String.
+     *
+     * @return the instructor name.
+     */
+    public String getInstructorName() {
+<span class="fc" id="L207">        return instructorName;</span>
+    }
+
+    /**
+     *  A getter to get the current enrollment initialized, represented as 
+     *  an integer in the range of [0, {@link Section#enrollmentCap}]
+     *
+     * @return the current enrollment.
+     */
+    public int getCurrentEnrollment() {
+<span class="fc" id="L217">        return currentEnrollment;</span>
+    }
+
+    /**
+     * A getter to get the max number of students that can enroll in this {@link Section},
+     * represented as an integer predetermined by the university.
+     *
+     * @return the enrollment capacity.
+     */
+    public int getEnrollmentCap() {
+<span class="fc" id="L227">        return enrollmentCap;</span>
+    }
+
+    /**
+     * A getter to get the university 3-character building name and 3-digit
+     * room number identifier initialized, presented as a String with a 3-character 
+     * prefix of only capital letters and a 3-digit post-fix of integers in
+     * the range of [000-999]. For example, &quot;MEM215&quot; which represents
+     * Memorial Hall Room 215.
+     *
+     * @return the location.
+     */
+    public String getLocation() {
+<span class="fc" id="L240">        return location;</span>
+    }
+
+    /**
+     * A getter to get the schedule for this {@link Section} which is the set of 
+     * {@link edu.udel.cis.taschd.time.TimeInterval}s required for this {@link Section} 
+     * initialized, represented as a {@link WeeklySchedule} of {@link edu.udel.cis.taschd.time.TimeInterval} objects.
+     *
+     * @return the weekly time schedule specification for this section.
+     */
+    public WeeklySchedule getSchedule() {
+<span class="fc" id="L251">        return schedule;</span>
+    }
+
+    /**
+     * A setter to get the set of {@link edu.udel.cis.taschd.time.TimeInterval}s required for this section, represented as a
+     * {@link WeeklySchedule} of {@link edu.udel.cis.taschd.time.TimeInterval} objects.
+     *
+     * @param schedule
+     *                          the schedule associated with this {@link Section}.
+     */
+    public void setSchedule(WeeklySchedule schedule) {
+<span class="fc" id="L262">        this.schedule = schedule;</span>
+<span class="fc" id="L263">    }</span>
+    
+    /**
+     * A getter to get the corresponding Lecture {@link Section} required for this lab section, representing the mapping
+     * from {@link Section} to {@link Section} objects.
+     *
+     * @param correspondingLecture
+     *                          the corresponding lecture section with this {@link Section}.
+     */
+    public Section getCorrespondingLecture() {
+<span class="nc" id="L273">    	return correspondingLecture;</span>
+    }
+    
+    /**
+     * A setter to set the corresponding Lecture {@link Section} required for this lab section, representing the mapping
+     * from {@link Section} to {@link Section} objects.
+     *
+     * @param correspondingLecture
+     *                          the corresponding lecture section with this {@link Section}.
+     */
+    public void setCorrespondingLecture(Section correspondingLecture) {
+<span class="fc" id="L284">    	this.correspondingLecture = correspondingLecture;</span>
+<span class="fc" id="L285">    }</span>
+    
+    /**
+     * A getter to get the corresponding Lab {@link Section} required for this lecture section, representing the mapping
+     * from {@link Section} to {@link Section} objects.
+     *
+     * @param correspondingLecture
+     *                          the corresponding lab section with this {@link Section}.
+     */
+    public Section getCorrespondingLab() {
+<span class="fc" id="L295">    	return correspondingLab;</span>
+    }
+    
+    /**
+     * A setter to set the corresponding Lab {@link Section} required for this lecture section, representing the mapping
+     * from {@link Section} to {@link Section} objects.
+     *
+     * @param correspondingLab
+     *                          the corresponding lab section with this {@link Section}.
+     */
+    public void setCorrespondingLab(Section correspondingLab) {
+<span class="fc" id="L306">    	this.correspondingLab = correspondingLab;</span>
+<span class="fc" id="L307">    }</span>
+
+    /**
+     * A getter to get the taAssigned attribute initialized, represented as a boolean value 
+     * where TRUE indicates that the {@link Section} does assigned a teacher's assistant and 
+     * FALSE indicates that the {@link Section} does not have a teacher's assistant assigned.
+     *
+     * @return True if {@link Section} assigned a {@link edu.udel.cis.taschd.ca.CourseAssistant}.
+     */
+    public boolean isTaAssigned() {
+<span class="fc" id="L317">        return taAssigned;</span>
+    }
+
+    /**
+     * A setter to get the taAssigned attribute for this {@link Section}, 
+     * represented as a boolean.
+     * 
+     * @param taAssigned
+     *                          a boolean represented as TRUE if this {@link Section}
+     *                          assigned a teacher's assistant.
+     */
+    public void setTaAssigned(boolean taAssigned) {
+<span class="fc" id="L329">        this.taAssigned = taAssigned;</span>
+<span class="fc" id="L330">    }</span>
+
+    /**
+     * A getter to get the number of teacher's assistants needed for this {@link Section} initialized, 
+     * represented as an integer in the range [0, 3]
+     *
+     * @return the number of teacher's assistants.
+     */
+    public int getNumOfTA() {
+<span class="fc" id="L339">        return numOfTA;</span>
+    }
+
+    /**
+     * A setter to get the number of teacher's assistants needed for this {@link Section}, an
+     * integer in the range [0, 3].
+     *
+     * @param numOfTA
+     *                         the number of teacher's assistants required.
+     */
+    public void setNumOfTA(int numOfTA) {
+<span class="fc" id="L350">        this.numOfTA = numOfTA;</span>
+<span class="fc" id="L351">    }</span>
+
+    /**
+     * A getter to get the number of lab assistants needed for this {@link Section}, 
+     * represented as an integer in the range [0, 2].
+     *
+     * @return the number of lab assistants.
+     */
+    public int getNumOfLA() {
+<span class="fc" id="L360">        return numOfLA;</span>
+    }
+
+    /**
+     * A setter to get the number of lab assistants needed for this {@link Section} initialized, 
+     * represented as an integer in the range [0, 2].
+     * *
+     * @param numOfLA
+     *                         Number of lab assistants required.
+     */
+    public void setNumOfLA(int numOfLA) {
+<span class="fc" id="L371">        this.numOfLA = numOfLA;</span>
+<span class="fc" id="L372">    }</span>
+
+    /**
+     * A getter to get the mtac attribute initialized, represented as a boolean value 
+     * where TRUE indicates that the {@link Section} requires mandatory attendance of a teacher's assistant and
+     * FALSE indicates that the {@link Section} does not require mandatory attendance of a
+     * teacher's assistant. Note that if mtac is TRUE, there must be no overlap with
+     * the {@link Section#schedule} and the {@link edu.udel.cis.taschd.ca.CourseAssistant#wtps}.
+     * On the contrary, if mtac is FALSE, then the {@link Section#schedule} can overlap
+     * with the {@link edu.udel.cis.taschd.ca.CourseAssistant#getWtps()}.
+     *
+     * @return mtac True if this {@link Section} has a mandatory teacher's assistant requirement.
+     */
+    public boolean isMtac() {
+<span class="fc" id="L386">        return mtac;</span>
+    }
+
+    /**
+     * A setter to get the hasLab attribute for this course instance, 
+     * represented as a boolean.
+     *
+     * @param mtac
+     *                         a boolean represented as TRUE if {@link Section} has a
+     *                         mandatory teacher's assistant requirement.
+     */
+    public void setMtac(boolean mtac) {
+<span class="fc" id="L398">        this.mtac = mtac;</span>
+<span class="fc" id="L399">    }</span>
+
+    /**
+     * Returns the assigned course assistants as an iterable sequence of {@link CourseAssistant}s.
+     *
+     * @return the assignedCourseAssistants
+     */
+    public Iterable&lt;CourseAssistant&gt; getAssignedCourseAssistants() {
+<span class="fc" id="L407">        return assignedCourseAssistants;</span>
+    }
+
+
+    /**
+     * Adds a {@link CourseAssistant} to this assigned course assistant list. If the given
+     * {@link CourseAssistant} is already in this assignedCourseAssistantSet, this is a no-op.
+     *
+     *
+     * @param ca
+     *               a non-{@code null} {@link CourseAssistant} to add to this
+     *               assignedCourseAssistant list
+     */
+    public void addAssignedCourseAssistant(CourseAssistant ca) {
+
+<span class="fc" id="L422">        ListIterator&lt;CourseAssistant&gt; iter = assignedCourseAssistants.listIterator();</span>
+
+<span class="pc bpc" id="L424" title="1 of 2 branches missed.">        while (iter.hasNext()) {</span>
+<span class="nc" id="L425">            CourseAssistant y = iter.next();</span>
+<span class="nc" id="L426">            int c = ca.compareTo(y);</span>
+
+<span class="nc bnc" id="L428" title="All 2 branches missed.">            if (c &gt; 0) // ca goes after y</span>
+<span class="nc" id="L429">                continue;</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">            if (c == 0)</span>
+<span class="nc" id="L431">                return;</span>
+            // ... x y z ...
+            // y is the first item in list that comes after ca. You want to
+            // insert just before y.
+<span class="nc" id="L435">            iter.previous();</span>
+<span class="nc" id="L436">            break;</span>
+        }
+<span class="fc" id="L438">        iter.add(ca);</span>
+<span class="fc" id="L439">    }</span>
+
+
+    /**
+     * Compares the prefix of this {@link Section} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the section type.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if alphabetical order of section type at this ahead of section type of another;
+     *         0 if the end section type are the same;
+     *         +1 the other one's section type is ahead of this one's section type.
+     */
+    public int compareSectionType(Section that) {
+
+<span class="fc" id="L455">        int diff = this.getSectionType().compareTo(that.getSectionType());</span>
+<span class="fc bfc" id="L456" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L457">            return -1;</span>
+<span class="fc bfc" id="L458" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L459">            return 0;</span>
+        else
+<span class="fc" id="L461">            return 1;</span>
+    }
+
+    /**
+     * Compares the section number of this {@link Section} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the section number.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if alphabetical order of section number at this ahead of section number of another; 
+     *         0 if the end section number are the same; 
+     *         +1 the other one's section number is ahead of this one's section number.
+     */
+    public int compareSectionNumber(Section that) {
+
+<span class="fc" id="L477">        int diff = this.getSectionNumber().compareTo(that.getSectionNumber());</span>
+<span class="fc bfc" id="L478" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L479">            return -1;</span>
+<span class="fc bfc" id="L480" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L481">            return 0;</span>
+        else
+<span class="fc" id="L483">            return 1;</span>
+    }
+    
+    /**
+     * Compares the instructor's name of this {@link Section} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the instructor's name.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if alphabetical order of instructor's name at this ahead of instructor's name of another;
+     *         0 if the end instructor's name are the same;
+     *         +1 the other one's instructor's name is ahead of this one's instructor's name.
+     */
+    public int compareInstructorName(Section that) {
+
+<span class="fc" id="L499">        int diff = this.getInstructorName().compareTo(that.getInstructorName());</span>
+<span class="fc bfc" id="L500" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L501">            return -1;</span>
+<span class="fc bfc" id="L502" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L503">            return 0;</span>
+        else
+<span class="fc" id="L505">            return 1;</span>
+    }
+
+    /**
+	 * Compares the current enrollment number of this {@link Section} with that one.
+	 * Returns -1, 0, or 1 depending on the difference of the enrollment capacity.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if current enrollment of this is larger than current enrollment number of that object;
+	 *         0 if the current enrollments are the same;
+	 *         +1 if the current enrollment of this is smaller than the current enrollment of that object.
+     */
+    public int compareCurrentEnrollment(Section that) {
+
+<span class="fc" id="L521">    	int diff = this.getCurrentEnrollment() - that.getCurrentEnrollment();</span>
+<span class="fc bfc" id="L522" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L523">            return -1;</span>
+<span class="fc bfc" id="L524" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L525">            return 0;</span>
+        else
+<span class="fc" id="L527">            return 1;</span>
+    }
+    
+    /**
+	 * Compares the enrollment cap number of this {@link Section} with that one. 
+	 * Returns -1, 0, or 1 depending on the difference of the enrollment capacity.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if enrollment cap of this is larger than enrollment cap number of that object;
+	 *         0 if the enrollment caps are the same;
+	 *         +1 if the enrollment cap of this is smaller than the enrollment cap of that object.
+     */
+    public int compareEnrollmentCap(Section that) {
+
+<span class="fc" id="L543">    	int diff = this.getEnrollmentCap() - that.getEnrollmentCap();</span>
+<span class="fc bfc" id="L544" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L545">            return -1;</span>
+<span class="fc bfc" id="L546" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L547">            return 0;</span>
+        else
+<span class="fc" id="L549">            return 1;</span>
+    }
+    
+    /**
+     * Compares the location of this {@link Section} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the location.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if alphabetical order of location at this ahead of location of another; 
+     *         0 if the end location are the same;
+     *         +1 the other one's location is ahead of this one's location.
+     */
+    public int compareLocation(Section that) {
+
+<span class="fc" id="L565">        int diff = this.getLocation().compareTo(that.getLocation());</span>
+<span class="fc bfc" id="L566" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L567">            return -1;</span>
+<span class="fc bfc" id="L568" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L569">            return 0;</span>
+        else
+<span class="fc" id="L571">            return 1;</span>
+    }
+    
+    /**
+	 * Compares the number of teacher's assistants of this {@link Section} with that one. 
+	 * Returns -1, 0, or 1 depending on the difference of the number of teacher's assistants.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if the number of teacher's assistants of this is larger than the number
+	 *         of teacher's assistants of that object; 
+	 *         0 if the number of teacher's assistants are the same;
+	 *         +1 if the number of teacher's assistants of this is smaller than
+	 *         the number of teacher's assistants of that object.
+     */
+    public int compareNumberOfTA(Section that) {
+
+<span class="fc" id="L589">    	int diff = this.getNumOfTA() - that.getNumOfTA();</span>
+<span class="fc bfc" id="L590" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L591">            return -1;</span>
+<span class="fc bfc" id="L592" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L593">            return 0;</span>
+        else
+<span class="fc" id="L595">            return 1;</span>
+    }
+    
+    /**
+	 * Compares the number of lab assistants of this {@link Section} with that one. 
+	 * Returns -1, 0, or 1 depending on the difference of the number of lab assistants.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if the number of lab assistants of this is larger than the number
+	 *         of lab assistants of that object; 
+	 *         0 if the number of lab assistants are the same;
+	 *         +1 if the number of lab assistants of this is smaller than
+	 *         the number of lab assistants of that object.
+     */
+    public int compareNumberOfLA(Section that) {
+
+<span class="fc" id="L613">    	int diff = this.getNumOfLA() - that.getNumOfLA();</span>
+<span class="fc bfc" id="L614" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L615">            return -1;</span>
+<span class="fc bfc" id="L616" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L617">            return 0;</span>
+        else
+<span class="fc" id="L619">            return 1;</span>
+    }
+    
+    /**
+	 * Compares the mtac of this {@link Section} with that one. 
+	 * Returns -1, 0, or 1 depending on the difference of mtac attribute.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if the mtac of this is larger than the mtac of that object; 
+     *         0 if the mtac are the same;
+     *         +1 if the mtac of this is smaller than the mtac of that object.
+     */
+    public int compareMTAC(Section that) {
+
+<span class="fc" id="L635">    	int diff = ((Boolean)(this.isMtac())).hashCode() -</span>
+<span class="fc" id="L636">    			((Boolean)(that.isMtac())).hashCode();</span>
+<span class="fc bfc" id="L637" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L638">            return -1;</span>
+<span class="fc bfc" id="L639" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L640">            return 0;</span>
+        else
+<span class="fc" id="L642">            return 1;</span>
+    }
+    
+    /**
+	 * Compares the taAssigned of this {@link Section} with that one. 
+	 * Returns -1, 0, or 1 depending on the difference of taAssigned attribute.
+     *
+     * @param that
+     *             another non-{@code null} {@link Section}.
+     *             
+     * @return -1 if the taAssigned of this is larger than the taAssigned of that object; 
+     *         0 if the taAssigned are the same;
+     *         +1 if the taAssigned of this is smaller than the taAssigned of that object.
+     */
+    public int compareTaAssigned(Section that) {
+
+<span class="fc" id="L658">    	int diff = ((Boolean)(this.isTaAssigned())).hashCode() -</span>
+<span class="fc" id="L659">    			((Boolean)(that.isTaAssigned())).hashCode();</span>
+<span class="fc bfc" id="L660" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L661">            return -1;</span>
+<span class="fc bfc" id="L662" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L663">            return 0;</span>
+        else
+<span class="fc" id="L665">            return 1;</span>
+    }
+    
+    /**
+     * {@inheritDoc}
+     *
+     * &lt;p&gt;
+     * The order is determined by first comparing prefix. If prefix are equal,
+     * courseCode is compared to break the tie. If courseCode is equal, courseName
+     * is compared to break the tie. If courseName is equal, both course objects are equal.
+     * &lt;/p&gt;
+     */
+    @Override
+	public int compareTo(Section that) {
+<span class="fc" id="L679">        int c = compareSectionType(that);</span>
+
+<span class="fc bfc" id="L681" title="All 2 branches covered.">        if (c != 0) {</span>
+<span class="fc" id="L682">            return c;</span>
+        }
+
+<span class="fc" id="L685">        c = compareSectionNumber(that);</span>
+
+<span class="fc bfc" id="L687" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L688">            return c;</span>
+        
+<span class="fc" id="L690">        c = compareInstructorName(that);</span>
+
+<span class="fc bfc" id="L692" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L693">            return c;</span>
+        
+<span class="fc" id="L695">        c = compareCurrentEnrollment(that);</span>
+
+<span class="fc bfc" id="L697" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L698">            return c;</span>
+        
+<span class="fc" id="L700">        c = compareEnrollmentCap(that);</span>
+
+<span class="fc bfc" id="L702" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L703">            return c;</span>
+        
+<span class="fc" id="L705">        c = compareLocation(that);</span>
+
+<span class="fc bfc" id="L707" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L708">            return c;</span>
+        
+<span class="fc" id="L710">        c = compareNumberOfTA(that);</span>
+
+<span class="fc bfc" id="L712" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L713">            return c;</span>
+        
+<span class="fc" id="L715">        c = compareNumberOfLA(that);</span>
+
+<span class="fc bfc" id="L717" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L718">            return c;</span>
+        
+<span class="fc" id="L720">        c = compareMTAC(that);</span>
+
+<span class="fc bfc" id="L722" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L723">            return c;</span>
+<span class="fc" id="L724">        return compareTaAssigned(that);</span>
+
+    }
+    
+    /**
+     * This method is a override for {@link java.lang.Object#equals(Object)}.
+     * 
+     * @return a boolean value, TRUE if these two objects are equal or in the
+     * second if statement their section numbers are the same. FALSE if this 
+     * object is not Section type or in the second if statement their section 
+     * number are not the same.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L738" title="All 2 branches covered.">        if (this == obj)</span>
+<span class="fc" id="L739">            return true;</span>
+<span class="pc bpc" id="L740" title="1 of 2 branches missed.">        if (obj instanceof Section) {</span>
+<span class="fc" id="L741">        	Section that = (Section) obj;</span>
+
+<span class="fc bfc" id="L743" title="All 2 branches covered.">            return this.sectionNumber == that.sectionNumber;</span>
+        }
+<span class="nc" id="L745">        return false;</span>
+    }
+
+    /**
+     * This method is a override for {@link java.lang.Object#hashCode()}.
+     * 
+     * @return the hash code of the {@link Section}.
+     */
+    @Override
+    public int hashCode() {
+<span class="fc" id="L755">        return Objects.hash(this.getSectionType(), this.getSectionNumber(), </span>
+<span class="fc" id="L756">        		this.getCurrentEnrollment(), this.getEnrollmentCap(), this.getLocation(),</span>
+<span class="fc" id="L757">        		this.getInstructorName(), this.getSchedule(), this.getNumOfTA(),</span>
+<span class="fc" id="L758">        		this.getNumOfLA(), this.isMtac(), this.isTaAssigned());</span>
+    }
+    
+    /**
+     * Returns a human-readable representation of this {@link CourseInstance}, in the form of
+     * &quot;Prefix CourseCode CourseName&quot;.
+     *
+     * @return the formatted &quot;SectionNumber SectionType, CurrentEnrollment of EnrollmentCap,
+     * WeeklySchedule, Location, InstructorName&quot; String.
+     */
+    @Override
+	public String toString() {
+<span class="fc" id="L770">    	String result = &quot;&quot;,  </span>
+<span class="fc" id="L771">    			sectionType = getSectionType(), </span>
+<span class="fc" id="L772">    			sectionNumber = getSectionNumber(),</span>
+<span class="fc" id="L773">        		instructor = &quot; - &quot; + getInstructorName();</span>
+        
+<span class="fc" id="L775">        result += sectionNumber + sectionType + instructor;</span>
+        
+<span class="fc" id="L777">        return result;</span>
+    }
+    
+    /**
+     * Displays all the information of a {@link Section}.
+     */
+    public void display() {
+    	String 
+<span class="fc" id="L785">    			sectionType = getSectionType(), </span>
+<span class="fc" id="L786">    			sectionNumber = getSectionNumber(),</span>
+<span class="fc" id="L787">    			openSeats =  &quot;, &quot; + getCurrentEnrollment() + &quot; of &quot; + getEnrollmentCap(),</span>
+<span class="fc" id="L788">    		    schedule = &quot;, &quot; + getSchedule().toString(), </span>
+<span class="fc" id="L789">    		    location = &quot;, &quot; + getLocation(), </span>
+<span class="fc" id="L790">        		instructor = &quot;, &quot; + getInstructorName();</span>
+        
+<span class="fc" id="L792">        System.out.println(sectionNumber + sectionType + openSeats + schedule + location + instructor);</span>
+<span class="fc" id="L793">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

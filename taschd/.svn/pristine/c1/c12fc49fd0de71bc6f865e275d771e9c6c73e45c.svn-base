@@ -1,0 +1,278 @@
+package edu.udel.cis.taschd.db;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+
+/**
+ * The Database class is a component of the DB module. It stores and retrieves
+ * data by the request of the client.
+ * 
+ * @author Michael Oyefusi
+ * 
+ */
+
+public class Database {
+
+	private static boolean success = false;
+	/**
+	 * get Current directory of user
+	 */
+	static String directory = System.getProperty("user.dir");
+
+	// String variables for name
+	static String course = "courses";
+	static String caPool = "ca_pool";
+	static String terms = "terms";
+	static String assistants = "assistants";
+	static String assignments = "assignments";
+
+	// variables to check if folder or file exists
+	static boolean taschdExists = false;
+	static boolean termExists = false;
+	static boolean courseExists = false;
+	static boolean caPoolExists = false;
+	static boolean termNumberExists = false;
+	static boolean termNumberCourseExists = false;
+	static boolean termNumberAssistantExists = false;
+	static boolean termNumberAssignmentExists = false;
+	static boolean studentExists = false;
+
+	/**
+	 * check if taschd_dir exists
+	 * 
+	 * @return
+	 */
+	public boolean taschdCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		if (taschdDirectory.exists()) {
+			taschdExists = true;
+		}
+		return taschdExists;
+	}
+
+	/**
+	 * check if course folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public boolean taschdCourseFolderCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(course)) {
+					courseExists = true;
+					break;
+				}
+			}
+		}
+		return courseExists;
+	}
+
+	/**
+	 * check if ca pool folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public boolean taschdCaPoolFolderCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(caPool)) {
+					caPoolExists = true;
+					break;
+				}
+			}
+		}
+		return caPoolExists;
+	}
+
+	/**
+	 * check if terms folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public boolean taschdTermFolderCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(terms)) {
+					termExists = true;
+					break;
+				}
+			}
+		}
+		return termExists;
+	}
+
+	/**
+	 * check if [term] folder exists in terms folder in taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public boolean termNumberFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		String[] termsFolders = termsDirectory.list();
+		if (termsFolders != null) {
+			for (int i = 0; i < termsFolders.length; i++) {
+				if (termsFolders[i].equalsIgnoreCase(term)) {
+					termNumberExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberExists;
+	}
+
+	/**
+	 * check if courses folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public boolean termNumberCourseFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(course)) {
+					termNumberCourseExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberCourseExists;
+	}
+
+	/**
+	 * check if assistants folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public boolean termNumberAssistantFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(assistants)) {
+					termNumberAssistantExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberAssistantExists;
+	}
+
+	/**
+	 * check if assignment folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public boolean termNumberAssignmentFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(assignments)) {
+					termNumberAssignmentExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberAssignmentExists;
+	}
+
+	/**
+	 * store course in json file
+	 * 
+	 * @param c
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	public static boolean storeCourse(CourseInstance c) throws FileNotFoundException {
+		return success;
+	}
+
+	/**
+	 * store CA in json file
+	 * 
+	 * @param ca
+	 * @return
+	 */
+	public static boolean storeCA(CourseAssistant ca) {
+		return success;
+	}
+
+	/**
+	 * gets Course details from CISC675.json
+	 * 
+	 * @param code
+	 * @return
+	 */
+	public CourseInstance getCourseByCode(String code, String term) {
+		return null;
+	}
+
+	/**
+	 * gets CA details from SID123212.json
+	 * 
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public static CourseAssistant getCAById(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets CA schedule from SID123212.json
+	 * <p>
+	 * json has schedule, grades, skills, email, name, ID, ca history
+	 * </p>
+	 * 
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public WeeklySchedule getCASchdByID(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets Course schedule from CISC675.json
+	 * 
+	 * @param courseCode
+	 * @return
+	 */
+	public WeeklySchedule getCourseSchdByCode(String courseCode, String term) {
+		return null;
+	}
+
+}

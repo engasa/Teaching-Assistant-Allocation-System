@@ -1,0 +1,548 @@
+package edu.udel.cis.taschd.gen;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+import ilog.cplex.*;
+import ilog.concert.*;
+
+
+/**
+ * <p>
+ *   
+ * </p>
+ * 
+ * 
+ * 
+ * @author Yi Liu
+ */
+
+public class LPSolver {
+    
+	private CourseAssistantPool cap;
+	private CourseInstancePool cip; 
+	private ArrayList<ArrayList<Double>> scoreTable;
+	private ArrayList<ArrayList<TableInstance>> tableMaping;
+	private HashMap<Section, CourseAssistant> assignment;
+
+	private int numOfSections;
+	private int numOfCourseAssistants;
+	private double[][] cost; // weather or not the CA is assigned to the Section.
+	                    //MTAC (Mandatory TA Attendance Course).
+	                    //WTPS (Weekly Time Period Specification, for both course & student).
+	                    //Skills (For both course & student).
+	                    //Course's level to student's education level.
+	private int[] numOfTARequired;
+	private int[] workLoad;
+	private int maxWorkLoadEachTA;
+	private IloCplex cplex; // its cplex sovler.
+	
+	public LPSolver (CourseAssistantPool cap, CourseInstancePool cip) {
+		this.cap = cap;
+		this.cip = cip;
+		this.cost = null;
+		this.assignment = null;
+	    
+		this.scoreTable = new ArrayList<ArrayList<Double>>();
+		this.tableMaping = new ArrayList<ArrayList<TableInstance>>();
+        this.numOfSections = 0;
+        this.numOfCourseAssistants = 0;
+
+        this.workLoad = null;
+        this.numOfTARequired = null;
+        this.maxWorkLoadEachTA = 60; //default
+        
+        this.cplex = null;
+		this.setCost(); // fille the cost table
+		this.setWorkLoadAndNumOfTARequired(); 
+		this.cplexObject();		
+		this.assign();
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	private void setCost() {
+
+		int i = 0;
+		int j = 0;
+		double finalScore = 0;
+		double skillScore, wtpsScore;
+		ArrayList<ArrayList<Double>> table = new ArrayList<ArrayList<Double>>();
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+
+			courseSkills = ci.getCourse().getSkills();
+
+			for (Section sec : ci.getSections()) {
+				ArrayList<Double> secCa = new ArrayList<Double>();
+				ArrayList<TableInstance> rowTable = new ArrayList<TableInstance>();
+
+				sectionSchedule = sec.getSchedule();
+				for (CourseAssistant ca : cap.getCourseAssistantSet()) {
+
+					skillScore = courseSkills.skillScore(ca.getPossessedSkillset());
+					
+					if (skillScore >= 1) {
+						skillScore = 1;
+					}
+
+					System.out.println("sk score:" + skillScore);
+
+					wtpsScore = sectionSchedule.wtpsScoreHardCore(ca.getWtps(),10);
+					
+					//if (wtpsScore > 0.2) {
+					//	wtpsScore = 1;
+					//}
+
+					System.out.println("time score:" + wtpsScore);
+
+					if (!sec.isMtac())
+						wtpsScore = 1.0; // I think this should be included in wtps score, but deal with it later -- Yi
+
+					int graduateRequire = 1;
+					if (!ca.getGraduateStudent()) {
+						int courseCode = Integer.parseInt(ci.getCourse().getCourseCode());
+						if (courseCode >= 600) {
+							graduateRequire = 0;
+						}
+					}
+                    
+					if (wtpsScore * skillScore * graduateRequire >= 1) {
+						finalScore = 1;
+					}else {
+						finalScore = -1;
+					}
+					
+					secCa.add(finalScore);
+					
+					TableInstance oneEntry = new TableInstance(i, j, ca, sec, ci, finalScore);
+					i ++;
+					
+					rowTable.add(oneEntry);
+					System.out.println(finalScore);
+					System.out.println("_________________");
+				}
+				table.add(secCa);
+				tableMaping.add(rowTable);
+				i = 0;
+			}
+			j++;
+
+		}
+		System.out.println(table.toString());
+		System.out.println("-------");
+		this.numOfSections = table.size();
+		this.numOfCourseAssistants = table.get(0).size();
+		this.scoreTable = table;
+		this.tableToLittleDouble();
+
+	}
+	
+	private void tableToLittleDouble() {
+		int a = scoreTable.size();
+		int b = scoreTable.get(0).size();
+		double[][] arrayTable = new double[a][b];
+		for (int i = 0; i < a; i++) {
+			for (int j = 0; j < b; j++) {
+				arrayTable[i][j] = scoreTable.get(i).get(j);
+			}
+		}
+		this.cost = arrayTable;
+	}
+	
+
+
+
+
+
+
+
+	private void setWorkLoadAndNumOfTARequired() {
+		int[] tmpWorkLoad = new int[numOfSections];
+		int[] tmpNumOfTARequired= new int[numOfSections];
+		int i = 0;
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+			for (Section sec : ci.getSections()) {
+				tmpWorkLoad[i] = sec.getEnrollmentCap();
+				tmpNumOfTARequired[i] = sec.getNumOfTA();
+				i++;
+			}
+		}
+		this.workLoad = tmpWorkLoad;
+		this.numOfTARequired = tmpNumOfTARequired;	
+	}
+	
+	private void cplexObject() {
+		//define new model
+		try {
+        	cplex = new IloCplex();
+        	// variables
+        	IloNumVar[][] x = new IloNumVar[numOfSections][];
+        	for (int i = 0; i < numOfSections; i++) {
+        		x[i] = cplex.intVarArray(numOfCourseAssistants, 0, 1);
+        	}
+        	//IloNumVar y = cplex.boolVar();
+        	
+        	//expressions;
+        	IloLinearNumExpr[] usedWorkLoad = new IloLinearNumExpr[numOfCourseAssistants];
+        	for (int j=0; j<numOfCourseAssistants; j++) {
+        		usedWorkLoad[j] = cplex.linearNumExpr();             //each ta's UsedworkLoad
+        		for (int i=0; i<numOfSections; i++) {
+        			usedWorkLoad[j].addTerm(workLoad[i], x[i][j]); //assigned sections's work load sum up;
+        		}
+        	}
+        	
+        	IloLinearNumExpr objective = cplex.linearNumExpr();
+        	for (int i = 0; i < numOfSections; i ++) {
+        		for (int j = 0 ; j < numOfCourseAssistants; j ++) {
+        			objective.addTerm(cost[i][j], x[i][j]);
+        		}
+        	}
+        	// define objective
+        	
+        	cplex.addMaximize(objective);
+        	
+        	//constraints;
+        	for (int i = 0; i < numOfSections; i ++) {
+        		cplex.addEq(cplex.sum(x[i]), numOfTARequired[i]);
+        	}
+        	for (int i = 0; i < numOfCourseAssistants; i ++) {
+        		cplex.addLe(usedWorkLoad[i], maxWorkLoadEachTA);
+        	}
+        	
+       	for (int i = 0; i < numOfSections; i ++) {
+      		for (int j = 0 ; j < numOfCourseAssistants; j ++) {
+        			if (cost[i][j] == -1) {
+       				cplex.addEq(x[i][j], 0);
+       			}
+      		}
+       	}
+       	
+        	
+        	// solve model
+        	if (cplex.solve()) {
+
+        		System.out.println("obj = "+cplex.getObjValue());
+            	// solve model
+                    for (int i = 0; i < numOfSections; i++) {
+                    	for(int j = 0; j < numOfCourseAssistants; j ++) {
+                    		TableInstance currTableInstance = this.tableMaping.get(i).get(j);
+                    		this.tableMaping.get(i).get(j).setFlag(cplex.getValue(x[i][j]));
+                    		
+                    		
+                    		
+                    		System.out.println("Course: " +  currTableInstance.getCourse().getCourse().toString() +
+                    				"\nSection: " + currTableInstance.getSec().toString() + "\nCourseAssistant: "
+                    				+ currTableInstance.getCa() + "\nAssign Flag: " +cplex.getValue(x[i][j]) + "\n\n");
+                    	}
+                    }
+            	           	
+            	cplex.end();
+            	        	
+        	}
+        	else {
+        		System.out.println("problem not solved");
+        	}
+        	
+        	cplex.end();
+        	        	
+			
+		}
+        catch (IloException exc) {
+        	exc.printStackTrace();
+        }
+	}
+	
+	public HashMap<Section, CourseAssistant> getAssignment() {
+		return assignment;
+	}
+
+
+
+
+
+
+
+	/**
+	 * This method will store the final assignment as a hashMap in assignment.
+	 */
+	private void assign() {
+		HashMap<Section, CourseAssistant> tempAssign = new HashMap<Section, CourseAssistant>();
+		//int count = 1;
+		for (int i = 0; i < this.tableMaping.size(); i++) {
+			for (int j = 0; j < this.tableMaping.get(i).size(); j++ ) {
+				if (this.tableMaping.get(i).get(j).getFlag() >= 1.0 ) {
+					tempAssign.put(this.tableMaping.get(i).get(j).getSec(), this.tableMaping.get(i).get(j).getCa());
+					System.out.println(tempAssign.keySet().size());
+					//count ++;
+				}		
+			}
+
+		}
+		assignment = tempAssign;
+		
+	}
+	/**
+	 * Create a method for display the assignment.
+	 */
+	public void displayHash() {
+		int count = 1;
+
+		
+		for (Section oneSec: assignment.keySet()){
+
+			CourseAssistant oneCa = assignment.get(oneSec);
+
+			System.out.println("Pairing: " + count);
+			System.out.println("------------");
+			System.out.println("Section: ");
+			oneSec.display();
+			// System.out.println("CourseAssistant：");
+			oneCa.display();
+			System.out.println("---------------");
+			System.out.println("\n");
+			count ++;
+
+
+} 
+		
+		
+		
+		
+
+	}
+
+
+	
+	public CourseAssistantPool getCap() {
+		return cap;
+	}
+
+
+
+
+
+
+
+	public void setCap(CourseAssistantPool cap) {
+		this.cap = cap;
+	}
+
+
+
+
+
+
+
+	public CourseInstancePool getCip() {
+		return cip;
+	}
+
+
+
+
+
+
+
+	public void setCip(CourseInstancePool cip) {
+		this.cip = cip;
+	}
+
+
+
+
+
+
+
+	public ArrayList<ArrayList<Double>> getScoreTable() {
+		return scoreTable;
+	}
+
+
+
+
+
+
+
+	public void setScoreTable(ArrayList<ArrayList<Double>> scoreTable) {
+		this.scoreTable = scoreTable;
+	}
+
+
+
+
+
+
+
+	public ArrayList<ArrayList<TableInstance>> getTableMaping() {
+		return tableMaping;
+	}
+
+
+
+
+
+
+
+	public void setTableMaping(ArrayList<ArrayList<TableInstance>> tableMaping) {
+		this.tableMaping = tableMaping;
+	}
+
+
+
+
+
+
+
+	public int getNumOfSections() {
+		return numOfSections;
+	}
+
+
+
+
+
+
+
+	public void setNumOfSections(int numOfSections) {
+		this.numOfSections = numOfSections;
+	}
+
+
+
+
+
+
+
+	public int getNumOfCourseAssistants() {
+		return numOfCourseAssistants;
+	}
+
+
+
+
+
+
+
+	public void setNumOfCourseAssistants(int numOfCourseAssistants) {
+		this.numOfCourseAssistants = numOfCourseAssistants;
+	}
+
+
+
+
+
+
+
+	public double[][] getCost() {
+		return cost;
+	}
+
+
+
+
+
+
+
+	public void setCost(double[][] cost) {
+		this.cost = cost;
+	}
+
+
+
+
+
+
+
+	public int[] getNumOfTARequired() {
+		return numOfTARequired;
+	}
+
+
+
+
+
+
+
+	public void setNumOfTARequired(int[] numOfTARequired) {
+		this.numOfTARequired = numOfTARequired;
+	}
+
+
+
+
+
+
+
+	public int[] getWorkLoad() {
+		return workLoad;
+	}
+
+
+
+
+
+
+
+	public void setWorkLoad(int[] workLoad) {
+		this.workLoad = workLoad;
+	}
+
+
+
+
+
+
+
+	public int getMaxWorkLoadEachTA() {
+		return maxWorkLoadEachTA;
+	}
+
+
+
+
+
+
+
+	public void setMaxWorkLoadEachTA(int maxWorkLoadEachTA) {
+		this.maxWorkLoadEachTA = maxWorkLoadEachTA;
+	}
+
+
+
+
+
+
+
+	public IloCplex getCplex() {
+		return cplex;
+	}
+
+
+
+
+
+
+
+	public void setCplex(IloCplex cplex) {
+		this.cplex = cplex;
+	}
+
+
+}

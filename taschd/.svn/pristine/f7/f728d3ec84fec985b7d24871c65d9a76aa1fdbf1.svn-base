@@ -1,0 +1,142 @@
+package edu.udel.cis.taschd.course;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ListIterator;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+
+
+/**
+ * <p>
+ * The {@link CourseInstancePool} class is responsible for managing {@link CourseInstance} Objects
+ * e.g., obtaining all {@link CourseInstance}s as a list. It hides the details on the internal
+ * representation of course instance objects.
+ * </p>
+ * 
+ * <p>
+ * {@link CourseInstancePool} is a {@link Collection} of {@link CourseInstance}s.
+ * </p>
+ * 
+ * @author matthew
+ */
+public class CourseInstancePool {
+	/**
+	 * The sequence of {@link CourseInstance}s. They are ordered by prefix, course code, 
+	 * and course number. The ordered is determined by the method {@link CourseInstance#compareTo(CourseInstance)}
+	 * If prefix's are equal, the course codes are used to break the tie. If course code's are equal,
+	 * the course numbers are used to break the tie.
+	 */
+	private ArrayList<CourseInstance> courseInstancePool;
+	
+	/**
+	 * Constructs a new courseInstancePool from the given collection of
+	 * {@link CourseInstance}s. The new {@link CourseInstancePool} will not keep any
+	 * reference to the given {@link Collection}, hence subsequent modifications
+	 * to the collection will not affect the new CourseInstancePool. 
+	 * The new {@link CourseInstancePool} may keep references to the member 
+	 * {@link CourseInstance}s of the collection, but since
+	 * {@link CourseInstance}s are immutable, this fact should be invisible to the
+	 * client. The internal representation may differ from the organization of
+	 * the collection, in that {@link CourseInstance}s will be ordered and duplicates removed.
+	 * The given {@link Collection} will not be modified.
+	 * 
+	 * @param courseInstancePool
+	 *                      any {@link Collection} of non-{@code null}
+	 *                      {@link CourseAssistant}s that will be used to build the
+	 *                      new CourseAssistantSet.
+	 */
+	public CourseInstancePool(Collection<CourseInstance> courseInstancePool) {
+		this.courseInstancePool = new ArrayList<>();
+		for (CourseInstance ci : courseInstancePool)
+			addCourseInstancetoPool(ci);
+	}
+	
+	/**
+	 * Constructs new empty CourseInstanceSet.
+	 */	
+	public CourseInstancePool(){
+		courseInstancePool = new ArrayList<>();
+	}
+	
+	/**
+	 * Returns the {@link CourseInstancePool} as an object sequence of {@link CourseInstance}s.
+	 * 
+	 * @return the {@link CourseInstancePool}.
+	 */
+	public Iterable<CourseInstance> getCourseInstanceSet() {
+		return courseInstancePool;
+	}
+	
+	/**
+	 * Adds a {@link CourseInstance} to this courseInstancePool. If the given
+	 * {@link CourseInstance} is already in this courseInstancePool, this is a no-op.
+	 * 
+	 * 
+	 * @param ci
+	 *               a non-{@code null} {@link CourseInstance} to add to this
+	 *               courseInstancePool.
+	 */
+	public void addCourseInstancetoPool(CourseInstance ci) {
+
+//		ListIterator<CourseInstance> iter = courseInstancePool.listIterator();
+
+//		while (iter.hasNext()) {
+//			CourseInstance y = iter.next();
+//			int c = ci.compareTo(y);
+//
+//			if (c > 0) // ca goes after y
+//				continue;
+//			if (c == 0)
+//				return;
+//			// ... x y z ...
+//			// y is the first item in list that comes after ca. You want to
+//			// insert just before y.
+//			iter.previous();
+//			break;
+//		}
+//		iter.add(ci);
+		this.courseInstancePool.add(ci);
+	}
+	
+	/**
+	 * Finds a {@link CourseInstance} in this courseInstancePool by given 
+	 * the instructor's name.
+	 * 
+	 * @param instructorName
+	 *               find a {@link CourseInstance} to from this
+	 *               courseInstancePoolt with specified instructor's name.
+	 */
+	public Iterable<CourseInstance> findCourseInstanceByInstructor(String instructorName) {
+
+		ArrayList<CourseInstance> poolByName = new ArrayList<>();
+		
+		for (CourseInstance c: this.courseInstancePool) {
+			Iterable<Section> iter2 = c.getSections();
+			for (Section s: iter2) {
+				if (instructorName == s.getInstructorName()) {
+					poolByName.add(c);
+				}
+			}
+		}
+			
+		//CourseInstancePool poolByName = new CourseInstancePool(); 
+//
+//		while (iter.hasNext()) {
+//			
+////			for (Section s: iter.)
+////				//CourseInstance y = iter.next(); //iterator next
+////				String instructor = y.getSection().getInstructorName();
+////				String lName = y.getLastName();
+////				if (fName.equals(firstName) && lName.equals(lastName)) {// if the id equals to the Id spcified remove.
+////					poolByName.addCourseAssistant(y);
+////			}
+//		}
+		return poolByName;
+	}
+	
+	public int getSize(){
+		return courseInstancePool.size();
+	}
+	
+}

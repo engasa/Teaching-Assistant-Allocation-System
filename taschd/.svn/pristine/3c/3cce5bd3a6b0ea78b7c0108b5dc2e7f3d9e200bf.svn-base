@@ -1,0 +1,20 @@
+{
+  "Sections" : [ {
+    "Section Number" : "510",
+    "Section Type" : "Lec",
+    "Instructor name" : "onlyForDanzel",
+    "Location" : "SHL120",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Sun 0:00–0:10" ]
+  } ],
+  "Skills" : [ "only" ],
+  "Course Code" : "999",
+  "Prefix" : "CISC",
+  "Has Lab" : false,
+  "Course Name" : "ONLY skill for UnderGilr and Danzel"
+}

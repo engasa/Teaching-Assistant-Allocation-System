@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CAScheduleExtractor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.extract</a> &gt; <span class="el_source">CAScheduleExtractor.java</span></div><h1>CAScheduleExtractor.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.extract;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
+import com.gargoylesoftware.htmlunit.html.HtmlTable;
+import com.gargoylesoftware.htmlunit.html.HtmlTableBody;
+import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
+import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
+import com.gargoylesoftware.htmlunit.javascript.host.URL;
+import com.gargoylesoftware.htmlunit.javascript.host.event.KeyboardEvent;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * The CAScheduleExtractor class is responsible for extraction of details like
+ * CA Schedule, in a specific semester, CAID and
+ * {@link CourseInstance}/{@link Section} details are returned. It hides the
+ * details of extraction and assigns extracted values to {@link CourseAssistant}
+ * and {@link CourseInstance} objects. It also uses {@link WeeklySchedule} class
+ * variables.
+ * 
+ * @author Narasimha Srikumar Akella
+ */
+
+public class CAScheduleExtractor {
+<span class="fc" id="L54">	private List&lt;Map&lt;String, String&gt;&gt; caScheduleSource = new ArrayList&lt;Map&lt;String, String&gt;&gt;();</span>
+	private ArrayList&lt;CourseAssistant&gt; caSchedules;
+
+	/**
+	 * @param source
+	 *            Source of extraction (eg. Web)
+	 * @param credentials
+	 *            User's credentials
+	 * @param CAIDs
+	 *            CA's student ID
+	 * @param term
+	 *            Current CA term (eg. 2188, 2193)
+	 */
+<span class="fc" id="L67">	public CAScheduleExtractor(String source, String[] credentials, int[] CAIDs, String term) {</span>
+<span class="fc" id="L68">		java.util.logging.Logger.getLogger(&quot;com.gargoylesoftware&quot;).setLevel(Level.OFF);</span>
+		try {
+<span class="pc bpc" id="L70" title="1 of 4 branches missed.">			if (source == &quot;Web&quot; || source == &quot;web&quot;) {</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">				if (credentials.length != 2) {</span>
+<span class="fc" id="L72">					System.out.println(&quot;User Credentials provided is empty&quot;);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">				} else if (CAIDs.length == 0) {</span>
+<span class="fc" id="L74">					System.out.println(&quot;CA IDs provided is empty&quot;);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">				} else if (term.isEmpty()) {</span>
+<span class="fc" id="L76">					System.out.println(&quot;Term value provided is empty&quot;);</span>
+<span class="fc" id="L77">				} else {</span>
+<span class="nc" id="L78">					ArrayList&lt;CourseAssistant&gt; caSchedule = new ArrayList&lt;CourseAssistant&gt;();</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">					for (int caIndex = 0; caIndex &lt; CAIDs.length; caIndex++) {</span>
+<span class="nc" id="L80">						CourseAssistant caObject = new CourseAssistant(CAIDs[caIndex]);</span>
+<span class="nc" id="L81">						caScheduleSource = getCAScheduleWeb(source, credentials, CAIDs[caIndex], term,</span>
+<span class="nc" id="L82">								caScheduleSource);</span>
+<span class="nc" id="L83">						caSchedule.add(parseAndSetCADetails(caScheduleSource, caObject, Integer.parseInt(term)));</span>
+					}
+<span class="nc" id="L85">					this.caSchedules = caSchedule;</span>
+				}
+<span class="nc" id="L87">			}</span>
+<span class="fc" id="L88">			else {System.out.println(&quot;Source should be Web, only Web extraction is implemented in this phase&quot;);}</span>
+<span class="pc" id="L89">		} catch (FailingHttpStatusCodeException e) {</span>
+<span class="nc" id="L90">			System.out.println(e.getMessage());</span>
+		}
+			
+<span class="fc" id="L93">	}</span>
+
+	/**
+	 * The returnCASchedules return the caSchedules as a list of CourseAssistant
+	 * Objects
+	 * 
+	 * @return caSchedules : ArrayList of CourseAssistant Object
+	 */
+	public ArrayList&lt;CourseAssistant&gt; returnCASchedules() {
+<span class="fc" id="L102">		return caSchedules;</span>
+	}
+
+	/**
+	 * The parseAndSetCADetails method takes the list&lt;Map&gt; of caSource extracted
+	 * from webreg, parses it and places the values in CourseAssistant class
+	 * variables.
+	 * 
+	 * @param caSource
+	 *            : ArrayList of CA details extracted from webreg
+	 * @param caObject
+	 *            : CourseAssistant Object to which Schedules are added
+	 * @param term
+	 *            : Current CA term (ex: for Fall 2018, term = 2188)
+	 * @return CourseAssistant : CourseAssistant Object with Schedules filled
+	 */
+	private CourseAssistant parseAndSetCADetails(List&lt;Map&lt;String, String&gt;&gt; caSource, CourseAssistant caObject,
+			int term) {
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">		if (caSource.isEmpty()) {</span>
+<span class="nc" id="L121">			System.out.println(&quot;No CA Schedule details extracted for given CA ID Key&quot;);</span>
+<span class="nc" id="L122">			return null;</span>
+		} else {
+<span class="fc" id="L124">			String currCourse = caSource.get(0).get(&quot;courseCode&quot;);</span>
+<span class="fc" id="L125">			String prevCourse = caSource.get(0).get(&quot;courseCode&quot;);</span>
+<span class="fc" id="L126">			DateFormat dateformat = new SimpleDateFormat(&quot;hh:mm a&quot;);</span>
+<span class="fc" id="L127">			ArrayList&lt;Section&gt; sectionsObject = new ArrayList&lt;Section&gt;();</span>
+<span class="fc" id="L128">			Set&lt;CourseInstance&gt; crsEnrolled = new HashSet&lt;CourseInstance&gt;();</span>
+<span class="fc" id="L129">			int crsIndex = 0;</span>
+<span class="fc" id="L130">			int secIndex = 0;</span>
+
+<span class="fc bfc" id="L132" title="All 2 branches covered.">			for (Iterator&lt;Map&lt;String, String&gt;&gt; iter = caSource.iterator(); iter.hasNext();) {</span>
+<span class="fc" id="L133">				String departmentID = caSource.get(crsIndex).get(&quot;departmentID&quot;);</span>
+<span class="fc" id="L134">				String courseCode = caSource.get(crsIndex).get(&quot;courseCode&quot;);</span>
+<span class="fc" id="L135">				String courseName = caSource.get(crsIndex).get(&quot;courseName&quot;);</span>
+<span class="fc" id="L136">				Course crs = new Course(departmentID, courseCode, courseName);</span>
+
+<span class="fc" id="L138">				CourseInstance ci = new CourseInstance(crs, term);</span>
+
+<span class="fc bfc" id="L140" title="All 2 branches covered.">				while (currCourse.equals(prevCourse)) {</span>
+<span class="fc" id="L141">					String sectionNumber = caSource.get(secIndex).get(&quot;sectionNumber&quot;);</span>
+<span class="fc" id="L142">					String location = caSource.get(secIndex).get(&quot;location&quot;);</span>
+<span class="fc" id="L143">					String sectionType = caSource.get(secIndex).get(&quot;sectionType&quot;);</span>
+<span class="fc" id="L144">					String instructorName = caSource.get(secIndex).get(&quot;instructorName&quot;);</span>
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">					if (sectionType.equals(&quot;LAB&quot;))</span>
+<span class="nc" id="L146">						ci.setHasLab(true);</span>
+<span class="fc" id="L147">					WeeklySchedule weeklySchedule = new WeeklySchedule();</span>
+<span class="fc" id="L148">					Set&lt;String&gt; daysSet = caSource.get(secIndex).keySet().stream().filter(s -&gt; s.startsWith(&quot;WeekDay&quot;))</span>
+<span class="fc" id="L149">							.collect(Collectors.toSet());</span>
+<span class="fc" id="L150">					String[] daysArr = daysSet.toArray(new String[daysSet.size()]);</span>
+
+<span class="fc bfc" id="L152" title="All 2 branches covered.">					for (int wtpsIndex = 1; wtpsIndex &lt;= daysArr.length; wtpsIndex++) {</span>
+<span class="fc" id="L153">						String tempDayKey = &quot;WeekDay&quot; + wtpsIndex;</span>
+<span class="fc" id="L154">						DayOfWeek weekDay = getDayofWeek(caSource.get(secIndex).get(tempDayKey));</span>
+<span class="fc" id="L155">						String[] timeInterval = caSource.get(secIndex).get(&quot;startTime&quot;).split(&quot;:&quot;);</span>
+<span class="fc" id="L156">						int startHour = 0;</span>
+<span class="pc bpc" id="L157" title="1 of 4 branches missed.">						if ((timeInterval[1].contains(&quot;AM&quot;)) || (Integer.parseInt(timeInterval[0].trim())) == 12) {</span>
+<span class="fc" id="L158">							timeInterval[1] = timeInterval[1].replace(&quot;AM&quot;, &quot;&quot;);</span>
+<span class="fc" id="L159">							timeInterval[1] = timeInterval[1].replace(&quot;PM&quot;, &quot;&quot;);</span>
+<span class="fc" id="L160">							startHour = Integer.parseInt(timeInterval[0].trim());</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">						} else if ((timeInterval[1].contains(&quot;PM&quot;))</span>
+<span class="pc bpc" id="L162" title="1 of 2 branches missed.">								&amp;&amp; (Integer.parseInt(timeInterval[0].trim())) &lt; 12) {</span>
+<span class="fc" id="L163">							timeInterval[1] = timeInterval[1].replace(&quot;PM&quot;, &quot;&quot;);</span>
+<span class="fc" id="L164">							startHour = Integer.parseInt(timeInterval[0].trim()) + 12;</span>
+						}
+<span class="fc" id="L166">						int startMin = Integer.parseInt(timeInterval[1].trim());</span>
+<span class="fc" id="L167">						Date sTime = null;</span>
+<span class="fc" id="L168">						Date eTime = null;</span>
+						try {
+<span class="fc" id="L170">							String txtsTime = caSource.get(secIndex).get(&quot;startTime&quot;);</span>
+							// .replace(&quot;AM&quot;, &quot; AM&quot;).replace(&quot;PM&quot;,&quot; PM&quot;);
+<span class="fc" id="L172">							String txteTime = caSource.get(secIndex).get(&quot;endTime&quot;);</span>
+							// .replace(&quot;AM&quot;, &quot; AM&quot;).replace(&quot;PM&quot;,&quot; PM&quot;);
+<span class="fc" id="L174">							sTime = dateformat.parse(txtsTime);</span>
+<span class="fc" id="L175">							eTime = dateformat.parse(txteTime);</span>
+<span class="pc" id="L176">						} catch (ParseException e1) {</span>
+<span class="nc" id="L177">							e1.printStackTrace();</span>
+						}
+<span class="fc" id="L179">						int duration = ((int) (eTime.getTime() - sTime.getTime())) / 60000;</span>
+<span class="fc" id="L180">						weeklySchedule.addInterval(new TimeInterval(weekDay, startHour, startMin, duration));</span>
+					}
+<span class="fc" id="L182">					Section section = new Section(sectionType, sectionNumber, instructorName, 0, 0, location,</span>
+<span class="fc" id="L183">							weeklySchedule);</span>
+<span class="fc" id="L184">					sectionsObject.add(section);</span>
+<span class="fc" id="L185">					prevCourse = currCourse;</span>
+<span class="fc" id="L186">					iter.next();</span>
+<span class="fc" id="L187">					secIndex++;</span>
+<span class="fc" id="L188">					crsIndex++;</span>
+<span class="fc" id="L189">					ci.addSection(section);</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">					if (crsIndex &lt; caSource.size()) {</span>
+<span class="fc" id="L191">						currCourse = caSource.get(crsIndex).get(&quot;courseCode&quot;);</span>
+					} else
+						break;
+				}
+<span class="fc" id="L195">				crsEnrolled.add(ci);</span>
+<span class="fc" id="L196">				prevCourse = currCourse;</span>
+<span class="fc" id="L197">				caObject.setCourseEnrolled(crsEnrolled);</span>
+			}
+<span class="fc" id="L199">			return caObject;</span>
+		}
+	}
+
+	/**
+	 * The getCAScheduleWeb method takes the credentials, term and CAIDs as
+	 * arguments and extracts CA schedule from webreg, into a list of maps.
+	 * 
+	 * @param source
+	 *            : Source of Extraction, &quot;Web&quot; for Phase1
+	 * @param credentials
+	 *            : Credentials as an Array {userName, Password}
+	 * @param caID
+	 *            : CourseAssistant ID whose Schedule need to be retrieved
+	 * @param term
+	 *            : Current CA term (ex: for Fall 2018, term = 2188)
+	 * @param caScheduleSource
+	 *            : Array list of maps with the ca Schedule
+	 * @return caScheduleSource : Array list of maps with the ca Schedule
+	 */
+	private List&lt;Map&lt;String, String&gt;&gt; getCAScheduleWeb(String source, String[] credentials, int CAID, String term,
+			List&lt;Map&lt;String, String&gt;&gt; caScheduleSource) {
+		try {
+<span class="nc" id="L222">			java.util.logging.Logger.getLogger(&quot;com.gargoylesoftware&quot;).setLevel(Level.OFF);</span>
+<span class="nc" id="L223">			String userName = credentials[0];</span>
+<span class="nc" id="L224">			String Password = credentials[1];</span>
+<span class="nc" id="L225">			WebClient webClient = new WebClient();</span>
+<span class="nc" id="L226">			HtmlPage page = webClient.getPage(&quot;http://www.udel.edu/webreg&quot;);</span>
+<span class="nc" id="L227">			webClient.getOptions().setJavaScriptEnabled(true);</span>
+
+<span class="nc" id="L229">			HtmlForm loginForm = page.getHtmlElementById(&quot;fm1&quot;);</span>
+
+<span class="nc" id="L231">			HtmlTextInput userNameInput = loginForm.getInputByName(&quot;udelnetid&quot;);</span>
+<span class="nc" id="L232">			HtmlPasswordInput passwordInput = loginForm.getInputByName(&quot;pword&quot;);</span>
+<span class="nc" id="L233">			HtmlButton loginButton = loginForm.getButtonByName(&quot;action&quot;);</span>
+
+<span class="nc" id="L235">			userNameInput.type(userName);</span>
+<span class="nc" id="L236">			passwordInput.type(Password);</span>
+
+			/**
+			 * HtmlPage targetpage = loginButton.click(); HtmlForm twoFactorLoginForm =
+			 * targetpage.getHtmlElementById(&quot;fm2&quot;); HtmlTextInput twoFactorPasscode =
+			 * twoFactorLoginForm.getInputByName(&quot;oathKey&quot;); HtmlButton twoFactorLogin =
+			 * twoFactorLoginForm.getButtonByName(&quot;action&quot;); String passcode = &quot;651008&quot;;
+			 * twoFactorPasscode.type(passcode); HtmlPage studentSchedulePage =
+			 * twoFactorLogin.click();
+			 **/
+<span class="nc" id="L246">			HtmlPage studentSchedulePage = loginButton.click();</span>
+<span class="nc" id="L247">			webClient.waitForBackgroundJavaScript(10000);</span>
+<span class="nc" id="L248">			caScheduleSource = getCASchedulefromPage(webClient, studentSchedulePage, term, CAID, caScheduleSource);</span>
+<span class="nc" id="L249">			webClient.close();</span>
+<span class="nc" id="L250">		} catch (FailingHttpStatusCodeException | IOException e) {</span>
+<span class="nc" id="L251">			System.out.println(e.getMessage());</span>
+		}
+<span class="nc" id="L253">		return caScheduleSource;</span>
+	}
+
+	/**
+	 * getCASchedulefromPage method extracts the CA Schedule from page after login
+	 * 
+	 * @param page
+	 *            : HtmlPage to extract the CA Schedule from
+	 * @param term
+	 *            : Current CA term (ex: for Fall 2018, term = 2188)
+	 * @param caScheduleSource
+	 *            : Array list of maps with the CA Schedule
+	 * @return caScheduleSource : Array list of maps with the CA details
+	 */
+	private List&lt;Map&lt;String, String&gt;&gt; getCASchedulefromPage(WebClient webClient, HtmlPage studentSchedulePage,
+			String term, int CAID, List&lt;Map&lt;String, String&gt;&gt; caScheduleSource) {
+		try {
+
+<span class="nc" id="L271">			HtmlTextInput studentIDInput = studentSchedulePage.getElementByName(&quot;student&quot;);</span>
+<span class="nc" id="L272">			studentIDInput.type(CAID);</span>
+			// Hit Enter on entering Student ID
+<span class="nc" id="L274">			studentIDInput.type(KeyboardEvent.DOM_VK_RETURN);</span>
+<span class="nc" id="L275">			webClient.waitForBackgroundJavaScript(3000);</span>
+
+<span class="nc" id="L277">			HtmlSelect termSelect = studentSchedulePage.getElementByName(&quot;term&quot;);</span>
+<span class="nc" id="L278">			termSelect.getOptionByValue(term).setSelected(true);</span>
+<span class="nc" id="L279">			HtmlButton studentSearchButton = (HtmlButton) studentSchedulePage.getElementById(&quot;viewBtn&quot;);</span>
+<span class="nc" id="L280">			studentSearchButton.click();</span>
+<span class="nc" id="L281">			webClient.waitForBackgroundJavaScript(3000);</span>
+
+<span class="nc" id="L283">			HtmlTable studenScheduleTable = studentSchedulePage.getHtmlElementById(&quot;footable_schedule&quot;);</span>
+
+			int rowIndex, colIndex;
+
+<span class="nc bnc" id="L287" title="All 2 branches missed.">			for (final HtmlTableBody body : studenScheduleTable.getBodies()) {</span>
+<span class="nc" id="L288">				final List&lt;HtmlTableRow&gt; rows = body.getRows();</span>
+<span class="nc" id="L289">				rowIndex = 0;</span>
+<span class="nc bnc" id="L290" title="All 2 branches missed.">				for (final HtmlTableRow row : rows) {</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">					if (rowIndex != 1) {</span>
+<span class="nc" id="L292">						colIndex = 0;</span>
+<span class="nc" id="L293">						Map&lt;String, String&gt; temp = new HashMap&lt;String, String&gt;();</span>
+
+<span class="nc bnc" id="L295" title="All 2 branches missed.">						for (final HtmlTableCell cell : row.getCells()) {</span>
+<span class="nc bnc" id="L296" title="All 5 branches missed.">							switch (colIndex) {</span>
+							case 0:
+<span class="nc" id="L298">								String[] sectionDt = cell.asText().trim().split(&quot;\\r?\\n&quot;);</span>
+<span class="nc" id="L299">								String deptID = sectionDt[0].trim().substring(0, 4);</span>
+<span class="nc" id="L300">								String courseCode = sectionDt[0].trim().substring(4, 7);</span>
+<span class="nc" id="L301">								String sectionNumber = sectionDt[0].trim().substring(7, 10);</span>
+<span class="nc" id="L302">								String courseName = sectionDt[1].trim();</span>
+<span class="nc" id="L303">								temp.put(&quot;departmentID&quot;, deptID);</span>
+<span class="nc" id="L304">								temp.put(&quot;courseCode&quot;, courseCode);</span>
+<span class="nc" id="L305">								temp.put(&quot;courseName&quot;, courseName);</span>
+<span class="nc" id="L306">								temp.put(&quot;sectionNumber&quot;, sectionNumber);</span>
+<span class="nc" id="L307">								break;</span>
+							case 3:
+<span class="nc" id="L309">								String tempInst = cell.asText().trim();</span>
+<span class="nc" id="L310">								temp.put(&quot;instructorName&quot;, tempInst);</span>
+<span class="nc" id="L311">								break;</span>
+							case 4:
+<span class="nc" id="L313">								String[] tempSectdt = cell.asText().trim().split(&quot;\\r?\\n&quot;);</span>
+<span class="nc" id="L314">								String[] tempSect = tempSectdt[0].trim().split(&quot; &quot;);</span>
+<span class="nc" id="L315">								int numDays = tempSect.length - 7;</span>
+<span class="nc" id="L316">								String sectionType = tempSect[0].trim();</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">								for (int k = 0; k &lt; numDays; k++) {</span>
+<span class="nc" id="L318">									String tempDay = tempSect[k + 2].toString().trim();</span>
+<span class="nc" id="L319">									temp.put(&quot;WeekDay&quot; + (k + 1), tempDay);</span>
+								}
+<span class="nc" id="L321">								String startTime = tempSect[numDays + 2].trim() + &quot; &quot; + tempSect[numDays + 3].trim();</span>
+<span class="nc" id="L322">								String endTime = tempSect[numDays + 5].trim() + &quot; &quot; + tempSect[numDays + 6].trim();</span>
+<span class="nc" id="L323">								temp.put(&quot;sectionType&quot;, sectionType);</span>
+<span class="nc" id="L324">								temp.put(&quot;startTime&quot;, startTime);</span>
+<span class="nc" id="L325">								temp.put(&quot;endTime&quot;, endTime);</span>
+<span class="nc" id="L326">								break;</span>
+							case 5:
+<span class="nc" id="L328">								String location = cell.asText().trim();</span>
+<span class="nc" id="L329">								temp.put(&quot;location&quot;, location);</span>
+							default:
+								break;
+							}
+<span class="nc" id="L333">							colIndex++;</span>
+						}
+<span class="nc" id="L335">						caScheduleSource.add(temp);</span>
+					}
+<span class="nc" id="L337">					rowIndex++;</span>
+				}
+			}
+
+<span class="nc" id="L341">		} catch (FailingHttpStatusCodeException | IOException e) {</span>
+<span class="nc" id="L342">			System.out.println(e.getMessage());</span>
+		}
+<span class="nc" id="L344">		return caScheduleSource;</span>
+	}
+
+	/**
+	 * The getDayofWeek method takes the weekday as Single letter and returns the
+	 * corresponding DayofWeek for the letter
+	 * 
+	 * @param weekDay
+	 *            : Single Character representation of week day (eg. M)
+	 * @return DayOfWeek : Day of Week enumerator
+	 */
+	private static DayOfWeek getDayofWeek(String weekday) {
+		DayOfWeek weekDay;
+<span class="pc bpc" id="L357" title="8 of 16 branches missed.">		switch (weekday) {</span>
+		case &quot;M&quot;:
+<span class="nc" id="L359">			weekDay = DayOfWeek.valueOf(&quot;MONDAY&quot;);</span>
+<span class="nc" id="L360">			break;</span>
+		case &quot;T&quot;:
+<span class="fc" id="L362">			weekDay = DayOfWeek.valueOf(&quot;TUESDAY&quot;);</span>
+<span class="fc" id="L363">			break;</span>
+		case &quot;W&quot;:
+<span class="fc" id="L365">			weekDay = DayOfWeek.valueOf(&quot;WEDNESDAY&quot;);</span>
+<span class="fc" id="L366">			break;</span>
+		case &quot;R&quot;:
+<span class="fc" id="L368">			weekDay = DayOfWeek.valueOf(&quot;THURSDAY&quot;);</span>
+<span class="fc" id="L369">			break;</span>
+		case &quot;F&quot;:
+<span class="fc" id="L371">			weekDay = DayOfWeek.valueOf(&quot;FRIDAY&quot;);</span>
+<span class="fc" id="L372">			break;</span>
+		default:
+<span class="nc" id="L374">			weekDay = null;</span>
+			break;
+		}
+<span class="fc" id="L377">		return weekDay;</span>
+	}
+
+	/**
+	 * This is a driver constructor added to test the class partially, as the full
+	 * class can only be tested with Prof.'s credentials. It is used to access some
+	 * internal methods to test the class
+	 */
+<span class="fc" id="L385">	public CAScheduleExtractor(List&lt;Map&lt;String, String&gt;&gt; caScheduleSource, int CAID, String term) {</span>
+<span class="fc" id="L386">		ArrayList&lt;CourseAssistant&gt; caSchedule = new ArrayList&lt;CourseAssistant&gt;();</span>
+<span class="fc" id="L387">		CourseAssistant caObject = new CourseAssistant(CAID);</span>
+<span class="fc" id="L388">		caSchedule.add(parseAndSetCADetails(caScheduleSource, caObject, Integer.parseInt(term)));</span>
+<span class="fc" id="L389">		this.caSchedules = caSchedule;</span>
+<span class="fc" id="L390">	}</span>
+	/**
+	 * public static void main(String[] args) throws FailingHttpStatusCodeException,
+	 * MalformedURLException, IOException, InterruptedException {
+	 * 
+	 * String source = &quot;Web&quot;; String[] credentials = { &quot;&quot;, &quot;&quot; }; int[] CAIDs = {
+	 * 702425216 }; String term = &quot;2188&quot;;
+	 * 
+	 * ArrayList&lt;CourseAssistant&gt; caSchedules = new
+	 * ArrayList&lt;CourseAssistant&gt;(); @SuppressWarnings(&quot;unused&quot;) CAScheduleExtractor
+	 * caSchEx = new CAScheduleExtractor(source, credentials, CAIDs, term);
+	 * caSchedules = caSchEx.returnCASchedules();
+	 * System.out.println(caSchedules.get(0)+&quot;:&quot;+caSchedules.get(0).getCourseEnrolled());
+	 * }
+	 **/
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,58 @@
+/**
+ * 
+ */
+package edu.udel.cis.taschd.db;
+
+import java.io.IOException;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * @author sumeetgupta
+ *
+ */
+public class DatabaseTest {
+
+	private Database obj1 = new Database();
+	/**
+	 * CISC 675 Software Engineering Fall 2018
+	 */
+	public static CourseInstance ci1 = new CourseInstance(new Course("CISC", "375", "Software Engineering"), 2188);
+	Collection<TimeInterval> cti1 = new ArrayList<TimeInterval>();
+	TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+	TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+	Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+	TimeInterval ti3 = new TimeInterval(DayOfWeek.WEDNESDAY, 16, 40, 75);
+	
+	@Before
+	public void setUp() throws Exception {
+		ci1.setHasLab(true);
+		cti1.add(ti1);
+		cti1.add(ti2);
+		cti2.add(ti3);
+		ci1.addSection(new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule(cti1)));
+		ci1.addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule(cti2)));
+	}
+	
+	@Test
+	public void testStoreCourseStatic() throws IOException {
+		obj1.store(ci1);
+		
+	}
+	
+	@Test
+	public void testStoreCourseDynamic() throws IOException {
+		
+	}
+	
+}

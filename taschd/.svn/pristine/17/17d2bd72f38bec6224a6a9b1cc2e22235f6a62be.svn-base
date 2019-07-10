@@ -1,0 +1,26 @@
+package edu.udel.cis.taschd.gen;
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.Objects;
+
+import org.junit.Test;
+
+import edu.udel.cis.taschd.gen.Assign;
+
+/**
+ * Tests of the {@link Assgin} class.
+ *
+ * @author Yi Liu
+ */
+public class AssignTest {
+	@Test
+	public void hungarianAssignTest() {
+		double[][] tableOne = {{},
+				{},
+				{},
+				{},
+				{},};
+		
+	}
+}

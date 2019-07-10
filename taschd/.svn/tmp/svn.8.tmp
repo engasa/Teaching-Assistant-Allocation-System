@@ -1,0 +1,872 @@
+package edu.udel.cis.taschd.db;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.extract.CourseScheduleExtractor;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+/**
+ * The Database class is a component of the DB module. It stores and retrieves
+ * data by the request of the client.
+ * 
+ * @author Michael Oyefusi
+ * 
+ */
+
+public class Database {
+
+	private static boolean success = false;
+	/**
+	 * get Current directory of user
+	 */
+	static String directory = System.getProperty("user.dir");
+
+	// String variables for name
+	static String course = "courses";
+	static String caPool = "ca_pool";
+	static String terms = "terms";
+	static String assistants = "assistants";
+	static String assignments = "assignments";
+
+	// variables to check if folder or file exists
+	static boolean taschdExists = false;
+	static boolean termExists = false;
+	static boolean courseExists = false;
+	static boolean caPoolExists = false;
+	static boolean termNumberExists = false;
+	static boolean termNumberCourseExists = false;
+	static boolean termNumberAssistantExists = false;
+	static boolean termNumberAssignmentExists = false;
+	static boolean studentExists = false;
+
+	@SuppressWarnings("null")
+	public static void main(String[] args) throws IOException, ParseException {
+		//
+		// CourseAssistant ca1 = new CourseAssistant(888888888);
+		// CourseAssistant ca2 = new CourseAssistant(999999999);
+		// SkillSet skillSet1 = new SkillSet(new HashSet<Skill>());
+		// skillSet1.addSkill(new Skill("Java"));
+		// skillSet1.addSkill(new Skill("Python"));
+		// skillSet1.addSkill(new Skill("Javascript"));
+
+		// Create WTPS for CourseAssisstant1
+		// Collection<TimeInterval> cti1 = new ArrayList<TimeInterval>();
+		// TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		// TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+		// cti1.add(ti1);
+		// cti1.add(ti2);
+
+		// Add Weekly Time Schedule Specification
+		// WeeklySchedule w1 = new WeeklySchedule(cti1);
+
+		// Course Enrrolled
+		// CourseInstance ci1 = new CourseInstance(new Course("CISC", "675",
+		// "Software Engineering"), 2191);
+		// CourseInstance ci2 = new CourseInstance(new Course("CISC", "642",
+		// "Intro to Computer Vision"), 2198);
+		//
+		// Set<CourseInstance> caOneCourseEnrolled = new
+		// HashSet<CourseInstance>();
+		// caOneCourseEnrolled.add(ci1);
+		// caOneCourseEnrolled.add(ci2);
+		//
+		// // set First Name, Last Name
+		// ca1.setFirstName("Yi");
+		// ca1.setLastName("Liu");
+		// ca1.setEmailAddress("y@udel.edu");
+		// ca1.setPossessedSkillset(skillSet1);
+		// ca1.setWtps(w1);
+		// ca1.setCourseEnrolled(caOneCourseEnrolled);
+		// ca1.setGraduateStudent(true);
+		//
+		//
+		// // ca1
+		// //make a new skil set
+		// SkillSet skillSet2 = new SkillSet(new HashSet<Skill>());
+		// skillSet1.addSkill(new Skill("Java"));
+		// skillSet1.addSkill(new Skill("Python"));
+		// skillSet1.addSkill(new Skill("Matlab"));
+		//
+		//
+		// // Create WTPS for CourseAssisstant1
+		// Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+		// TimeInterval ti3 = new TimeInterval(DayOfWeek.MONDAY, 11, 15, 75);
+		// TimeInterval ti4 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		// cti1.add(ti3);
+		// cti1.add(ti4);
+		//
+		// // Add Weekly Time Schedule Specification
+		// WeeklySchedule w2 = new WeeklySchedule(cti2);
+		//
+		// // Course Enrrolled
+		// CourseInstance ci3 = new CourseInstance(new Course("CISC", "220",
+		// "Datastrucutre"), 1234);
+		// CourseInstance ci4 = new CourseInstance(new Course("CISC", "677",
+		// "Ghost Course"), 7777);
+		//
+		// Set<CourseInstance> caOneCourseEnrolled2 = new
+		// HashSet<CourseInstance>();
+		// caOneCourseEnrolled2.add(ci1);
+		// caOneCourseEnrolled2.add(ci3);
+		// caOneCourseEnrolled2.add(ci4);
+		//
+		// // set First Name, Last Name
+		// ca2.setFirstName("Mike");
+		// ca2.setLastName("D");
+		// ca2.setEmailAddress("md@udel.edu");
+		// ca2.setPossessedSkillset(skillSet2);
+		// ca2.setWtps(w2);
+		// ca2.setCourseEnrolled(caOneCourseEnrolled2);
+		// ca2.setGraduateStudent(false);
+
+		// try {
+		// storeCA(ca1);
+		// storeCA(ca2);
+		// storeCAToDynamic(ca1, "2188");
+		// storeCAToDynamic(ca2, "2188");
+		// // getCourseByCode("CISC675","2188");
+		// } catch (FileNotFoundException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+
+		//
+		// getCAById(123, "2188");
+		
+		CourseScheduleExtractor cs1 = new CourseScheduleExtractor("Web","CISC675","2188");
+		ArrayList<CourseInstance> cis1 = cs1.returnCourseInstances();
+		SkillSet ss = new SkillSet(); 
+		ss.addSkill(new Skill("Java")); 
+		ss.addSkill(new Skill("Java"));
+		cis1.get(0).getCourse().setSkills(ss);
+		storeCourse(cis1.get(0));
+		storeCourseToDynamic(cis1.get(0),"2188");
+		
+//		Course c = new Course("CISC", "675", "SE");
+//
+//		CourseInstance ci = new CourseInstance(c, 2188);
+//		ci.setHasLab(true);
+//		ArrayList<Skill> c2 = new ArrayList<>();
+//		c2.add(new Skill("Java"));
+//		c2.add(new Skill("MPI"));
+//		c2.add(new Skill("SQL"));
+//
+//		SkillSet obj1 = new SkillSet(c2);
+//		ci.getCourse().setSkills(obj1);
+//		ci.getCourse().getSkills().addSkill(new Skill("Java"));
+//		ci.getCourse().getSkills().addSkill(new Skill("C++"));
+//
+//		Section sec1 = new Section("", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule());
+//		Collection<TimeInterval> cti1 = new ArrayList<TimeInterval>();
+//		TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+//		TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+//		cti1.add(ti1);
+//		cti1.add(ti2);
+//
+//		// Add Weekly Time Schedule Specification
+//		WeeklySchedule w1 = new WeeklySchedule(cti1);
+//		sec1.setSchedule(w1);
+//		sec1.setTaAssigned(true);
+//		sec1.setNumOfLA(0);
+//		sec1.setNumOfTA(1);
+//		sec1.setMtac(true);
+//		ci.addSection(sec1);
+//		Section sec2 = new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule());
+//		Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+//		TimeInterval ti3 = new TimeInterval(DayOfWeek.WEDNESDAY, 16, 40, 75);
+//		cti2.add(ti3);
+//
+//		// System.out.println(ti3);
+//		// Add Weekly Time Schedule Specification
+//		WeeklySchedule w2 = new WeeklySchedule(cti2);
+//		sec2.setSchedule(w2);
+//		sec2.setTaAssigned(true);
+//		sec2.setNumOfLA(0);
+//		sec2.setNumOfTA(1);
+//		sec2.setMtac(true);
+//		ci.addSection(sec2);
+		// try {
+		//// storeCourse(ci);
+		//// storeCourseToDynamic(ci, "2188");
+		// // getCourseByCode("CISC675","2188");
+		// } catch (FileNotFoundException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+	}
+
+	/**
+	 * check if taschd_dir exists
+	 * 
+	 * @return
+	 */
+	public static boolean taschdCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		if (taschdDirectory.exists()) {
+			taschdExists = true;
+		}
+		return taschdExists;
+	}
+
+	/**
+	 * check if course folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public static boolean taschdCourseFolderCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(course)) {
+					courseExists = true;
+					break;
+				}
+			}
+		}
+		return courseExists;
+	}
+
+	/**
+	 * check if ca pool folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public static boolean taschdCaPoolFolderCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(caPool)) {
+					caPoolExists = true;
+					break;
+				}
+			}
+		}
+		return caPoolExists;
+	}
+
+	/**
+	 * check if terms folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public static boolean taschdTermFolderCheck() {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(terms)) {
+					termExists = true;
+					break;
+				}
+			}
+		}
+		return termExists;
+	}
+
+	/**
+	 * check if [term] folder exists in terms folder in taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		String[] termsFolders = termsDirectory.list();
+		if (termsFolders != null) {
+			for (int i = 0; i < termsFolders.length; i++) {
+				if (termsFolders[i].equalsIgnoreCase(term)) {
+					termNumberExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberExists;
+	}
+
+	/**
+	 * check if courses folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberCourseFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(course)) {
+					termNumberCourseExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberCourseExists;
+	}
+
+	/**
+	 * check if assistants folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberAssistantFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(assistants)) {
+					termNumberAssistantExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberAssistantExists;
+	}
+
+	/**
+	 * check if assignment folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 * 
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberAssignmentFolderCheck(String term) {
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(assignments)) {
+					termNumberAssignmentExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberAssignmentExists;
+	}
+
+	/**
+	 * store course in json format for static data
+	 * 
+	 * @param c
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings("unchecked")
+	public static boolean storeCourse(CourseInstance c) throws FileNotFoundException {
+		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + ".json";
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			courseExists = taschdCourseFolderCheck();
+			if (courseExists) {
+				File rootDir = new File(directory);
+				File taschdDirectory = new File(rootDir, "taschd_dir");
+				File courseDirectory = new File(taschdDirectory, course);
+				String[] coursesFolder = courseDirectory.list();
+				if (coursesFolder != null) {
+					for (int i = 0; i < coursesFolder.length; i++) {
+						if (coursesFolder[i].equalsIgnoreCase(fileToStore)) {
+							System.out.println("Course file with name: " + fileToStore + " already exists.");
+							fileExists = true;
+							break;
+						}
+					}
+				}
+				if (!fileExists) {
+					JSONObject value = new JSONObject();
+					// putting data into JSONObject value
+					value.put("Department ID", c.getCourse().getPrefix());
+					value.put("Course Code", c.getCourse().getCourseCode());
+					value.put("Course Name", c.getCourse().getCourseName());
+					value.put("Skills", c.getCourse().getSkills().toString());
+					value.put("Has Lab", c.isHasLab());
+
+					File file = new File(courseDirectory, fileToStore);
+					PrintWriter pw = new PrintWriter(file);
+					pw.write(value.toJSONString());
+					pw.flush();
+					pw.close();
+					success = true;
+				} else {
+					System.out.println("File with name " + fileToStore + " already exists.");
+				}
+			} else {
+				System.out.println("course directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+		taschdExists = false;
+		courseExists = false;
+		if (!success) {
+			System.out.println("File not created.");
+		}
+		return success;
+	}
+
+	/**
+	 * store dynamic Course data to taschd_dir/terms/[termForCourse]/courses
+	 * path
+	 * 
+	 * @param c
+	 * @param termForCourse
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+
+	@SuppressWarnings("unchecked")
+	public static boolean storeCourseToDynamic(CourseInstance c, String termForCourse) throws FileNotFoundException {
+		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + ".json";
+		boolean fileExists = false;
+
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCourse);
+				if (termNumberExists) {
+					termNumberCourseExists = termNumberCourseFolderCheck(termForCourse);
+					if (termNumberCourseExists) {
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCourse);
+						File termNumberCourseDirectory = new File(termNumberDirectory, course);
+						String[] termNumberCourseFolder = termNumberCourseDirectory.list();
+						if (termNumberCourseFolder != null) {
+							for (int i = 0; i < termNumberCourseFolder.length; i++) {
+								if (termNumberCourseFolder[i].equalsIgnoreCase(fileToStore)) {
+									System.out.println("Course file with name: " + fileToStore + " already exists.");
+									fileExists = true;
+									break;
+								}
+							}
+						}
+						if (!fileExists) {
+							JSONObject value = new JSONObject();
+							// putting data into JSONObject value
+							value.put("Department ID", c.getCourse().getPrefix());
+							value.put("Course Code", c.getCourse().getCourseCode());
+							value.put("Course Name", c.getCourse().getCourseName());
+							// value.put("Skills",
+							// c.getCourse().getSkills().toString());
+							value.put("Has Lab", c.isHasLab());
+
+							JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+							for (Object f : c.getCourse().getSkills().toString().split(",")) {
+								builderSkill.add(Json.createObjectBuilder().add("", f.toString()));
+							}
+							JsonArray arrSkill = builderSkill.build();
+							value.put("Skills", arrSkill);
+
+							Iterator<Section> iter = c.getSections().iterator();
+							JsonArrayBuilder builder = Json.createArrayBuilder();
+							JsonArrayBuilder builderTime = Json.createArrayBuilder();
+							while (iter.hasNext()) {
+								Section s = iter.next();
+								for (Object f : s.getSchedule().getSchedule()) {
+									builderTime.add(Json.createObjectBuilder().add("", f.toString()));
+								}
+								JsonArray arrTime = builderTime.build();
+								builder.add(Json.createObjectBuilder().add("Section Number", (s.getSectionNumber()))
+										.add("Section Type", (s.getSectionType()))
+										.add("Instructor name", (s.getInstructorName()))
+										.add("Location", (s.getLocation()))
+										.add("Current Enrollment", (String.valueOf(s.getCurrentEnrollment())))
+										.add("Enrollment Cap", (String.valueOf(s.getEnrollmentCap())))
+										.add("TA Assigned", (String.valueOf(s.isTaAssigned())))
+										.add("Num of TA", (String.valueOf(s.getNumOfTA())))
+										.add("Num of LA", (String.valueOf(s.getNumOfLA())))
+										.add("MTAC", (String.valueOf(s.isMtac()))).add("Time Schedule", arrTime));
+							}
+							JsonArray arr = builder.build();
+
+							value.put("Sections", arr);
+							File file = new File(termNumberCourseDirectory, fileToStore);
+							PrintWriter pw = new PrintWriter(file);
+							pw.write(value.toJSONString());
+							pw.flush();
+							pw.close();
+							success = true;
+						} else {
+							System.out.println("File with name " + fileToStore + " already exists.");
+						}
+					} else {
+						System.out.println("courses folder does not exist in " + termForCourse + " folder.");
+					}
+				} else {
+					System.out.println(termForCourse + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberCourseExists = false;
+		if (!success) {
+			System.out.println("File not created.");
+		}
+		return success;
+	}
+
+	/**
+	 * store CA in json format for static data
+	 * 
+	 * @param ca
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean storeCA(CourseAssistant ca) throws FileNotFoundException {
+		String fileToStore = "SID" + ca.getId() + ".json";
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			caPoolExists = taschdCaPoolFolderCheck();
+			if (caPoolExists) {
+				File rootDir = new File(directory);
+				File taschdDirectory = new File(rootDir, "taschd_dir");
+				File caPoolDirectory = new File(taschdDirectory, caPool);
+				String[] caPoolFolder = caPoolDirectory.list();
+				if (caPoolFolder != null) {
+					for (int i = 0; i < caPoolFolder.length; i++) {
+						if (caPoolFolder[i].equalsIgnoreCase(fileToStore)) {
+							System.out.println("CA file with name: " + fileToStore + " already exists.");
+							fileExists = true;
+							break;
+						}
+					}
+				}
+				if (!fileExists) {
+					JSONObject value = new JSONObject();
+					// putting data into JSONObject value
+					value.put("First Name", ca.getFirstName());
+					value.put("Last Name", ca.getLastName());
+					value.put("ID", ca.getId());
+					value.put("Email", ca.getEmailAddress());
+					// value.put("Skills", ca.getPossessedSkillset());
+					value.put("Graduate Student", ca.getGraduateStudent());
+					JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+					for (Object f : ca.getPossessedSkillset().toString().split(",")) {
+						builderSkill.add(Json.createObjectBuilder().add("Skill", f.toString()));
+					}
+					JsonArray arrSkill = builderSkill.build();
+					value.put("Skills", arrSkill);
+
+					File file = new File(caPoolDirectory, fileToStore);
+					PrintWriter pw = new PrintWriter(file);
+					pw.write(value.toJSONString());
+					pw.flush();
+					pw.close();
+					success = true;
+				} else {
+					System.out.println("File with name " + fileToStore + " already exists.");
+				}
+			} else {
+				System.out.println("ca_pool directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+		taschdExists = false;
+		caPoolExists = false;
+		if (!success) {
+			System.out.println("File not created.");
+		}
+		return success;
+	}
+
+	/**
+	 * store dynamic CA data to taschd_dir/terms/[termForCourse]/assistants path
+	 * 
+	 * @param ca
+	 * @param termForCA
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings("unchecked")
+	public static boolean storeCAToDynamic(CourseAssistant ca, String termForCA) throws FileNotFoundException {
+		String fileToStore = "SID" + ca.getId() + ".json";
+		boolean fileExists = false;
+
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCA);
+				if (termNumberExists) {
+					termNumberAssistantExists = termNumberAssistantFolderCheck(termForCA);
+					if (termNumberAssistantExists) {
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCA);
+						File termNumberAssistantDirectory = new File(termNumberDirectory, assistants);
+						String[] termNumberAssistantFolder = termNumberAssistantDirectory.list();
+						if (termNumberAssistantFolder != null) {
+							for (int i = 0; i < termNumberAssistantFolder.length; i++) {
+								if (termNumberAssistantFolder[i].equalsIgnoreCase(fileToStore)) {
+									System.out.println("Assistant file with name: " + fileToStore + " already exists.");
+									fileExists = true;
+									break;
+								}
+							}
+						}
+						if (!fileExists) {
+							JSONObject value = new JSONObject();
+							// putting data into JSONObject value
+							value.put("First Name", ca.getFirstName());
+							value.put("Last Name", ca.getLastName());
+							value.put("ID", ca.getId());
+							// value.put("Skills", ca.getPossessedSkillset());
+							value.put("Email", ca.getEmailAddress());
+							value.put("Graduate Student", ca.getGraduateStudent());
+							// value.put("Schedule", ca.getWtps());
+
+							JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+							for (Object f : ca.getPossessedSkillset().toString().split(",")) {
+								builderSkill.add(Json.createObjectBuilder().add("Skill", f.toString()));
+							}
+							JsonArray arrSkill = builderSkill.build();
+							value.put("Skills", arrSkill);
+
+							JsonArrayBuilder builderTime = Json.createArrayBuilder();
+							for (Object f : ca.getWtps().toString().split(",")) {
+								builderTime.add(Json.createObjectBuilder().add("Time", f.toString()));
+							}
+							JsonArray arrTime = builderTime.build();
+							value.put("Time Schedule", arrTime);
+
+							File file = new File(termNumberAssistantDirectory, fileToStore);
+							PrintWriter pw = new PrintWriter(file);
+							pw.write(value.toJSONString());
+							pw.flush();
+							pw.close();
+							success = true;
+						} else {
+							System.out.println("File with name " + fileToStore + " already exists.");
+						}
+					} else {
+						System.out.println("Assistants folder does not exist in " + termForCA + " folder.");
+					}
+				} else {
+					System.out.println(termForCA + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberAssistantExists = false;
+		if (!success) {
+			System.out.println("File not created.");
+		}
+		return success;
+	}
+
+	/**
+	 * gets Course details from CISC675.json dynamic data
+	 * 
+	 * @param code
+	 * @return
+	 * @throws ParseException
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	public CourseInstance getCourseByCode(String code, String termForCourse)
+			throws FileNotFoundException, IOException, ParseException {
+		boolean fileExists = false;
+		String fileToRead = code + ".json";
+		CourseInstance c = null;
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCourse);
+				if (termNumberExists) {
+					termNumberCourseExists = termNumberCourseFolderCheck(termForCourse);
+					if (termNumberCourseExists) {
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCourse);
+						File termNumberCourseDirectory = new File(termNumberDirectory, course);
+						String[] termNumberCourseFolder = termNumberCourseDirectory.list();
+						if (termNumberCourseFolder != null) {
+							for (int i = 0; i < termNumberCourseFolder.length; i++) {
+								if (termNumberCourseFolder[i].equalsIgnoreCase(fileToRead)) {
+									fileExists = true;
+									break;
+								}
+							}
+						} else {
+							System.out.println("File does not exist.");
+						}
+						if (fileExists) {
+							JSONParser parser = new JSONParser();
+							File readFile = new File(termNumberCourseDirectory, fileToRead);
+							Object ob1 = parser.parse(new FileReader(readFile));
+							JSONObject jsonObj = (JSONObject) ob1;
+
+							String prefix = (String) jsonObj.get("Department ID");
+							String courseCode = (String) jsonObj.get("Course Code");
+							String courseName = (String) jsonObj.get("Course Name");
+							JSONArray skillData = (JSONArray) jsonObj.get("Skills");
+							boolean hasLab = (boolean) jsonObj.get("Has Lab");
+							System.out.println(skillData);
+							while (skillData.iterator().hasNext()) {
+								JSONObject s = (JSONObject) skillData.iterator().next();
+
+								// System.out.println(s);
+							}
+
+							c = new CourseInstance(new Course(prefix, courseCode, courseName),
+									Integer.parseInt(termForCourse));
+
+						} else {
+							System.out.println("File does not exist.");
+						}
+					} else {
+						System.out.println("Course folder does not exist for " + termForCourse + " folder.");
+					}
+				} else {
+					System.out.println(termForCourse + " folder does not exist.");
+				}
+			} else {
+				System.out.println("terms folder does not exist in taschd_dir");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberCourseExists = false;
+		if (!success) {
+			System.out.println("File not read.");
+		}
+		return c;
+	}
+
+	// public static void main(String[] args) throws FileNotFoundException,
+	// IOException, ParseException {
+	// CourseInstance c1 = getCourseByCode("CISC675", "2188");
+	// }
+
+	/**
+	 * gets CA details from SID123212.json in
+	 * taschd_dir/terms/[termOfCA]/assistants
+	 * 
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public CourseAssistant getCAById(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets CA schedule from SID123212.json
+	 * <p>
+	 * json has schedule, grades, skills, email, name, ID, ca history
+	 * </p>
+	 * 
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public WeeklySchedule getCASchdByID(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets Course schedule from CISC675.json
+	 * 
+	 * @param courseCode
+	 * @return
+	 */
+	public WeeklySchedule getCourseSchdByCode(String courseCode, String term) {
+		return null;
+	}
+
+	public CourseAssistantPool getCAPool() {
+		CourseAssistant ca = null;
+		CourseAssistantPool capl = new CourseAssistantPool();
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			caPoolExists = taschdCaPoolFolderCheck();
+			if (caPoolExists) {
+				File rootDir = new File(directory);
+				File taschdDirectory = new File(rootDir, "taschd_dir");
+				File caPoolDirectory = new File(taschdDirectory, caPool);
+				String[] caPoolFolder = caPoolDirectory.list();
+				if (caPoolFolder != null) {
+					for (int i = 0; i < caPoolFolder.length; i++) {
+						capl.addCourseAssistant(ca);
+					}
+				} else {
+					System.out.println(caPool + " folder is empty");
+				}
+			} else {
+				System.out.println(caPool + " folder does not exist in taschd_dir");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+		taschdExists = false;
+		caPoolExists = false;
+		return null;
+	}
+
+}

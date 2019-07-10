@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CourseScheduleExtractor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.extract</a> &gt; <span class="el_source">CourseScheduleExtractor.java</span></div><h1>CourseScheduleExtractor.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.extract;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
+import com.gargoylesoftware.htmlunit.html.HtmlTable;
+import com.gargoylesoftware.htmlunit.html.HtmlTableBody;
+import com.gargoylesoftware.htmlunit.html.HtmlTableCell;
+import com.gargoylesoftware.htmlunit.html.HtmlTableRow;
+import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
+
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.time.DayOfWeek;
+
+/**
+ * The CourseScheduleExtractor class is responsible for the extraction of
+ * {@link CourseInstance}/{@link Section} details, in a specific semester.
+ * Attributes of courses and courses sections are returned. It hides the details
+ * of extraction and assigns extracted values to {@link CourseInstance} objects.
+ * It also uses {@link WeeklySchedule} class variables.
+ * 
+ * @author Narasimha Srikumar Akella
+ */
+public class CourseScheduleExtractor {
+
+<span class="fc" id="L49">	private List&lt;Map&lt;String, String&gt;&gt; courseScheduleSource = new ArrayList&lt;Map&lt;String, String&gt;&gt;();</span>
+<span class="fc" id="L50">	private ArrayList&lt;CourseInstance&gt; crsInstances = new ArrayList&lt;CourseInstance&gt;();</span>
+
+	/**
+	 * @param source
+	 *            Source of extraction (eg. Web)
+	 * @param courseKey
+	 *            departmentID/ courseID (eg. CISC, CISC681)
+	 * @param term
+	 *            Course offering term (eg. 2188, 2193)
+	 */
+<span class="fc" id="L60">	public CourseScheduleExtractor(String source, String courseKey, String term) {</span>
+		try {
+<span class="fc bfc" id="L62" title="All 2 branches covered.">			if (source.equals(&quot;Web&quot;)) {</span>
+<span class="fc bfc" id="L63" title="All 2 branches covered.">				if (courseKey.isEmpty()) {</span>
+<span class="fc" id="L64">					System.out.println(&quot;Course Key provided is empty&quot;);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">				} else if (term.isEmpty()) {</span>
+<span class="fc" id="L66">					System.out.println(&quot;Term value provided is empty&quot;);</span>
+<span class="fc" id="L67">				} 				</span>
+				else {
+<span class="fc" id="L69">				courseScheduleSource = getCourseScheduleWeb(courseKey, term);</span>
+<span class="fc" id="L70">				this.crsInstances = parseAndSetCourseDetails(courseScheduleSource, Integer.parseInt(term));}</span>
+<span class="fc" id="L71">			}</span>
+<span class="fc" id="L72">			else {System.out.println(&quot;Source should be Web, only Web extraction is implemented in this phase&quot;);}</span>
+<span class="pc" id="L73">		} catch (IOException e) {</span>
+<span class="nc" id="L74">			System.out.println(e.getMessage());</span>
+		}
+<span class="fc" id="L76">	}</span>
+
+	/**
+	 * The returnCourseInstances return the Course Schedules as a list of
+	 * CourseInstance Objects
+	 * 
+	 * @return CourseInstance : ArrayList of CourseInstance Object
+	 */
+	public ArrayList&lt;CourseInstance&gt; returnCourseInstances() {
+<span class="fc" id="L85">		return crsInstances;</span>
+	}
+
+	/**
+	 * The parseAndSetCourseDetails method takes the list&lt;Map&gt; of courseSource
+	 * extracted from webreg, parses it and places the values in CourseInstance
+	 * class variables.
+	 * 
+	 * @param courseSource
+	 *            : ArrayList of Course details extracted from webreg
+	 * @param crsTerm
+	 *            : Current Course term (ex: for Fall 2018, term = 2188)
+	 * @return CourseInstance : List of CourseInstance Objects with details and
+	 *         Sections
+	 */
+	private ArrayList&lt;CourseInstance&gt; parseAndSetCourseDetails(List&lt;Map&lt;String, String&gt;&gt; courseSource, int crsTerm) {
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">		if (courseSource.isEmpty()) {</span>
+<span class="nc" id="L102">			System.out.println(&quot;No Course details extracted for given Course Key and Term&quot;);</span>
+<span class="nc" id="L103">			return null;</span>
+		} else {
+<span class="fc" id="L105">			String currCourse = courseSource.get(0).get(&quot;courseCode&quot;);</span>
+<span class="fc" id="L106">			String prevCourse = courseSource.get(0).get(&quot;courseCode&quot;);</span>
+<span class="fc" id="L107">			DateFormat dateformat = new SimpleDateFormat(&quot;hh:mm a&quot;);</span>
+<span class="fc" id="L108">			ArrayList&lt;Section&gt; sectionsObject = new ArrayList&lt;Section&gt;();</span>
+
+<span class="fc" id="L110">			int crsIndex = 0;</span>
+<span class="fc" id="L111">			int secIndex = 0;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">			for (Iterator&lt;Map&lt;String, String&gt;&gt; iter = courseSource.iterator(); iter.hasNext();) {</span>
+
+<span class="fc" id="L114">				String departmentID = courseSource.get(crsIndex).get(&quot;departmentID&quot;);</span>
+<span class="fc" id="L115">				String courseCode = courseSource.get(crsIndex).get(&quot;courseCode&quot;);</span>
+<span class="fc" id="L116">				String courseName = courseSource.get(crsIndex).get(&quot;courseName&quot;);</span>
+
+<span class="fc" id="L118">				Course crs = new Course(departmentID, courseCode, courseName);</span>
+<span class="fc" id="L119">				CourseInstance ci = new CourseInstance(crs, crsTerm);</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">				while (currCourse.equals(prevCourse)) {</span>
+<span class="fc" id="L121">					String sectionNumber = courseSource.get(secIndex).get(&quot;sectionNumber&quot;);</span>
+<span class="fc" id="L122">					int currEnrollment = Integer.parseInt(courseSource.get(secIndex).get(&quot;currentEnrollment&quot;));</span>
+<span class="fc" id="L123">					int enrollmentCap = Integer.parseInt(courseSource.get(secIndex).get(&quot;enrollmentCap&quot;));</span>
+<span class="fc" id="L124">					String location = courseSource.get(secIndex).get(&quot;location&quot;);</span>
+<span class="fc" id="L125">					String sectionType = courseSource.get(secIndex).get(&quot;sectionType&quot;);</span>
+<span class="fc" id="L126">					String instructorName = courseSource.get(secIndex).get(&quot;instructorName&quot;);</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">					if (sectionType.equals(&quot;LAB&quot;))</span>
+<span class="fc" id="L128">						ci.setHasLab(true);</span>
+<span class="fc" id="L129">					WeeklySchedule weeklySchedule = new WeeklySchedule();</span>
+<span class="fc" id="L130">					Set&lt;String&gt; daysSet = courseSource.get(secIndex).keySet().stream()</span>
+<span class="fc" id="L131">							.filter(s -&gt; s.startsWith(&quot;WeekDay&quot;)).collect(Collectors.toSet());</span>
+<span class="fc" id="L132">					String[] daysArr = daysSet.toArray(new String[daysSet.size()]);</span>
+
+<span class="fc bfc" id="L134" title="All 2 branches covered.">					for (int wtpsIndex = 1; wtpsIndex &lt;= daysArr.length; wtpsIndex++) {</span>
+<span class="fc" id="L135">						String tempDayKey = &quot;WeekDay&quot; + wtpsIndex;</span>
+<span class="fc" id="L136">						String tempsTimeKey = &quot;startTime&quot; + wtpsIndex;</span>
+<span class="fc" id="L137">						String tempeTimeKey = &quot;endTime&quot; + wtpsIndex;</span>
+
+<span class="fc" id="L139">						DayOfWeek weekDay = getDayofWeek(courseSource.get(secIndex).get(tempDayKey));</span>
+<span class="fc" id="L140">						String[] timeInterval = courseSource.get(secIndex).get(tempsTimeKey).split(&quot;:&quot;);</span>
+<span class="fc" id="L141">						int startHour = 0;</span>
+<span class="fc bfc" id="L142" title="All 4 branches covered.">						if ((timeInterval[1].contains(&quot;AM&quot;)) || (Integer.parseInt(timeInterval[0])) == 12) {</span>
+<span class="fc" id="L143">							timeInterval[1] = timeInterval[1].replace(&quot;AM&quot;, &quot;&quot;);</span>
+<span class="fc" id="L144">							timeInterval[1] = timeInterval[1].replace(&quot;PM&quot;, &quot;&quot;);</span>
+<span class="fc" id="L145">							startHour = Integer.parseInt(timeInterval[0]);</span>
+<span class="pc bpc" id="L146" title="2 of 4 branches missed.">						} else if ((timeInterval[1].contains(&quot;PM&quot;)) &amp;&amp; (Integer.parseInt(timeInterval[0])) &lt; 12) {</span>
+<span class="fc" id="L147">							timeInterval[1] = timeInterval[1].replace(&quot;PM&quot;, &quot;&quot;);</span>
+<span class="fc" id="L148">							startHour = Integer.parseInt(timeInterval[0]) + 12;</span>
+						}
+
+<span class="fc" id="L151">						int startMin = Integer.parseInt(timeInterval[1]);</span>
+<span class="fc" id="L152">						Date sTime = null;</span>
+<span class="fc" id="L153">						Date eTime = null;</span>
+						try {
+<span class="fc" id="L155">							String txtsTime = courseSource.get(secIndex).get(tempsTimeKey).replace(&quot;AM&quot;, &quot; AM&quot;)</span>
+<span class="fc" id="L156">									.replace(&quot;PM&quot;, &quot; PM&quot;);</span>
+<span class="fc" id="L157">							String txteTime = courseSource.get(secIndex).get(tempeTimeKey).replace(&quot;AM&quot;, &quot; AM&quot;)</span>
+<span class="fc" id="L158">									.replace(&quot;PM&quot;, &quot; PM&quot;);</span>
+<span class="fc" id="L159">							sTime = dateformat.parse(txtsTime);</span>
+<span class="fc" id="L160">							eTime = dateformat.parse(txteTime);</span>
+
+<span class="pc" id="L162">						} catch (ParseException e1) {</span>
+<span class="nc" id="L163">							e1.printStackTrace();</span>
+						}
+
+<span class="fc" id="L166">						int duration = ((int) (eTime.getTime() - sTime.getTime())) / 60000;</span>
+<span class="fc" id="L167">						weeklySchedule.addInterval(new TimeInterval(weekDay, startHour, startMin, duration));</span>
+					}
+
+<span class="fc" id="L170">					Section section = new Section(sectionType, sectionNumber, instructorName, currEnrollment,</span>
+<span class="fc" id="L171">							enrollmentCap, location, weeklySchedule);</span>
+<span class="fc" id="L172">					sectionsObject.add(section);</span>
+<span class="fc" id="L173">					prevCourse = currCourse;</span>
+<span class="fc" id="L174">					iter.next();</span>
+<span class="fc" id="L175">					secIndex++;</span>
+<span class="fc" id="L176">					crsIndex++;</span>
+<span class="fc" id="L177">					ci.addSection(section);</span>
+<span class="fc bfc" id="L178" title="All 2 branches covered.">					if (crsIndex &lt; courseSource.size()) {</span>
+<span class="fc" id="L179">						currCourse = courseSource.get(crsIndex).get(&quot;courseCode&quot;);</span>
+					} else
+						break;
+				}
+<span class="fc" id="L183">				crsInstances.add(ci);</span>
+<span class="fc" id="L184">				prevCourse = currCourse;</span>
+			}
+		}
+<span class="fc" id="L187">		return crsInstances;</span>
+	}
+
+	/**
+	 * The getCourseScheduleWeb method takes the credentials, term and search key as
+	 * arguments and extracts courses schedule from webreg, into a list of maps.
+	 * 
+	 * @param courseKey
+	 *            : Search key to retrieve Courses Details from WebReg
+	 * @param term
+	 *            : Current Course term (ex: for Fall 2018, term = 2188)
+	 * @return courseScheduleSource : Array list of maps with the course details
+	 */
+	private List&lt;Map&lt;String, String&gt;&gt; getCourseScheduleWeb(String courseKey, String term) throws IOException {
+<span class="fc" id="L201">		List&lt;Map&lt;String, String&gt;&gt; courseScheduleSource = new ArrayList&lt;Map&lt;String, String&gt;&gt;();</span>
+
+<span class="fc" id="L203">		WebClient webClient = new WebClient();</span>
+
+<span class="fc" id="L205">		HtmlPage page = webClient.getPage(&quot;http://www.udel.edu/courses&quot;);</span>
+<span class="fc" id="L206">		HtmlForm coursesForm = page.getElementByName(&quot;CourseInformation&quot;);</span>
+<span class="fc" id="L207">		HtmlSelect termSelect = coursesForm.getSelectByName(&quot;term&quot;);</span>
+<span class="fc" id="L208">		HtmlTextInput courseSearchKey = coursesForm.getInputByName(&quot;course_sec&quot;);</span>
+<span class="fc" id="L209">		HtmlButton courseSearch = coursesForm.getOneHtmlElementByAttribute(&quot;button&quot;, &quot;type&quot;, &quot;submit&quot;);</span>
+
+<span class="fc" id="L211">		termSelect.getOptionByValue(term).setSelected(true);</span>
+<span class="fc" id="L212">		courseSearchKey.type(courseKey);</span>
+<span class="fc" id="L213">		HtmlPage courseSearchResultsPage = courseSearch.click();</span>
+
+<span class="fc" id="L215">		webClient.waitForBackgroundJavaScript(2000);</span>
+<span class="fc" id="L216">		webClient.getOptions().setJavaScriptEnabled(true);</span>
+
+<span class="fc" id="L218">		List&lt;?&gt; nextButtonList = courseSearchResultsPage.getElementsByIdAndOrName(&quot;searchNxtBtn&quot;);</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">		while (!nextButtonList.isEmpty()) {</span>
+<span class="fc" id="L220">			HtmlButton nextButton = (HtmlButton) nextButtonList.get(0);</span>
+<span class="fc" id="L221">			courseScheduleSource = getCourseSchedulefromPage(courseSearchResultsPage, term, courseScheduleSource);</span>
+<span class="fc" id="L222">			courseSearchResultsPage = nextButton.click();</span>
+<span class="fc" id="L223">			webClient.waitForBackgroundJavaScript(2000);</span>
+<span class="fc" id="L224">			nextButtonList = courseSearchResultsPage.getElementsByIdAndOrName(&quot;searchNxtBtn&quot;);</span>
+		}
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">		if (nextButtonList.isEmpty()) {</span>
+<span class="fc" id="L227">			courseScheduleSource = getCourseSchedulefromPage(courseSearchResultsPage, term, courseScheduleSource);</span>
+		}
+
+<span class="fc" id="L230">		webClient.close();</span>
+<span class="fc" id="L231">		return courseScheduleSource;</span>
+	}
+
+	/**
+	 * If the Course Search from Webreg is across multiple pages,
+	 * getCourseSchedulefromPage method takes the page as argument, extracts courses
+	 * schedule from the given page
+	 * 
+	 * @param page
+	 *            : HtmlPage to extract the Course Details from
+	 * @param term
+	 *            : Current Course term (ex: for Fall 2018, term = 2188)
+	 * @param courseScheduleSource
+	 *            : Array list of maps with the course details
+	 * @return courseScheduleSource : Array list of maps with the course details
+	 */
+	private static List&lt;Map&lt;String, String&gt;&gt; getCourseSchedulefromPage(HtmlPage page, String term,
+			List&lt;Map&lt;String, String&gt;&gt; courseScheduleSource) {
+
+<span class="fc" id="L250">		HtmlTable studenScheduleTable = page.getHtmlElementById(&quot;results-&quot; + term);</span>
+
+		int colIndex;
+<span class="fc bfc" id="L253" title="All 2 branches covered.">		for (final HtmlTableBody body : studenScheduleTable.getBodies()) {</span>
+<span class="fc" id="L254">			final List&lt;HtmlTableRow&gt; rows = body.getRows();</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">			for (final HtmlTableRow row : rows) {</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">				if (row.getCell(5).asText().trim().contains(&quot;Cancel&quot;)) {</span>
+<span class="fc" id="L257">					continue;</span>
+				}
+<span class="fc" id="L259">				colIndex = 0;</span>
+<span class="fc" id="L260">				Map&lt;String, String&gt; temp = new HashMap&lt;String, String&gt;();</span>
+<span class="fc" id="L261">				int lineOneDays = 0;</span>
+<span class="fc" id="L262">				int lineTwoDays = 0;</span>
+<span class="fc bfc" id="L263" title="All 2 branches covered.">				for (final HtmlTableCell cell : row.getCells()) {</span>
+<span class="fc bfc" id="L264" title="All 8 branches covered.">					switch (colIndex) {</span>
+					case 0:
+<span class="fc" id="L266">						String[] tempSect = cell.asText().trim().split(&quot; &quot;);</span>
+<span class="fc" id="L267">						String deptID = tempSect[0].trim().substring(0, 4);</span>
+<span class="fc" id="L268">						String courseCode = tempSect[0].trim().substring(4, 7);</span>
+<span class="fc" id="L269">						String sectionNumber = tempSect[0].trim().substring(7, 10);</span>
+<span class="fc" id="L270">						String sectionType = tempSect[1].trim();</span>
+<span class="fc" id="L271">						temp.put(&quot;departmentID&quot;, deptID);</span>
+<span class="fc" id="L272">						temp.put(&quot;courseCode&quot;, courseCode);</span>
+<span class="fc" id="L273">						temp.put(&quot;sectionNumber&quot;, sectionNumber);</span>
+<span class="fc" id="L274">						temp.put(&quot;sectionType&quot;, sectionType);</span>
+<span class="fc" id="L275">						break;</span>
+					case 1:
+<span class="fc" id="L277">						String courseName = cell.asText().trim();</span>
+<span class="fc" id="L278">						temp.put(&quot;courseName&quot;, courseName);</span>
+<span class="fc" id="L279">						break;</span>
+					case 2:
+						String tempEnroll;
+<span class="fc bfc" id="L282" title="All 2 branches covered.">						if (cell.asText().trim().contains(&quot;\n&quot;)) {</span>
+<span class="fc" id="L283">							String[] tempEnrolls = cell.asText().trim().split(&quot;\\r?\\n&quot;);</span>
+<span class="fc" id="L284">							tempEnroll = tempEnrolls[0].trim();</span>
+<span class="fc" id="L285">						} else {</span>
+<span class="fc" id="L286">							tempEnroll = cell.asText().trim();</span>
+						}
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">						if (tempEnroll.contains(&quot;OF&quot;)) {</span>
+<span class="fc" id="L289">							String[] tempTxt = tempEnroll.split(&quot;OF&quot;);</span>
+<span class="fc" id="L290">							String currentEnrollment = tempTxt[0].trim();</span>
+<span class="fc" id="L291">							String enrollmentCap = tempTxt[1].trim();</span>
+<span class="fc" id="L292">							temp.put(&quot;currentEnrollment&quot;, currentEnrollment);</span>
+<span class="fc" id="L293">							temp.put(&quot;enrollmentCap&quot;, enrollmentCap);</span>
+						}
+<span class="fc" id="L295">						break;</span>
+					case 4:
+<span class="fc" id="L297">						String tempSch = cell.asText().trim();</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">						if (tempSch.equals(&quot;TBA&quot;))</span>
+<span class="fc" id="L299">							break;</span>
+<span class="fc bfc" id="L300" title="All 2 branches covered.">						if (tempSch.contains(&quot;\n&quot;)) {</span>
+<span class="fc" id="L301">							String[] schLines = tempSch.split(&quot;\\r?\\n&quot;);</span>
+<span class="fc" id="L302">							lineOneDays = schLines[0].trim().length();</span>
+<span class="fc" id="L303">							lineTwoDays = schLines[1].trim().length();</span>
+<span class="fc" id="L304">							int dayCount = 0;</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">							for (int k = 0; k &lt; schLines[0].trim().length(); k++) {</span>
+<span class="fc" id="L306">								String tempDay = Character.toString(schLines[0].trim().charAt(k));</span>
+<span class="fc" id="L307">								temp.put(&quot;WeekDay&quot; + (dayCount + 1), tempDay);</span>
+<span class="fc" id="L308">								dayCount++;</span>
+							}
+<span class="fc bfc" id="L310" title="All 2 branches covered.">							for (int k = 0; k &lt; schLines[1].trim().length(); k++) {</span>
+<span class="fc" id="L311">								String tempDay = Character.toString(schLines[1].trim().charAt(k));</span>
+<span class="fc" id="L312">								temp.put(&quot;WeekDay&quot; + (dayCount + 1), tempDay);</span>
+<span class="fc" id="L313">								dayCount++;</span>
+							}
+<span class="fc" id="L315">						} else {</span>
+<span class="fc" id="L316">							lineOneDays = tempSch.length();</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">							for (int k = 0; k &lt; tempSch.length(); k++) {</span>
+<span class="fc" id="L318">								String tempDay = Character.toString(tempSch.charAt(k));</span>
+<span class="fc" id="L319">								temp.put(&quot;WeekDay&quot; + (k + 1), tempDay);</span>
+							}
+						}
+<span class="fc" id="L322">						break;</span>
+					case 5:
+<span class="fc" id="L324">						String tempTime = cell.asText().trim();</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">						if (tempTime.contains(&quot;\n&quot;)) {</span>
+<span class="fc" id="L326">							String[] tempTimes = tempTime.split(&quot;\\r?\\n&quot;);</span>
+<span class="fc" id="L327">							int dayCount = 0;</span>
+<span class="fc bfc" id="L328" title="All 2 branches covered.">							for (int k = 0; k &lt; lineOneDays; k++) {</span>
+<span class="fc" id="L329">								String[] lineOneTime = tempTimes[0].trim().split(&quot;-&quot;);</span>
+<span class="fc" id="L330">								String startTime = lineOneTime[0].trim();</span>
+<span class="fc" id="L331">								String endTime = lineOneTime[1].trim();</span>
+<span class="fc" id="L332">								temp.put(&quot;startTime&quot; + (dayCount + 1), startTime);</span>
+<span class="fc" id="L333">								temp.put(&quot;endTime&quot; + (dayCount + 1), endTime);</span>
+<span class="fc" id="L334">								dayCount++;</span>
+							}
+<span class="fc bfc" id="L336" title="All 2 branches covered.">							for (int k = 0; k &lt; lineTwoDays; k++) {</span>
+<span class="fc" id="L337">								String[] lineTwoTime = tempTimes[1].trim().split(&quot;-&quot;);</span>
+<span class="fc" id="L338">								String startTime = lineTwoTime[0].trim();</span>
+<span class="fc" id="L339">								String endTime = lineTwoTime[1].trim();</span>
+<span class="fc" id="L340">								temp.put(&quot;startTime&quot; + (dayCount + 1), startTime);</span>
+<span class="fc" id="L341">								temp.put(&quot;endTime&quot; + (dayCount + 1), endTime);</span>
+<span class="fc" id="L342">								dayCount++;</span>
+							}
+<span class="fc" id="L344">						} else {</span>
+<span class="fc" id="L345">							int dayCount = 0;</span>
+<span class="fc bfc" id="L346" title="All 2 branches covered.">							for (int k = 0; k &lt; lineOneDays; k++) {</span>
+<span class="fc" id="L347">								String[] lineOneTime = cell.asText().trim().split(&quot;-&quot;);</span>
+<span class="fc" id="L348">								String startTime = lineOneTime[0].trim();</span>
+<span class="fc" id="L349">								String endTime = lineOneTime[1].trim();</span>
+<span class="fc" id="L350">								temp.put(&quot;startTime&quot; + (dayCount + 1), startTime);</span>
+<span class="fc" id="L351">								temp.put(&quot;endTime&quot; + (dayCount + 1), endTime);</span>
+<span class="fc" id="L352">								dayCount++;</span>
+							}
+						}
+<span class="fc" id="L355">						break;</span>
+					case 6:
+<span class="fc" id="L357">						String tempLoc = cell.asText().trim();</span>
+<span class="fc" id="L358">						temp.put(&quot;location&quot;, tempLoc);</span>
+					case 7:
+<span class="fc" id="L360">						String tempInst = cell.asText().trim();</span>
+<span class="fc" id="L361">						temp.put(&quot;instructorName&quot;, tempInst);</span>
+					default:
+						break;
+					}
+<span class="fc" id="L365">					colIndex++;</span>
+				}
+<span class="fc" id="L367">				courseScheduleSource.add(temp);</span>
+			}
+		}
+<span class="fc" id="L370">		return courseScheduleSource;</span>
+	}
+
+	/**
+	 * The getDayofWeek method takes the weekday as Single letter and returns the
+	 * corresponding DayofWeek for the letter
+	 * 
+	 * @param weekDay
+	 *            : Single Character representation of week day (eg. M)
+	 * @return DayOfWeek : Day of Week enumerator
+	 */
+	private static DayOfWeek getDayofWeek(String weekday) {
+		DayOfWeek weekDay;
+<span class="pc bpc" id="L383" title="6 of 16 branches missed.">		switch (weekday) {</span>
+		case &quot;M&quot;:
+<span class="fc" id="L385">			weekDay = DayOfWeek.valueOf(&quot;MONDAY&quot;);</span>
+<span class="fc" id="L386">			break;</span>
+		case &quot;T&quot;:
+<span class="fc" id="L388">			weekDay = DayOfWeek.valueOf(&quot;TUESDAY&quot;);</span>
+<span class="fc" id="L389">			break;</span>
+		case &quot;W&quot;:
+<span class="fc" id="L391">			weekDay = DayOfWeek.valueOf(&quot;WEDNESDAY&quot;);</span>
+<span class="fc" id="L392">			break;</span>
+		case &quot;R&quot;:
+<span class="fc" id="L394">			weekDay = DayOfWeek.valueOf(&quot;THURSDAY&quot;);</span>
+<span class="fc" id="L395">			break;</span>
+		case &quot;F&quot;:
+<span class="fc" id="L397">			weekDay = DayOfWeek.valueOf(&quot;FRIDAY&quot;);</span>
+<span class="fc" id="L398">			break;</span>
+		default:
+<span class="nc" id="L400">			weekDay = null;</span>
+			break;
+		}
+<span class="fc" id="L403">		return weekDay;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

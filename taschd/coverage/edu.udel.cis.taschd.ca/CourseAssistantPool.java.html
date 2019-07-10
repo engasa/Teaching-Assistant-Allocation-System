@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CourseAssistantPool.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.ca</a> &gt; <span class="el_source">CourseAssistantPool.java</span></div><h1>CourseAssistantPool.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.ca;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ListIterator;
+
+/**
+ * The CourseAssistantPool class is responsible for managing CourseAssistant Object 
+ * like, obtaining all CourseAssistant list by using API in DB module. 
+ * It hides the details on the internal representation
+ * of courseAssistant objects. CoursesAssistant use time, skill and course Components.
+ * 
+ * @author Yi Liu
+ */
+public class CourseAssistantPool {
+	/**
+	 * The sequence of courseAssistats. They are ordered by Last Name, then first Name, 
+	 * and Id number. The ordered is determined by the method{@link CourseAssistant#compareTo(CourseAssistant)}
+	 * If LastName are equal, the fisrtNames are used to break the tie. If firstName are equal,
+	 * the Id are used to break the tie
+	 */
+	private ArrayList&lt;CourseAssistant&gt; courseAssistantSet;
+	
+	/**
+	 * Constructs new empty CourseAssistantSet.
+	 */	
+<span class="fc" id="L26">	public CourseAssistantPool(){</span>
+<span class="fc" id="L27">		courseAssistantSet = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L28">	}</span>
+	
+	/**
+	 * Constructs a new courseAssistantSet from the given collection of
+	 * {@link CourseAssistant}s. The new {@link CourseAssistantPool} will not keep any
+	 * reference to the given {@link Collection}, hence subsequent modifications
+	 * to the collection will not affect the new CourseAssistantPool. 
+	 * The new CourseAssistantPool may keep references to the member 
+	 * CourseAssistants of the collection, but since
+	 * {@link CourseAssistant}s are immutable, this fact should be invisible to the
+	 * client. The internal representation may differ from the organization of
+	 * the collection, in that courseAssistants will be ordered and duplicates removed.
+	 * The given {@link Collection} will not be modified.
+	 * 
+	 * @param courseAssistants
+	 *                      any collection of non-{@code null}
+	 *                      {@link CourseAssistant}s that will be used to build the
+	 *                      new CourseAssistantSet
+	 */
+	public CourseAssistantPool(Collection&lt;CourseAssistant&gt; courseAssistants) {
+<span class="fc" id="L48">		this();</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">		for (CourseAssistant ca : courseAssistants)</span>
+<span class="fc" id="L50">			addCourseAssistant(ca);</span>
+<span class="fc" id="L51">	}</span>
+	
+	/**
+	 * Returns the courseAjavassistantSet as an iterable sequence of {@link CourseAssistant}.
+	 * 
+	 * @return the courseAssistantSet
+	 */
+	public Iterable&lt;CourseAssistant&gt; getCourseAssistantSet() {
+<span class="fc" id="L59">		return courseAssistantSet;</span>
+	}	
+	
+	/**
+	 * Adds a {@link CourseAssistant} to this courseAssistantSet. If the given
+	 * {@link CourseAssistant} is already in this courseAssistantSet, this is a no-op.
+	 * 
+	 * 
+	 * @param ca
+	 *               a non-{@code null} {@link CourseAssistant} to add to this
+	 *               courseAssistantSet
+	 */
+	public void addCourseAssistant(CourseAssistant ca) {
+
+<span class="fc" id="L73">		ListIterator&lt;CourseAssistant&gt; iter = courseAssistantSet.listIterator();</span>
+
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		while (iter.hasNext()) {</span>
+<span class="fc" id="L76">			CourseAssistant y = iter.next();</span>
+<span class="fc" id="L77">			int c = ca.compareTo(y);</span>
+
+<span class="fc bfc" id="L79" title="All 2 branches covered.">			if (c &gt; 0) // ca goes after y</span>
+<span class="fc" id="L80">				continue;</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">			if (c == 0)</span>
+<span class="fc" id="L82">				return;</span>
+			// ... x y z ...
+			// y is the first item in list that comes after ca. You want to
+			// insert just before y.
+<span class="fc" id="L86">			iter.previous();</span>
+<span class="fc" id="L87">			break;</span>
+		}
+<span class="fc" id="L89">		iter.add(ca);</span>
+<span class="fc" id="L90">	}</span>
+	
+	/**
+	 * remove a {@link CourseAssistant} to this courseAssistantSet given 
+	 * the Id of {@link CourseAssistant}
+	 * 
+	 * @param Id
+	 *               remove a {@link CourseAssistant} to from this
+	 *               courseAssistantSet with specified Id
+	 */
+	public void removeCourseAssistantById(int Id) { 
+        
+<span class="fc" id="L102">		ListIterator&lt;CourseAssistant&gt; iter = courseAssistantSet.listIterator();</span>
+
+<span class="fc bfc" id="L104" title="All 2 branches covered.">		while (iter.hasNext()) {</span>
+<span class="fc" id="L105">			CourseAssistant y = iter.next(); //iterator next</span>
+<span class="fc" id="L106">			int c = y.getId(); </span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">			if (Id == c) {// if the id equals to the Id spcified remove.</span>
+<span class="fc" id="L108">				iter.remove();</span>
+			}
+		}
+<span class="fc" id="L111">	}</span>
+	
+	/**
+	 * find a {@link CourseAssistant} in this courseAssistantSet by given 
+	 * the Id of {@link CourseAssistant}
+	 * 
+	 * @param Id
+	 *               find a {@link CourseAssistant} to from this
+	 *               courseAssistantSet with specified Id
+	 */
+	public CourseAssistant findCourseAssistantById(int Id) {
+        
+<span class="fc" id="L123">		ListIterator&lt;CourseAssistant&gt; iter = courseAssistantSet.listIterator();</span>
+
+<span class="fc bfc" id="L125" title="All 2 branches covered.">		while (iter.hasNext()) {</span>
+<span class="fc" id="L126">			CourseAssistant y = iter.next(); //iterator next</span>
+<span class="fc" id="L127">			int c = y.getId(); </span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">			if (Id == c) {// if the id equals to the Id spcified remove.</span>
+<span class="fc" id="L129">				return y;</span>
+			}
+		}
+<span class="fc" id="L132">		System.out.println(&quot;No specified student with this Id in this list.&quot;);</span>
+<span class="fc" id="L133">		return null;</span>
+	}
+	
+	
+	/**
+	 * find a {@link CourseAssistant} in this courseAssistantSet by given 
+	 * the first Name and last Name of {@link CourseAssistant}
+	 * 
+	 * @param firstName, lastName
+	 *               find a {@link CourseAssistant} to from this
+	 *               courseAssistantSet with specified firstName, lastName
+	 */
+	public CourseAssistantPool findCourseAssistantByName(String firstName, String lastName) {
+
+<span class="fc" id="L147">		ListIterator&lt;CourseAssistant&gt; iter = courseAssistantSet.listIterator();</span>
+<span class="fc" id="L148">		CourseAssistantPool poolByName = new CourseAssistantPool(); </span>
+
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		while (iter.hasNext()) {</span>
+<span class="fc" id="L151">			CourseAssistant y = iter.next(); //iterator next</span>
+<span class="fc" id="L152">			String fName = y.getFirstName();</span>
+<span class="fc" id="L153">			String lName = y.getLastName();</span>
+<span class="pc bpc" id="L154" title="1 of 4 branches missed.">			if (fName.equals(firstName) &amp;&amp; lName.equals(lastName)) {// if the id equals to the Id spcified remove.</span>
+<span class="fc" id="L155">				poolByName.addCourseAssistant(y);</span>
+			}
+		}
+<span class="fc" id="L158">		return poolByName;</span>
+	}
+	
+	
+
+	
+	
+	/**
+	 * Display an AssistantSet
+	 */	
+	public void displayCourseAssistants(){
+<span class="fc" id="L169">		ListIterator&lt;CourseAssistant&gt; iter = courseAssistantSet.listIterator();</span>
+      
+<span class="fc bfc" id="L171" title="All 2 branches covered.">     	while (iter.hasNext()) {</span>
+<span class="fc" id="L172">  		    CourseAssistant y = iter.next(); //iterator next</span>
+<span class="fc" id="L173">            y.display();</span>
+  		}
+<span class="fc" id="L175">  	}</span>
+
+	public int getSize(){
+<span class="fc" id="L178">		return courseAssistantSet.size();</span>
+	}
+	
+	
+
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

@@ -1,0 +1,1257 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Database.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.db</a> &gt; <span class="el_source">Database.java</span></div><h1>Database.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.db;
+
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.gen.GenerateAssignment;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+
+/**
+ * The Database class is a component of the DB module. It stores and retrieves
+ * data by the request of the client.
+ * 
+ * @author Michael Oyefusi
+ * 
+ */
+
+<span class="nc" id="L47">public class Database {</span>
+<span class="nc" id="L48">	private static boolean success = false;</span>
+	/**
+	 * get Current directory of user
+	 */
+<span class="nc" id="L52">	static String directory = System.getProperty(&quot;user.dir&quot;);</span>
+<span class="nc" id="L53">	File rootDir = new File(directory);</span>
+<span class="nc" id="L54">	File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L55">	String[] taschdFolders = taschdDirectory.list();</span>
+<span class="nc" id="L56">	static String course = &quot;courses&quot;;</span>
+<span class="nc" id="L57">	static String caPool = &quot;ca_pool&quot;;</span>
+<span class="nc" id="L58">	static String terms = &quot;terms&quot;;</span>
+<span class="nc" id="L59">	static String assistants = &quot;assistants&quot;;</span>
+<span class="nc" id="L60">	static String assignments = &quot;assignments&quot;;</span>
+
+	// variables to check if folder or file exists
+<span class="nc" id="L63">	static boolean taschdExists = false;</span>
+<span class="nc" id="L64">	static boolean termExists = false;</span>
+<span class="nc" id="L65">	static boolean courseExists = false;</span>
+<span class="nc" id="L66">	static boolean caPoolExists = false;</span>
+<span class="nc" id="L67">	static boolean termNumberExists = false;</span>
+<span class="nc" id="L68">	static boolean termNumberCourseExists = false;</span>
+<span class="nc" id="L69">	static boolean termNumberAssistantExists = false;</span>
+<span class="nc" id="L70">	static boolean termNumberAssignmentExists = false;</span>
+<span class="nc" id="L71">	static boolean studentExists = false;</span>
+
+	/**
+	 * check if taschd_dir exists
+	 *
+	 * @return
+	 */
+	public static boolean taschdCheck() {
+
+<span class="nc" id="L80">		File rootDir = new File(directory);</span>
+<span class="nc" id="L81">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">		if (taschdDirectory.exists()) {</span>
+<span class="nc" id="L84">			taschdExists = true;</span>
+		}
+<span class="nc" id="L86">		return taschdExists;</span>
+	}
+
+	/**
+	 * check if course folder exists in taschd_dir
+	 *
+	 * @return
+	 */
+	public static boolean taschdCourseFolderCheck() {
+
+<span class="nc" id="L96">		File rootDir = new File(directory);</span>
+<span class="nc" id="L97">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L98">		String[] taschdFolders = taschdDirectory.list();</span>
+
+<span class="nc bnc" id="L100" title="All 2 branches missed.">		if (taschdFolders != null) {</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">			for (int i = 0; i &lt; taschdFolders.length; i++) {</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">				if (taschdFolders[i].equalsIgnoreCase(course)) {</span>
+<span class="nc" id="L103">					courseExists = true;</span>
+<span class="nc" id="L104">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L108">		return courseExists;</span>
+	}
+
+	/**
+	 * 
+	 * check if ca pool folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public static boolean taschdCaPoolFolderCheck() {
+
+<span class="nc" id="L119">		File rootDir = new File(directory);</span>
+<span class="nc" id="L120">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L121">		String[] taschdFolders = taschdDirectory.list();</span>
+
+<span class="nc bnc" id="L123" title="All 2 branches missed.">		if (taschdFolders != null) {</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">			for (int i = 0; i &lt; taschdFolders.length; i++) {</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">				if (taschdFolders[i].equalsIgnoreCase(caPool)) {</span>
+<span class="nc" id="L126">					caPoolExists = true;</span>
+<span class="nc" id="L127">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L131">		return caPoolExists;</span>
+	}
+
+	/**
+	 * check if terms folder exists in taschd_dir
+	 *
+	 * @return
+	 */
+	public static boolean taschdTermFolderCheck() {
+
+<span class="nc" id="L141">		File rootDir = new File(directory);</span>
+<span class="nc" id="L142">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L143">		String[] taschdFolders = taschdDirectory.list();</span>
+
+<span class="nc bnc" id="L145" title="All 2 branches missed.">		if (taschdFolders != null) {</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">			for (int i = 0; i &lt; taschdFolders.length; i++) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">				if (taschdFolders[i].equalsIgnoreCase(terms)) {</span>
+<span class="nc" id="L148">					termExists = true;</span>
+<span class="nc" id="L149">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L153">		return termExists;</span>
+	}
+
+	/**
+	 * check if [term] folder exists in terms folder in taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberFolderCheck(String term) {
+
+<span class="nc" id="L164">		File rootDir = new File(directory);</span>
+<span class="nc" id="L165">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L166">		File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L167">		String[] termsFolders = termsDirectory.list();</span>
+
+<span class="nc bnc" id="L169" title="All 2 branches missed.">		if (termsFolders != null) {</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">			for (int i = 0; i &lt; termsFolders.length; i++) {</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">				if (termsFolders[i].equalsIgnoreCase(term)) {</span>
+<span class="nc" id="L172">					termNumberExists = true;</span>
+<span class="nc" id="L173">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L177">		return termNumberExists;</span>
+	}
+
+	/**
+	 * check if courses folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberCourseFolderCheck(String term) {
+
+<span class="nc" id="L189">		File rootDir = new File(directory);</span>
+<span class="nc" id="L190">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L191">		File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L192">		File termDirectory = new File(termsDirectory, term);</span>
+<span class="nc" id="L193">		String[] termFolders = termDirectory.list();</span>
+
+<span class="nc bnc" id="L195" title="All 2 branches missed.">		if (termFolders != null) {</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">			for (int i = 0; i &lt; termFolders.length; i++) {</span>
+<span class="nc bnc" id="L197" title="All 2 branches missed.">				if (termFolders[i].equalsIgnoreCase(course)) {</span>
+<span class="nc" id="L198">					termNumberCourseExists = true;</span>
+<span class="nc" id="L199">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L203">		return termNumberCourseExists;</span>
+	}
+
+	/**
+	 * check if assistants folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberAssistantFolderCheck(String term) {
+
+<span class="nc" id="L215">		File rootDir = new File(directory);</span>
+<span class="nc" id="L216">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L217">		File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L218">		File termDirectory = new File(termsDirectory, term);</span>
+<span class="nc" id="L219">		String[] termFolders = termDirectory.list();</span>
+
+<span class="nc bnc" id="L221" title="All 2 branches missed.">		if (termFolders != null) {</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">			for (int i = 0; i &lt; termFolders.length; i++) {</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">				if (termFolders[i].equalsIgnoreCase(assistants)) {</span>
+<span class="nc" id="L224">					termNumberAssistantExists = true;</span>
+<span class="nc" id="L225">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L229">		return termNumberAssistantExists;</span>
+	}
+
+	/**
+	 * check if assignment folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberAssignmentFolderCheck(String term) {
+
+<span class="nc" id="L241">		File rootDir = new File(directory);</span>
+<span class="nc" id="L242">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L243">		File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L244">		File termDirectory = new File(termsDirectory, term);</span>
+<span class="nc" id="L245">		String[] termFolders = termDirectory.list();</span>
+
+<span class="nc bnc" id="L247" title="All 2 branches missed.">		if (termFolders != null) {</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">			for (int i = 0; i &lt; termFolders.length; i++) {</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">				if (termFolders[i].equalsIgnoreCase(assignments)) {</span>
+<span class="nc" id="L250">					termNumberAssignmentExists = true;</span>
+<span class="nc" id="L251">					break;</span>
+				}
+			}
+		}
+<span class="nc" id="L255">		return termNumberAssignmentExists;</span>
+	}
+
+	public static TimeInterval timeUtil(String[] timeBase) {
+<span class="nc" id="L259">		TimeInterval ti = null;</span>
+<span class="nc" id="L260">		String day = timeBase[0];</span>
+<span class="nc" id="L261">		String[] times = timeBase[1].split(&quot;-&quot;);</span>
+<span class="nc" id="L262">		DayOfWeek startDay = caseName(day);</span>
+<span class="nc" id="L263">		String[] hours1 = times[0].split(&quot;:&quot;);</span>
+<span class="nc" id="L264">		String[] hours2 = times[1].split(&quot;:&quot;);</span>
+<span class="nc" id="L265">		int h1 = Integer.parseInt(hours1[0]) * 60;</span>
+<span class="nc" id="L266">		int m1 = Integer.parseInt(hours1[1]);</span>
+<span class="nc" id="L267">		int h2 = Integer.parseInt(hours2[0]) * 60;</span>
+<span class="nc" id="L268">		int m2 = Integer.parseInt(hours2[1]);</span>
+<span class="nc" id="L269">		int duration = (h2 + m2) - (h1 + m1);</span>
+<span class="nc" id="L270">		ti = new TimeInterval(startDay, Integer.parseInt(hours1[0]), Integer.parseInt(hours1[1]), duration);</span>
+<span class="nc" id="L271">		return ti;</span>
+	}
+
+	public static DayOfWeek caseName(String day) {
+<span class="nc bnc" id="L275" title="All 22 branches missed.">		switch (day) {</span>
+		case &quot;Fri&quot;:
+<span class="nc" id="L277">			return DayOfWeek.FRIDAY;</span>
+		case &quot;Mon&quot;:
+<span class="nc" id="L279">			return DayOfWeek.MONDAY;</span>
+		case &quot;Sat&quot;:
+<span class="nc" id="L281">			return DayOfWeek.SATURDAY;</span>
+		case &quot;Sun&quot;:
+<span class="nc" id="L283">			return DayOfWeek.SUNDAY;</span>
+		case &quot;Thu&quot;:
+<span class="nc" id="L285">			return DayOfWeek.THURSDAY;</span>
+		case &quot;Tue&quot;:
+<span class="nc" id="L287">			return DayOfWeek.TUESDAY;</span>
+		case &quot;Wed&quot;:
+<span class="nc" id="L289">			return DayOfWeek.WEDNESDAY;</span>
+		default:
+<span class="nc" id="L291">			throw new RuntimeException(&quot;unreachable&quot;);</span>
+		}
+	}
+
+	/**
+	 * store course in json format for static data
+	 *
+	 * @param c
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public boolean storeCourse(CourseInstance c) throws FileNotFoundException {
+
+<span class="nc" id="L305">		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + &quot;.json&quot;;</span>
+<span class="nc" id="L306">		boolean fileExists = false;</span>
+<span class="nc" id="L307">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L309" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L310">			courseExists = taschdCourseFolderCheck();</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">			if (courseExists) {</span>
+
+<span class="nc" id="L313">				File rootDir = new File(directory);</span>
+<span class="nc" id="L314">				File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L315">				File courseDirectory = new File(taschdDirectory, course);</span>
+<span class="nc" id="L316">				String[] coursesFolder = courseDirectory.list();</span>
+
+<span class="nc bnc" id="L318" title="All 2 branches missed.">				if (coursesFolder != null) {</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">					for (int i = 0; i &lt; coursesFolder.length; i++) {</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">						if (coursesFolder[i].equalsIgnoreCase(fileToStore)) {</span>
+<span class="nc" id="L321">							System.out.println(&quot;Course file with name: &quot; + fileToStore + &quot; already exists.&quot;);</span>
+<span class="nc" id="L322">							fileExists = true;</span>
+<span class="nc" id="L323">							break;</span>
+						}
+					}
+				}
+<span class="nc bnc" id="L327" title="All 2 branches missed.">				if (!fileExists) {</span>
+<span class="nc" id="L328">					JSONObject value = new JSONObject();</span>
+
+					// putting data into JSONObject value
+<span class="nc" id="L331">					value.put(&quot;Prefix&quot;, c.getCourse().getPrefix());</span>
+<span class="nc" id="L332">					value.put(&quot;Course Code&quot;, c.getCourse().getCourseCode());</span>
+<span class="nc" id="L333">					value.put(&quot;Course Name&quot;, c.getCourse().getCourseName());</span>
+<span class="nc" id="L334">					value.put(&quot;Has Lab&quot;, c.isHasLab());</span>
+<span class="nc" id="L335">					Skill s = null;</span>
+<span class="nc" id="L336">					Iterator&lt;Skill&gt; iter = c.getCourse().getSkills().getSkills().iterator();</span>
+<span class="nc" id="L337">					JsonArrayBuilder builderSkill = Json.createArrayBuilder();</span>
+
+<span class="nc bnc" id="L339" title="All 2 branches missed.">					while (iter.hasNext()) {</span>
+<span class="nc" id="L340">						s = iter.next();</span>
+<span class="nc" id="L341">						builderSkill.add(s.toString());</span>
+					}
+<span class="nc" id="L343">					JsonArray arr = builderSkill.build();</span>
+					/*
+					 * value.put(&quot;Skills&quot;, arr); Trying json pretty print using
+					 * jackson jackson-annotations-2.9.4.jar
+					 * jackson-core-2.9.4.jar jackson-databind-2.9.4.jar
+					 */
+					/*
+					 * ObjectMapper mapper = new ObjectMapper(); Object json =
+					 * mapper.readValue(value, Object.class); String indented =
+					 * mapper.writerWithDefaultPrettyPrinter().
+					 * writeValueAsString(json);
+					 * mapper.enable(SerializationFeature.INDENT_OUTPUT);
+					 */
+<span class="nc" id="L356">					File file = new File(courseDirectory, fileToStore);</span>
+<span class="nc" id="L357">					PrintWriter pw = new PrintWriter(file);</span>
+<span class="nc" id="L358">					pw.write(value.toJSONString());</span>
+<span class="nc" id="L359">					pw.flush();</span>
+<span class="nc" id="L360">					pw.close();</span>
+<span class="nc" id="L361">					success = true;</span>
+
+<span class="nc" id="L363">				} else {</span>
+<span class="nc" id="L364">					System.out.println(&quot;File with name &quot; + fileToStore + &quot; already exists.&quot;);</span>
+				}
+<span class="nc" id="L366">			} else {</span>
+<span class="nc" id="L367">				System.out.println(&quot;courses directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L369">		} else {</span>
+<span class="nc" id="L370">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L373">		taschdExists = false;</span>
+<span class="nc" id="L374">		courseExists = false;</span>
+<span class="nc" id="L375">		return success;</span>
+	}
+
+	/**
+	 * store dynamic Course data to taschd_dir/terms/[termForCourse]/courses
+	 * path
+	 *
+	 * @param c
+	 * @param termForCourse
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+
+	@SuppressWarnings({ &quot;unchecked&quot; })
+	public boolean storeCourseToDynamic(CourseInstance c, String termForCourse) throws FileNotFoundException {
+
+<span class="nc" id="L391">		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + &quot;.json&quot;;</span>
+<span class="nc" id="L392">		boolean fileExists = false;</span>
+<span class="nc" id="L393">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L395" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L396">			termExists = taschdTermFolderCheck();</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">			if (termExists) {</span>
+<span class="nc" id="L398">				termNumberExists = termNumberFolderCheck(termForCourse);</span>
+<span class="nc bnc" id="L399" title="All 2 branches missed.">				if (termNumberExists) {</span>
+<span class="nc" id="L400">					termNumberCourseExists = termNumberCourseFolderCheck(termForCourse);</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">					if (termNumberCourseExists) {</span>
+
+<span class="nc" id="L403">						File rootDir = new File(directory);</span>
+<span class="nc" id="L404">						File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L405">						File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L406">						File termNumberDirectory = new File(termsDirectory, termForCourse);</span>
+<span class="nc" id="L407">						File termNumberCourseDirectory = new File(termNumberDirectory, course);</span>
+<span class="nc" id="L408">						String[] termNumberCourseFolder = termNumberCourseDirectory.list();</span>
+
+<span class="nc bnc" id="L410" title="All 2 branches missed.">						if (termNumberCourseFolder != null) {</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">							for (int i = 0; i &lt; termNumberCourseFolder.length; i++) {</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">								if (termNumberCourseFolder[i].equalsIgnoreCase(fileToStore)) {</span>
+<span class="nc" id="L413">									System.out.println(&quot;Course file with name: &quot; + fileToStore + &quot; already exists.&quot;);</span>
+<span class="nc" id="L414">									fileExists = true;</span>
+<span class="nc" id="L415">									break;</span>
+								}
+							}
+						}
+
+<span class="nc bnc" id="L420" title="All 2 branches missed.">						if (!fileExists) {</span>
+<span class="nc" id="L421">							JSONObject value = new JSONObject();</span>
+
+							// putting data into JSONObject value
+<span class="nc" id="L424">							value.put(&quot;Prefix&quot;, c.getCourse().getPrefix());</span>
+<span class="nc" id="L425">							value.put(&quot;Course Code&quot;, c.getCourse().getCourseCode());</span>
+<span class="nc" id="L426">							value.put(&quot;Course Name&quot;, c.getCourse().getCourseName());</span>
+<span class="nc" id="L427">							value.put(&quot;Has Lab&quot;, c.isHasLab());</span>
+
+<span class="nc" id="L429">							Skill sk = null;</span>
+<span class="nc" id="L430">							Iterator&lt;Skill&gt; iterSkill = c.getCourse().getSkills().getSkills().iterator();</span>
+<span class="nc" id="L431">							JsonArrayBuilder builderSkill = Json.createArrayBuilder();</span>
+
+<span class="nc bnc" id="L433" title="All 2 branches missed.">							while (iterSkill.hasNext()) {</span>
+<span class="nc" id="L434">								sk = iterSkill.next();</span>
+<span class="nc" id="L435">								builderSkill.add(sk.toString());</span>
+							}
+
+<span class="nc" id="L438">							JsonArray arrSkill = builderSkill.build();</span>
+<span class="nc" id="L439">							value.put(&quot;Skills&quot;, arrSkill);</span>
+
+<span class="nc" id="L441">							TimeInterval ti = null;</span>
+<span class="nc" id="L442">							Iterator&lt;TimeInterval&gt; iterTime = null;</span>
+<span class="nc" id="L443">							Iterator&lt;Section&gt; iter = c.getSections().iterator();</span>
+<span class="nc" id="L444">							JsonArrayBuilder builder = Json.createArrayBuilder();</span>
+<span class="nc" id="L445">							JsonArrayBuilder builderTime = Json.createArrayBuilder();</span>
+
+<span class="nc bnc" id="L447" title="All 2 branches missed.">							while (iter.hasNext()) {</span>
+<span class="nc" id="L448">								Section s = iter.next();</span>
+<span class="nc" id="L449">								iterTime = s.getSchedule().getSchedule().iterator();</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">								while (iterTime.hasNext()) {</span>
+<span class="nc" id="L451">									ti = iterTime.next();</span>
+<span class="nc" id="L452">									builderTime.add(ti.toString());</span>
+								}
+
+<span class="nc" id="L455">								JsonArray arrTime = builderTime.build();</span>
+<span class="nc" id="L456">								builder.add(Json.createObjectBuilder().add(&quot;Section Number&quot;, (s.getSectionNumber()))</span>
+<span class="nc" id="L457">										.add(&quot;Section Type&quot;, (s.getSectionType()))</span>
+<span class="nc" id="L458">										.add(&quot;Instructor name&quot;, (s.getInstructorName()))</span>
+<span class="nc" id="L459">										.add(&quot;Location&quot;, (s.getLocation()))</span>
+<span class="nc" id="L460">										.add(&quot;Current Enrollment&quot;, (String.valueOf(s.getCurrentEnrollment())))</span>
+<span class="nc" id="L461">										.add(&quot;Enrollment Cap&quot;, (String.valueOf(s.getEnrollmentCap())))</span>
+<span class="nc" id="L462">										.add(&quot;TA Assigned&quot;, (s.isTaAssigned()))</span>
+<span class="nc" id="L463">										.add(&quot;Num of TA&quot;, (String.valueOf(s.getNumOfTA())))</span>
+<span class="nc" id="L464">										.add(&quot;Num of LA&quot;, (String.valueOf(s.getNumOfLA()))).add(&quot;MTAC&quot;, (s.isMtac()))</span>
+<span class="nc" id="L465">										.add(&quot;Time Schedule&quot;, arrTime));</span>
+							}
+
+<span class="nc" id="L468">							JsonArray arr = builder.build();</span>
+<span class="nc" id="L469">							value.put(&quot;Sections&quot;, arr);</span>
+<span class="nc" id="L470">							File file = new File(termNumberCourseDirectory, fileToStore);</span>
+<span class="nc" id="L471">							PrintWriter pw = new PrintWriter(file);</span>
+<span class="nc" id="L472">							pw.write(value.toJSONString());</span>
+<span class="nc" id="L473">							pw.flush();</span>
+<span class="nc" id="L474">							pw.close();</span>
+<span class="nc" id="L475">							success = true;</span>
+
+<span class="nc" id="L477">						} else {</span>
+<span class="nc" id="L478">							System.out.println(&quot;File with name &quot; + fileToStore + &quot; already exists.&quot;);</span>
+						}
+<span class="nc" id="L480">					} else {</span>
+<span class="nc" id="L481">						System.out.println(&quot;courses folder does not exist in &quot; + termForCourse + &quot; folder.&quot;);</span>
+					}
+<span class="nc" id="L483">				} else {</span>
+<span class="nc" id="L484">					System.out.println(termForCourse + &quot; directory does not exist.&quot;);</span>
+				}
+<span class="nc" id="L486">			} else {</span>
+<span class="nc" id="L487">				System.out.println(&quot;terms directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L489">		} else {</span>
+<span class="nc" id="L490">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L493">		taschdExists = false;</span>
+<span class="nc" id="L494">		termExists = false;</span>
+<span class="nc" id="L495">		termNumberExists = false;</span>
+<span class="nc" id="L496">		termNumberCourseExists = false;</span>
+<span class="nc" id="L497">		return success;</span>
+	}
+
+	/**
+	 * store CA in json format for static data
+	 * 
+	 * @param ca
+	 * 
+	 * @return
+	 * 
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings(&quot;unchecked&quot;)
+	public boolean storeCA(CourseAssistant ca) throws FileNotFoundException {
+
+<span class="nc" id="L512">		String fileToStore = &quot;SID&quot; + ca.getId() + &quot;.json&quot;;</span>
+<span class="nc" id="L513">		boolean fileExists = false;</span>
+<span class="nc" id="L514">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L516" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L517">			caPoolExists = taschdCaPoolFolderCheck();</span>
+<span class="nc bnc" id="L518" title="All 2 branches missed.">			if (caPoolExists) {</span>
+<span class="nc" id="L519">				File rootDir = new File(directory);</span>
+<span class="nc" id="L520">				File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L521">				File caPoolDirectory = new File(taschdDirectory, caPool);</span>
+<span class="nc" id="L522">				String[] caPoolFolder = caPoolDirectory.list();</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">				if (caPoolFolder != null) {</span>
+<span class="nc bnc" id="L524" title="All 2 branches missed.">					for (int i = 0; i &lt; caPoolFolder.length; i++) {</span>
+<span class="nc bnc" id="L525" title="All 2 branches missed.">						if (caPoolFolder[i].equalsIgnoreCase(fileToStore)) {</span>
+<span class="nc" id="L526">							System.out.println(&quot;CA file with name: &quot; + fileToStore + &quot; already exists.&quot;);</span>
+<span class="nc" id="L527">							fileExists = true;</span>
+<span class="nc" id="L528">							break;</span>
+						}
+					}
+				}
+
+<span class="nc bnc" id="L533" title="All 2 branches missed.">				if (!fileExists) {</span>
+<span class="nc" id="L534">					JSONObject value = new JSONObject();</span>
+
+					// putting data into JSONObject value
+<span class="nc" id="L537">					value.put(&quot;First Name&quot;, ca.getFirstName());</span>
+<span class="nc" id="L538">					value.put(&quot;Last Name&quot;, ca.getLastName());</span>
+<span class="nc" id="L539">					value.put(&quot;ID&quot;, ca.getId());</span>
+<span class="nc" id="L540">					value.put(&quot;Email&quot;, ca.getEmailAddress());</span>
+<span class="nc" id="L541">					value.put(&quot;Graduate Student&quot;, ca.getGraduateStudent());</span>
+
+<span class="nc" id="L543">					Skill sk = null;</span>
+<span class="nc" id="L544">					Iterator&lt;Skill&gt; iterSkill = ca.getPossessedSkillset().getSkills().iterator();</span>
+<span class="nc" id="L545">					JsonArrayBuilder builderSkill = Json.createArrayBuilder();</span>
+
+<span class="nc bnc" id="L547" title="All 2 branches missed.">					while (iterSkill.hasNext()) {</span>
+<span class="nc" id="L548">						sk = iterSkill.next();</span>
+<span class="nc" id="L549">						builderSkill.add(sk.toString());</span>
+					}
+
+<span class="nc" id="L552">					JsonArray arrSkill = builderSkill.build();</span>
+<span class="nc" id="L553">					value.put(&quot;Skills&quot;, arrSkill);</span>
+<span class="nc" id="L554">					File file = new File(caPoolDirectory, fileToStore);</span>
+<span class="nc" id="L555">					PrintWriter pw = new PrintWriter(file);</span>
+<span class="nc" id="L556">					pw.write(value.toJSONString());</span>
+<span class="nc" id="L557">					pw.flush();</span>
+<span class="nc" id="L558">					pw.close();</span>
+<span class="nc" id="L559">					success = true;</span>
+
+<span class="nc" id="L561">				} else {</span>
+<span class="nc" id="L562">					System.out.println(&quot;File with name &quot; + fileToStore + &quot; already exists.&quot;);</span>
+				}
+<span class="nc" id="L564">			} else {</span>
+<span class="nc" id="L565">				System.out.println(&quot;ca_pool directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L567">		} else {</span>
+<span class="nc" id="L568">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L571">		taschdExists = false;</span>
+<span class="nc" id="L572">		caPoolExists = false;</span>
+<span class="nc" id="L573">		return success;</span>
+	}
+
+	/**
+	 * store dynamic CA data to taschd_dir/terms/[termForCourse]/assistants path
+	 * 
+	 * @param ca
+	 * @param termForCA
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings({ &quot;unchecked&quot; })
+	public boolean storeCAToDynamic(CourseAssistant ca, String termForCA) throws FileNotFoundException {
+
+<span class="nc" id="L587">		String fileToStore = &quot;SID&quot; + ca.getId() + &quot;.json&quot;;</span>
+<span class="nc" id="L588">		boolean fileExists = false;</span>
+<span class="nc" id="L589">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L591" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L592">			termExists = taschdTermFolderCheck();</span>
+<span class="nc bnc" id="L593" title="All 2 branches missed.">			if (termExists) {</span>
+<span class="nc" id="L594">				termNumberExists = termNumberFolderCheck(termForCA);</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">				if (termNumberExists) {</span>
+<span class="nc" id="L596">					termNumberAssistantExists = termNumberAssistantFolderCheck(termForCA);</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">					if (termNumberAssistantExists) {</span>
+
+<span class="nc" id="L599">						File rootDir = new File(directory);</span>
+<span class="nc" id="L600">						File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L601">						File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L602">						File termNumberDirectory = new File(termsDirectory, termForCA);</span>
+<span class="nc" id="L603">						File termNumberAssistantDirectory = new File(termNumberDirectory, assistants);</span>
+<span class="nc" id="L604">						String[] termNumberAssistantFolder = termNumberAssistantDirectory.list();</span>
+
+<span class="nc bnc" id="L606" title="All 2 branches missed.">						if (termNumberAssistantFolder != null) {</span>
+<span class="nc bnc" id="L607" title="All 2 branches missed.">							for (int i = 0; i &lt; termNumberAssistantFolder.length; i++) {</span>
+<span class="nc bnc" id="L608" title="All 2 branches missed.">								if (termNumberAssistantFolder[i].equalsIgnoreCase(fileToStore)) {</span>
+<span class="nc" id="L609">									System.out.println(&quot;Assistant file with name: &quot; + fileToStore + &quot; already exists.&quot;);</span>
+<span class="nc" id="L610">									fileExists = true;</span>
+<span class="nc" id="L611">									break;</span>
+								}
+							}
+						}
+<span class="nc bnc" id="L615" title="All 2 branches missed.">						if (!fileExists) {</span>
+<span class="nc" id="L616">							JSONObject value = new JSONObject();</span>
+
+							// putting data into JSONObject value
+<span class="nc" id="L619">							value.put(&quot;First Name&quot;, ca.getFirstName());</span>
+<span class="nc" id="L620">							value.put(&quot;Last Name&quot;, ca.getLastName());</span>
+<span class="nc" id="L621">							value.put(&quot;ID&quot;, ca.getId());</span>
+<span class="nc" id="L622">							value.put(&quot;Email&quot;, ca.getEmailAddress());</span>
+<span class="nc" id="L623">							value.put(&quot;Graduate Student&quot;, ca.getGraduateStudent());</span>
+<span class="nc" id="L624">							JsonArrayBuilder builderCourseEnrolled = Json.createArrayBuilder();</span>
+<span class="nc" id="L625">							CourseInstance c = null;</span>
+<span class="nc bnc" id="L626" title="All 2 branches missed.">							Iterator&lt;CourseInstance&gt; iterCI = ca.getCourseEnrolled() != null</span>
+<span class="nc" id="L627">									? ca.getCourseEnrolled().iterator() : null;</span>
+<span class="nc bnc" id="L628" title="All 2 branches missed.">							if (iterCI != null) {</span>
+<span class="nc bnc" id="L629" title="All 2 branches missed.">								while (iterCI.hasNext()) {</span>
+<span class="nc" id="L630">									c = iterCI.next();</span>
+<span class="nc" id="L631">									builderCourseEnrolled.add(c.toString());</span>
+								}
+<span class="nc" id="L633">								JsonArray arrCourseEnrolled = builderCourseEnrolled.build();</span>
+<span class="nc" id="L634">								value.put(&quot;Course Enrolled&quot;, arrCourseEnrolled);</span>
+<span class="nc" id="L635">							} else {</span>
+<span class="nc" id="L636">								value.put(&quot;Course Enrolled&quot;, null);</span>
+							}
+<span class="nc" id="L638">							Skill sk = null;</span>
+<span class="nc" id="L639">							Iterator&lt;Skill&gt; iterSkill = ca.getPossessedSkillset().getSkills().iterator();</span>
+<span class="nc" id="L640">							JsonArrayBuilder builderSkill = Json.createArrayBuilder();</span>
+<span class="nc bnc" id="L641" title="All 2 branches missed.">							while (iterSkill.hasNext()) {</span>
+<span class="nc" id="L642">								sk = iterSkill.next();</span>
+<span class="nc" id="L643">								builderSkill.add(sk.toString());</span>
+							}
+<span class="nc" id="L645">							JsonArray arrSkill = builderSkill.build();</span>
+<span class="nc" id="L646">							value.put(&quot;Skills&quot;, arrSkill);</span>
+<span class="nc" id="L647">							TimeInterval ti = null;</span>
+<span class="nc" id="L648">							Iterator&lt;TimeInterval&gt; iterTime = ca.getWtps().getSchedule().iterator();</span>
+<span class="nc" id="L649">							JsonArrayBuilder builderTime = Json.createArrayBuilder();</span>
+<span class="nc bnc" id="L650" title="All 2 branches missed.">							while (iterTime.hasNext()) {</span>
+<span class="nc" id="L651">								ti = iterTime.next();</span>
+<span class="nc" id="L652">								builderTime.add(ti.toString());</span>
+							}
+<span class="nc" id="L654">							JsonArray arrTime = builderTime.build();</span>
+<span class="nc" id="L655">							value.put(&quot;Time Schedule&quot;, arrTime);</span>
+<span class="nc" id="L656">							File file = new File(termNumberAssistantDirectory, fileToStore);</span>
+<span class="nc" id="L657">							PrintWriter pw = new PrintWriter(file);</span>
+<span class="nc" id="L658">							pw.write(value.toJSONString());</span>
+<span class="nc" id="L659">							pw.flush();</span>
+<span class="nc" id="L660">							pw.close();</span>
+<span class="nc" id="L661">							success = true;</span>
+<span class="nc" id="L662">						} else {</span>
+<span class="nc" id="L663">							System.out.println(&quot;File with name &quot; + fileToStore + &quot; already exists.&quot;);</span>
+						}
+<span class="nc" id="L665">					} else {</span>
+<span class="nc" id="L666">						System.out.println(&quot;Assistants folder does not exist in &quot; + termForCA + &quot; folder.&quot;);</span>
+					}
+<span class="nc" id="L668">				} else {</span>
+<span class="nc" id="L669">					System.out.println(termForCA + &quot; directory does not exist.&quot;);</span>
+				}
+<span class="nc" id="L671">			} else {</span>
+<span class="nc" id="L672">				System.out.println(&quot;terms directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L674">		} else {</span>
+<span class="nc" id="L675">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L678">		taschdExists = false;</span>
+<span class="nc" id="L679">		termExists = false;</span>
+<span class="nc" id="L680">		termNumberExists = false;</span>
+<span class="nc" id="L681">		termNumberAssistantExists = false;</span>
+<span class="nc" id="L682">		return success;</span>
+	}
+
+	public CourseAssistant getCAById(int caID, String termOfCA) {
+<span class="nc" id="L686">		return null;</span>
+		// JSONParser parser = new JSONParser();
+		//
+		// File fileToRead = new File(rootDir, &quot;BenjaminFranklin.json&quot;);
+		// try {
+		// Object ob1 = parser.parse(new FileReader(&quot;&quot;));
+		// JSONObject jsonObj = (JSONObject) ob1;
+		//
+		// String fName = (String) jsonObj.get(&quot;firstName&quot;);
+		// String lName = (String) jsonObj.get(&quot;lastName&quot;);
+		// int id = Integer.parseInt((String) jsonObj.get(&quot;id&quot;));
+		// String emailAddress = (String) jsonObj.get(&quot;email&quot;);
+		// boolean graduateStudent = (boolean)
+		// (jsonObj.get(&quot;degree&quot;).equals(&quot;Grad&quot;) ?
+		// true : false);
+		// String possessedSkillset = (String) jsonObj.get(&quot;Skills&quot;);
+		// WeeklySchedule wtps = new WeeklySchedule();
+		// /*JSONArray schedule = (JSONArray) jsonObj.get(&quot;wtps&quot;);
+		// Iterator&lt;String&gt; it1 = schedule.iterator();
+		// while (it1.hasNext()) {
+		// wtps.addInterval(it1.next());
+		// }
+		// CourseAssistant ca1 = new CourseAssistant(fName, lName, id,
+		// emailAddress, graduateStudent, wtps, possessedSkillset);*/
+		//
+		// System.out.println(fName);
+		// System.out.println(lName);
+		// System.out.println(id);
+		// System.out.println(emailAddress);
+		// System.out.println(graduateStudent);
+		// System.out.println(wtps);
+		// System.out.println(possessedSkillset);
+		// } catch (Exception e) {
+		// System.out.println(e);
+		// }
+		// return ca;
+	}
+
+	/**
+	 * gets Course details from CISC675.json
+	 *
+	 * @param code
+	 * @return
+	 */
+	public CourseInstance getCourseByCode(String code, String term) {
+<span class="nc" id="L731">		return null;</span>
+	}
+
+	/**
+	 * gets CA schedule from SID123212.json
+	 * &lt;p&gt;
+	 * json has schedule, grades, skills, email, name, ID, ca history
+	 * &lt;/p&gt;
+	 *
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public WeeklySchedule getCASchdByID(int caID, String termOfCA) {
+<span class="nc" id="L745">		return null;</span>
+	}
+
+	/**
+	 * gets Course schedule from CISC675.json
+	 *
+	 * @param courseCode
+	 * @return
+	 */
+	public WeeklySchedule getCourseSchdByCode(String courseCode, String term) {
+		/*
+		 * JSONParser parser = new JSONParser();
+		 * 
+		 * File fileToRead = new File(rootDir, &quot;CISC675.json&quot;); try { Object ob1
+		 * = parser.parse(new FileReader(&quot;&quot;)); JSONObject jsonObj = (JSONObject)
+		 * ob1;
+		 * 
+		 * // Is department Code needed here? String cCode = (String)
+		 * jsonObj.get(&quot;Course Code&quot;); String cName = (String)
+		 * jsonObj.get(&quot;Course Name&quot;); String reqSkills = (String)
+		 * jsonObj.get(&quot;Skills&quot;); boolean hasLab = (boolean)
+		 * (jsonObj.get(&quot;Has Lab&quot;).equals(&quot;Yes&quot;) ? true : false); // Needs
+		 * method call to get WTPS } catch (Exception e) {
+		 * System.out.println(e); }
+		 */
+<span class="nc" id="L770">		return null;</span>
+	}
+
+	/**
+	 * returns all details of CA corresponding to respective term
+	 * 
+	 * @param termForCA
+	 * @return
+	 * @throws ParseException
+	 * @throws IOException
+	 */
+	public CourseAssistantPool getCAPool(String termForCA) throws IOException, ParseException {
+
+<span class="nc" id="L783">		CourseAssistant ca = null;</span>
+<span class="nc" id="L784">		CourseAssistantPool capl = new CourseAssistantPool();</span>
+<span class="nc" id="L785">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L787" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L788">			termExists = taschdTermFolderCheck();</span>
+<span class="nc bnc" id="L789" title="All 2 branches missed.">			if (termExists) {</span>
+<span class="nc" id="L790">				termNumberExists = termNumberFolderCheck(termForCA);</span>
+<span class="nc bnc" id="L791" title="All 2 branches missed.">				if (termNumberExists) {</span>
+<span class="nc" id="L792">					termNumberAssistantExists = termNumberAssistantFolderCheck(termForCA);</span>
+<span class="nc bnc" id="L793" title="All 2 branches missed.">					if (termNumberAssistantExists) {</span>
+
+<span class="nc" id="L795">						File rootDir = new File(directory);</span>
+<span class="nc" id="L796">						File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L797">						File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L798">						File termNumberDirectory = new File(termsDirectory, termForCA);</span>
+<span class="nc" id="L799">						File termNumberAssistantDirectory = new File(termNumberDirectory, assistants);</span>
+<span class="nc" id="L800">						String[] termNumberAssistantFolder = termNumberAssistantDirectory.list();</span>
+<span class="nc" id="L801">						SkillSet ss = new SkillSet();</span>
+<span class="nc" id="L802">						Skill sk = null;</span>
+<span class="nc" id="L803">						Set&lt;CourseInstance&gt; sci = new HashSet&lt;CourseInstance&gt;();</span>
+<span class="nc" id="L804">						Course c = null;</span>
+<span class="nc" id="L805">						String[] cEnroll = null;</span>
+<span class="nc" id="L806">						CourseInstance ce = null;</span>
+<span class="nc" id="L807">						TimeInterval ti = null;</span>
+<span class="nc" id="L808">						WeeklySchedule wtps = new WeeklySchedule();</span>
+
+<span class="nc bnc" id="L810" title="All 2 branches missed.">						if (termNumberAssistantFolder != null) {</span>
+<span class="nc bnc" id="L811" title="All 2 branches missed.">							for (int i = 0; i &lt; termNumberAssistantFolder.length - 1; i++) {</span>
+<span class="nc" id="L812">								JSONParser parser = new JSONParser();</span>
+<span class="nc" id="L813">								File readFile = new File(termNumberAssistantDirectory,</span>
+<span class="nc" id="L814">										termNumberAssistantFolder[i + 1]);</span>
+<span class="nc" id="L815">								Object ob1 = parser.parse(new FileReader(readFile));</span>
+<span class="nc" id="L816">								JSONObject jsonObj = (JSONObject) ob1;</span>
+<span class="nc" id="L817">								String firstName = (String) jsonObj.get(&quot;First Name&quot;);</span>
+<span class="nc" id="L818">								String lastName = (String) jsonObj.get(&quot;Last Name&quot;);</span>
+<span class="nc" id="L819">								int id = Integer.parseInt(String.valueOf(jsonObj.get(&quot;ID&quot;)));</span>
+<span class="nc" id="L820">								JSONArray skillData = (JSONArray) jsonObj.get(&quot;Skills&quot;);</span>
+<span class="nc" id="L821">								String email = (String) jsonObj.get(&quot;Email&quot;);</span>
+<span class="nc" id="L822">								boolean grad = (boolean) jsonObj.get(&quot;Graduate Student&quot;);</span>
+<span class="nc" id="L823">								JSONArray courseEnroll = (JSONArray) jsonObj.get(&quot;Course Enrolled&quot;);</span>
+<span class="nc" id="L824">								JSONArray timeSched = (JSONArray) jsonObj.get(&quot;Time Schedule&quot;);</span>
+
+<span class="nc bnc" id="L826" title="All 2 branches missed.">								for (int j = 0; j &lt; skillData.size(); j++) {</span>
+<span class="nc" id="L827">									sk = new Skill((String) skillData.get(j));</span>
+<span class="nc" id="L828">									ss.addSkill(sk);</span>
+								}
+
+<span class="nc bnc" id="L831" title="All 2 branches missed.">								for (int j = 0; j &lt; timeSched.size(); j++) {</span>
+<span class="nc" id="L832">									String[] tInt = timeSched.get(j).toString().split(&quot; &quot;);</span>
+<span class="nc" id="L833">									ti = timeUtil(tInt);</span>
+<span class="nc" id="L834">									wtps.addInterval(ti);</span>
+									// [Tue, 11:15–12:30]
+								}
+
+<span class="nc" id="L838">								ca = new CourseAssistant(id);</span>
+<span class="nc bnc" id="L839" title="All 2 branches missed.">								for (int j = 0; j &lt; courseEnroll.size(); j++) {</span>
+<span class="nc" id="L840">									cEnroll = courseEnroll.get(j).toString().split(&quot; &quot;);</span>
+<span class="nc" id="L841">									c = new Course(cEnroll[0], cEnroll[1], cEnroll[2]);</span>
+<span class="nc" id="L842">									ce = new CourseInstance(c, Integer.parseInt(termForCA));</span>
+<span class="nc" id="L843">									sci.add(ce);</span>
+<span class="nc" id="L844">									cEnroll = null;</span>
+<span class="nc" id="L845">									c = null;</span>
+<span class="nc" id="L846">									ce = null;</span>
+								}
+<span class="nc" id="L848">								ca.setFirstName(firstName);</span>
+<span class="nc" id="L849">								ca.setLastName(lastName);</span>
+<span class="nc" id="L850">								ca.setEmailAddress(email);</span>
+<span class="nc" id="L851">								ca.setGraduateStudent(grad);</span>
+<span class="nc" id="L852">								ca.setPossessedSkillset(ss);</span>
+<span class="nc" id="L853">								ca.setCourseEnrolled(sci);</span>
+<span class="nc" id="L854">								ca.setWtps(wtps);</span>
+<span class="nc" id="L855">								capl.addCourseAssistant(ca);</span>
+							}
+<span class="nc" id="L857">						} else {</span>
+<span class="nc" id="L858">							System.out.println(&quot;Assistants folder is empty&quot;);</span>
+						}
+<span class="nc" id="L860">					} else {</span>
+<span class="nc" id="L861">						System.out.println(&quot;Assistants folder does not exist in &quot; + termForCA + &quot; folder.&quot;);</span>
+					}
+<span class="nc" id="L863">				} else {</span>
+<span class="nc" id="L864">					System.out.println(termForCA + &quot; directory does not exist.&quot;);</span>
+				}
+<span class="nc" id="L866">			} else {</span>
+<span class="nc" id="L867">				System.out.println(&quot;terms directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L869">		} else {</span>
+<span class="nc" id="L870">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L873">		capl.displayCourseAssistants();</span>
+<span class="nc" id="L874">		taschdExists = false;</span>
+<span class="nc" id="L875">		termExists = false;</span>
+<span class="nc" id="L876">		termNumberExists = false;</span>
+<span class="nc" id="L877">		termNumberAssistantExists = false;</span>
+<span class="nc" id="L878">		return capl;</span>
+	}
+
+	/**
+	 * returns all details of all Courses corresponding to respective term
+	 * 
+	 * @param termForCourse
+	 * @return
+	 * @throws ParseException
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	public CourseInstancePool getCourseInstancePool(String termForCourse)
+			throws FileNotFoundException, IOException, ParseException {
+
+<span class="nc" id="L893">		CourseInstance ci = null;</span>
+<span class="nc" id="L894">		Course c = null;</span>
+<span class="nc" id="L895">		CourseInstancePool cipl = new CourseInstancePool();</span>
+<span class="nc" id="L896">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L898" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L899">			termExists = taschdTermFolderCheck();</span>
+<span class="nc bnc" id="L900" title="All 2 branches missed.">			if (termExists) {</span>
+<span class="nc" id="L901">				termNumberExists = termNumberFolderCheck(termForCourse);</span>
+<span class="nc bnc" id="L902" title="All 2 branches missed.">				if (termNumberExists) {</span>
+<span class="nc" id="L903">					termNumberCourseExists = termNumberCourseFolderCheck(termForCourse);</span>
+<span class="nc bnc" id="L904" title="All 2 branches missed.">					if (termNumberCourseExists) {</span>
+
+<span class="nc" id="L906">						File rootDir = new File(directory);</span>
+<span class="nc" id="L907">						File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L908">						File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L909">						File termNumberDirectory = new File(termsDirectory, termForCourse);</span>
+<span class="nc" id="L910">						File termNumberCourseDirectory = new File(termNumberDirectory, course);</span>
+<span class="nc" id="L911">						String[] termNumberCourseFolder = termNumberCourseDirectory.list();</span>
+<span class="nc" id="L912">						SkillSet ss = new SkillSet();</span>
+<span class="nc" id="L913">						Skill sk = null;</span>
+<span class="nc" id="L914">						Section sec = null;</span>
+
+<span class="nc bnc" id="L916" title="All 2 branches missed.">						if (termNumberCourseFolder != null) {</span>
+<span class="nc bnc" id="L917" title="All 2 branches missed.">							for (int i = 0; i &lt; termNumberCourseFolder.length - 1; i++) {</span>
+<span class="nc" id="L918">								JSONParser parser = new JSONParser();</span>
+<span class="nc" id="L919">								File readFile = new File(termNumberCourseDirectory, termNumberCourseFolder[i + 1]);</span>
+<span class="nc" id="L920">								Object ob1 = parser.parse(new FileReader(readFile));</span>
+<span class="nc" id="L921">								JSONObject jsonObj = (JSONObject) ob1;</span>
+<span class="nc" id="L922">								String prefix = (String) jsonObj.get(&quot;Prefix&quot;);</span>
+<span class="nc" id="L923">								String courseCode = (String) jsonObj.get(&quot;Course Code&quot;);</span>
+<span class="nc" id="L924">								String courseName = (String) jsonObj.get(&quot;Course Name&quot;);</span>
+<span class="nc" id="L925">								JSONArray skillData = (JSONArray) jsonObj.get(&quot;Skills&quot;);</span>
+<span class="nc" id="L926">								boolean hasLab = (boolean) jsonObj.get(&quot;Has Lab&quot;);</span>
+<span class="nc" id="L927">								JSONArray sectionData = (JSONArray) jsonObj.get(&quot;Sections&quot;);</span>
+
+<span class="nc bnc" id="L929" title="All 2 branches missed.">								for (int j = 0; j &lt; skillData.size(); j++) {</span>
+<span class="nc" id="L930">									sk = new Skill((String) skillData.get(j));</span>
+<span class="nc" id="L931">									ss.addSkill(sk);</span>
+								}
+
+<span class="nc" id="L934">								c = new Course(prefix, courseCode, courseName);</span>
+<span class="nc" id="L935">								c.setSkills(ss);</span>
+<span class="nc" id="L936">								ci = new CourseInstance(c, Integer.parseInt(termForCourse));</span>
+<span class="nc" id="L937">								ci.setHasLab(hasLab);</span>
+
+<span class="nc bnc" id="L939" title="All 2 branches missed.">								for (int l = 0; l &lt; sectionData.size(); l++) {</span>
+<span class="nc" id="L940">									JSONObject obj2 = (JSONObject) sectionData.get(l);</span>
+<span class="nc" id="L941">									String secType = (String) obj2.get(&quot;Section Type&quot;);</span>
+<span class="nc" id="L942">									String secNum = (String) obj2.get(&quot;Section Number&quot;);</span>
+<span class="nc" id="L943">									String insName = (String) obj2.get(&quot;Instructor name&quot;);</span>
+<span class="nc" id="L944">									int currEnroll = Integer.parseInt((String) obj2.get(&quot;Current Enrollment&quot;));</span>
+<span class="nc" id="L945">									int maxCap = Integer.parseInt((String) obj2.get(&quot;Enrollment Cap&quot;));</span>
+<span class="nc" id="L946">									String location = (String) obj2.get(&quot;Location&quot;);</span>
+									// String sched = (String)
+									// obj2.get(&quot;Schedule&quot;);
+<span class="nc" id="L949">									boolean mtac = (boolean) obj2.get(&quot;MTAC&quot;);</span>
+<span class="nc" id="L950">									int numTA = Integer.parseInt((String) obj2.get(&quot;Num of TA&quot;));</span>
+<span class="nc" id="L951">									int numLA = Integer.parseInt((String) obj2.get(&quot;Num of LA&quot;));</span>
+<span class="nc" id="L952">									boolean taAssign = (boolean) obj2.get(&quot;TA Assigned&quot;);</span>
+<span class="nc" id="L953">									WeeklySchedule ws = new WeeklySchedule();</span>
+
+<span class="nc" id="L955">									sec = new Section(secType, secNum, insName, currEnroll, maxCap, location, ws);</span>
+<span class="nc" id="L956">									sec.setNumOfTA(numTA);</span>
+<span class="nc" id="L957">									sec.setNumOfLA(numLA);</span>
+<span class="nc" id="L958">									sec.setTaAssigned(taAssign);</span>
+<span class="nc" id="L959">									sec.setMtac(mtac);</span>
+<span class="nc" id="L960">									ci.addSection(sec);</span>
+								}
+<span class="nc" id="L962">								cipl.addCourseInstancetoPool(ci);</span>
+							}
+<span class="nc" id="L964">						} else {</span>
+<span class="nc" id="L965">							System.out.println(course + &quot; folder is empty&quot;);</span>
+						}
+<span class="nc" id="L967">					} else {</span>
+<span class="nc" id="L968">						System.out.println(&quot;courses folder does not exist in &quot; + termForCourse + &quot; folder.&quot;);</span>
+					}
+<span class="nc" id="L970">				} else {</span>
+<span class="nc" id="L971">					System.out.println(termForCourse + &quot; directory does not exist.&quot;);</span>
+				}
+<span class="nc" id="L973">			} else {</span>
+<span class="nc" id="L974">				System.out.println(&quot;terms directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L976">		} else {</span>
+<span class="nc" id="L977">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L980">		taschdExists = false;</span>
+<span class="nc" id="L981">		termExists = false;</span>
+<span class="nc" id="L982">		termNumberExists = false;</span>
+<span class="nc" id="L983">		termNumberCourseExists = false;</span>
+
+<span class="nc bnc" id="L985" title="All 2 branches missed.">		for (int i = 0; i &lt; cipl.getSize(); i++) {</span>
+			// System.out.println(CourseAssistantPool(capl));
+		}
+<span class="nc" id="L988">		return cipl;</span>
+	}
+
+	/**
+	 * stores assignment for respective term
+	 * 
+	 * @param assignment
+	 * @param termToStore
+	 * @return
+	 */
+
+	/**
+	 * stores assignment for respective term
+	 * 
+	 * @param assignment
+	 * @param termToStore
+	 * @return
+	 */
+	public boolean storeAssign(HashMap&lt;Section, Iterable&lt;CourseAssistant&gt;&gt; assignment, String termToStore) {
+
+<span class="nc" id="L1008">		String fileName = &quot;&quot;;</span>
+<span class="nc" id="L1009">		String fileToStore = fileName;</span>
+<span class="nc" id="L1010">		boolean fileExists = false;</span>
+<span class="nc" id="L1011">		taschdExists = taschdCheck();</span>
+
+<span class="nc bnc" id="L1013" title="All 2 branches missed.">		if (taschdExists) {</span>
+<span class="nc" id="L1014">			termExists = taschdTermFolderCheck();</span>
+<span class="nc bnc" id="L1015" title="All 2 branches missed.">			if (termExists) {</span>
+<span class="nc" id="L1016">				termNumberExists = termNumberFolderCheck(termToStore);</span>
+<span class="nc bnc" id="L1017" title="All 2 branches missed.">				if (termNumberExists) {</span>
+<span class="nc" id="L1018">					termNumberAssignmentExists = termNumberAssignmentFolderCheck(termToStore);</span>
+<span class="nc bnc" id="L1019" title="All 2 branches missed.">					if (termNumberAssignmentExists) {</span>
+
+<span class="nc" id="L1021">						File rootDir = new File(directory);</span>
+<span class="nc" id="L1022">						File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="nc" id="L1023">						File termsDirectory = new File(taschdDirectory, terms);</span>
+<span class="nc" id="L1024">						File termNumberDirectory = new File(termsDirectory, termToStore);</span>
+<span class="nc" id="L1025">						File termNumberAssignmentDirectory = new File(termNumberDirectory, assignments);</span>
+<span class="nc" id="L1026">						String[] termNumberAssignmentFolder = termNumberAssignmentDirectory.list();</span>
+
+<span class="nc bnc" id="L1028" title="All 2 branches missed.">						if (termNumberAssignmentFolder != null) {</span>
+<span class="nc bnc" id="L1029" title="All 2 branches missed.">							for (int i = 0; i &lt; termNumberAssignmentFolder.length; i++) {</span>
+<span class="nc bnc" id="L1030" title="All 2 branches missed.">								if (termNumberAssignmentFolder[i].equalsIgnoreCase(fileToStore)) {</span>
+<span class="nc" id="L1031">									System.out</span>
+<span class="nc" id="L1032">											.println(&quot;Assignment file with name: &quot; + fileToStore + &quot; already exists.&quot;);</span>
+<span class="nc" id="L1033">									fileExists = true;</span>
+<span class="nc" id="L1034">									break;</span>
+								}
+							}
+						}
+<span class="nc bnc" id="L1038" title="All 2 branches missed.">						if (!fileExists) {</span>
+<span class="nc" id="L1039">							JSONObject value = new JSONObject();</span>
+<span class="nc" id="L1040">							JsonArrayBuilder builder = Json.createArrayBuilder();</span>
+<span class="nc bnc" id="L1041" title="All 2 branches missed.">							for (Entry&lt;Section, Iterable&lt;CourseAssistant&gt;&gt; sec : assignment.entrySet()) {</span>
+<span class="nc" id="L1042">								System.out.println(&quot;Section&quot; + &quot; = &quot; + sec.getKey());</span>
+<span class="nc" id="L1043">								System.out.println(&quot;Assignment&quot; + &quot; = &quot; + sec.getValue());</span>
+<span class="nc" id="L1044">								String studFName = sec.getValue().iterator().next().getFirstName();</span>
+<span class="nc" id="L1045">								String studLName = sec.getValue().iterator().next().getLastName();</span>
+<span class="nc" id="L1046">								int id = sec.getValue().iterator().next().getId();</span>
+								// WeeklySchedule wtps =
+								// sec.getValue().iterator().next().getWtps();
+								// System.out.println(wtps);
+<span class="nc" id="L1050">								value.put(&quot;Section Number&quot;,</span>
+<span class="nc" id="L1051">										sec.getKey().getSectionNumber() + sec.getKey().getSectionType());</span>
+<span class="nc" id="L1052">								value.put(&quot;Instructor name&quot;, sec.getKey().getInstructorName());</span>
+<span class="nc" id="L1053">								value.put(&quot;Student Name&quot;, sec.getValue().iterator().next().getFirstName()</span>
+<span class="nc" id="L1054">										+ sec.getValue().iterator().next().getLastName());</span>
+<span class="nc" id="L1055">								value.put(&quot;Student ID&quot;, sec.getValue().iterator().next().getId());</span>
+							}
+							// Iterator&lt;Section&gt; iter =
+							// c.getSections().iterator();
+							// while (iter.hasNext()) {
+							// Section s = iter.next();
+							//// iterTime =
+							// s.getSchedule().getSchedule().iterator();
+							//// while (iterTime.hasNext()) {
+							//// ti = iterTime.next();
+							//// builderTime.add(ti.toString());
+							//// }
+							//
+							// //JsonArray arrTime = builderTime.build();
+							// builder.add(Json.createObjectBuilder().add(&quot;Section
+							// Number&quot;, (s.getSectionNumber()))
+							// .add(&quot;Section Type&quot;, (s.getSectionType()))
+							// .add(&quot;Instructor name&quot;, (s.getInstructorName()))
+							// .add(&quot;Location&quot;, (s.getLocation()))
+							// .add(&quot;Current Enrollment&quot;,
+							// (String.valueOf(s.getCurrentEnrollment())))
+							// .add(&quot;Enrollment Cap&quot;,
+							// (String.valueOf(s.getEnrollmentCap())))
+							// .add(&quot;TA Assigned&quot;, (s.isTaAssigned()))
+							// .add(&quot;Num of TA&quot;,
+							// (String.valueOf(s.getNumOfTA())))
+							// .add(&quot;Num of LA&quot;,
+							// (String.valueOf(s.getNumOfLA()))).add(&quot;MTAC&quot;,
+							// (s.isMtac())));
+							// // .add(&quot;Time Schedule&quot;, arrTime));
+							// }
+							//
+							// JsonArray arr = builder.build();
+							// value.put(&quot;Sections&quot;, arr);
+							//
+
+							// value.put(&quot;Last Name&quot;, ca.getLastName());
+							// value.put(&quot;ID&quot;, ca.getId());
+							// value.put(&quot;Email&quot;, ca.getEmailAddress());
+							// value.put(&quot;Graduate Student&quot;,
+							// ca.getGraduateStudent());
+							// JsonArrayBuilder builderCourseEnrolled =
+							// Json.createArrayBuilder();
+							// CourseInstance c = null;
+							// Iterator&lt;CourseInstance&gt; iterCI =
+							// ca.getCourseEnrolled() != null
+							// ? ca.getCourseEnrolled().iterator() : null;
+							// if (iterCI != null) {
+							// while (iterCI.hasNext()) {
+							// c = iterCI.next();
+							// builderCourseEnrolled.add(c.toString());
+							// }
+							// JsonArray arrCourseEnrolled =
+							// builderCourseEnrolled.build();
+							// value.put(&quot;Course Enrolled&quot;, arrCourseEnrolled);
+							// } else {
+							// value.put(&quot;Course Enrolled&quot;, null);
+							// }
+							// Skill sk = null;
+							// Iterator&lt;Skill&gt; iterSkill =
+							// ca.getPossessedSkillset().getSkills().iterator();
+							// JsonArrayBuilder builderSkill =
+							// Json.createArrayBuilder();
+							// while (iterSkill.hasNext()) {
+							// sk = iterSkill.next();
+							// builderSkill.add(sk.toString());
+							// }
+							// JsonArray arrSkill = builderSkill.build();
+							// value.put(&quot;Skills&quot;, arrSkill);
+							// TimeInterval ti = null;
+							// Iterator&lt;TimeInterval&gt; iterTime =
+							// ca.getWtps().getSchedule().iterator();
+							// JsonArrayBuilder builderTime =
+							// Json.createArrayBuilder();
+							// while (iterTime.hasNext()) {
+							// ti = iterTime.next();
+							// builderTime.add(ti.toString());
+							// }
+							// JsonArray arrTime = builderTime.build();
+							// value.put(&quot;Time Schedule&quot;, arrTime);
+							// File file = new
+							// File(termNumberAssistantDirectory, fileToStore);
+							// PrintWriter pw = new PrintWriter(file);
+							// pw.write(value.toJSONString());
+							// pw.flush();
+							// pw.close();
+							// success = true;
+
+<span class="nc" id="L1143">						} else {</span>
+<span class="nc" id="L1144">							System.out.println(&quot;File with name &quot; + fileToStore + &quot; already exists.&quot;);</span>
+						}
+<span class="nc" id="L1146">					} else {</span>
+<span class="nc" id="L1147">						System.out.println(&quot;Assignments folder does not exist in &quot; + termToStore + &quot; folder.&quot;);</span>
+					}
+<span class="nc" id="L1149">				} else {</span>
+<span class="nc" id="L1150">					System.out.println(termToStore + &quot; directory does not exist.&quot;);</span>
+				}
+<span class="nc" id="L1152">			} else {</span>
+<span class="nc" id="L1153">				System.out.println(&quot;terms directory does not exist.&quot;);</span>
+			}
+<span class="nc" id="L1155">		} else {</span>
+<span class="nc" id="L1156">			System.out.println(&quot;taschd directory does not exist.&quot;);</span>
+		}
+
+<span class="nc" id="L1159">		taschdExists = false;</span>
+<span class="nc" id="L1160">		termExists = false;</span>
+<span class="nc" id="L1161">		termNumberExists = false;</span>
+<span class="nc" id="L1162">		termNumberAssignmentExists = false;</span>
+<span class="nc" id="L1163">		return success;</span>
+	}
+
+	public static void main(String[] args) throws IOException, ParseException {
+<span class="nc" id="L1167">		Database db = new Database();</span>
+		// CourseInstance c1 = getCourseByCode(&quot;CISC675&quot;, &quot;2188&quot;);
+<span class="nc" id="L1169">		db.getCAPool(&quot;2198&quot;);</span>
+		// getCourseInstancePool(&quot;2188&quot;);
+
+		// CourseScheduleExtractor cs1 = new CourseScheduleExtractor(&quot;Web&quot;,
+		// &quot;CISC675&quot;, &quot;2188&quot;);
+		// ArrayList&lt;CourseInstance&gt; cis1 = cs1.returnCourseInstances();
+		// SkillSet ss = new SkillSet();
+		// ss.addSkill(new Skill(&quot;Java&quot;));
+		// ss.addSkill(new Skill(&quot;C++&quot;));
+		// cis1.get(0).getCourse().setSkills(ss);
+		//
+		// db.storeCourse(cis1.get(0));
+		// db.storeCourseToDynamic(cis1.get(0), &quot;2188&quot;);
+
+		// CourseAssistant ca1 = new CourseAssistant(123432);
+		// CourseAssistant ca2 = new CourseAssistant(543232);
+		// SkillSet skillSet1 = new SkillSet(new HashSet&lt;Skill&gt;());
+		// skillSet1.addSkill(new Skill(&quot;Java&quot;));
+		// skillSet1.addSkill(new Skill(&quot;Python&quot;));
+		// skillSet1.addSkill(new Skill(&quot;Javascript&quot;));
+		// Collection&lt;TimeInterval&gt; cti1 = new ArrayList&lt;TimeInterval&gt;();
+		// TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		// TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 15, 75);
+		// cti1.add(ti1);
+		// cti1.add(ti2);
+		// WeeklySchedule w1 = new WeeklySchedule(cti1);
+		// CourseInstance ci1 = new CourseInstance(new Course(&quot;CISC&quot;, &quot;675&quot;,
+		// &quot;Software Engineering&quot;), 2191);
+		// CourseInstance ci2 = new CourseInstance(new Course(&quot;CISC&quot;, &quot;642&quot;,
+		// &quot;Intro to Computer Vision&quot;), 2198);
+		// Set&lt;CourseInstance&gt; caOneCourseEnrolled = new
+		// HashSet&lt;CourseInstance&gt;();
+		// caOneCourseEnrolled.add(ci1);
+		// caOneCourseEnrolled.add(ci2);
+		// ca1.setFirstName(&quot;Yi&quot;);
+		// ca1.setLastName(&quot;Liu&quot;);
+		// ca1.setEmailAddress(&quot;y@udel.edu&quot;);
+		// ca1.setPossessedSkillset(skillSet1);
+		// ca1.setWtps(w1);
+		// ca1.setCourseEnrolled(caOneCourseEnrolled);
+		// ca1.setGraduateStudent(true);
+		//
+		// SkillSet skillSet2 = new SkillSet(new HashSet&lt;Skill&gt;());
+		// skillSet1.addSkill(new Skill(&quot;Java&quot;));
+		// skillSet1.addSkill(new Skill(&quot;Python&quot;));
+		// skillSet1.addSkill(new Skill(&quot;Matlab&quot;));
+		//
+		// Collection&lt;TimeInterval&gt; cti2 = new ArrayList&lt;TimeInterval&gt;();
+		// TimeInterval ti3 = new TimeInterval(DayOfWeek.MONDAY, 11, 15, 75);
+		// TimeInterval ti4 = new TimeInterval(DayOfWeek.TUESDAY, 11, 15, 75);
+		// cti1.add(ti3);
+		// cti1.add(ti4);
+		//
+		// WeeklySchedule w2 = new WeeklySchedule(cti2);
+		//
+		// CourseInstance ci3 = new CourseInstance(new Course(&quot;CISC&quot;, &quot;220&quot;,
+		// &quot;Datastrucutre&quot;), 1234);
+		// CourseInstance ci4 = new CourseInstance(new Course(&quot;CISC&quot;, &quot;677&quot;,
+		// &quot;Ghost Course&quot;), 7777);
+		//
+		// Set&lt;CourseInstance&gt; caOneCourseEnrolled2 = new
+		// HashSet&lt;CourseInstance&gt;();
+		// caOneCourseEnrolled2.add(ci1);
+		// caOneCourseEnrolled2.add(ci3);
+		// caOneCourseEnrolled2.add(ci4);
+		//
+		// ca2.setFirstName(&quot;Mike&quot;);
+		// ca2.setLastName(&quot;D&quot;);
+		// ca2.setEmailAddress(&quot;md@udel.edu&quot;);
+		// ca2.setPossessedSkillset(skillSet2);
+		// ca2.setWtps(w2);
+		// ca2.setCourseEnrolled(caOneCourseEnrolled2);
+		// ca2.setGraduateStudent(false);
+		//
+		// try {
+		// db.storeCA(ca1);
+		// db.storeCA(ca2);
+		// db.storeCAToDynamic(ca1, &quot;2198&quot;);
+		// db.storeCAToDynamic(ca2, &quot;2198&quot;);
+		// // getCourseByCode(&quot;CISC675&quot;,&quot;2188&quot;);
+		// } catch (FileNotFoundException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+
+<span class="nc" id="L1254">	}</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

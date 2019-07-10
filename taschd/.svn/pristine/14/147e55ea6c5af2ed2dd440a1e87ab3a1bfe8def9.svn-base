@@ -1,0 +1,247 @@
+package edu.udel.cis.taschd.gen;
+
+import java.util.ArrayList;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+import ilog.cplex.*;
+import ilog.concert.*;
+
+
+/**
+ * <p>
+ *   
+ * </p>
+ * 
+ * 
+ * 
+ * @author Yi Liu
+ */
+
+public class LPSolver {
+    
+	private CourseAssistantPool cap;
+	private CourseInstancePool cip; 
+	private ArrayList<ArrayList<Double>> scoreTable;
+	private ArrayList<ArrayList<TableInstance>> tableMaping;
+
+	private int numOfSections;
+	private int numOfCourseAssistants;
+	private double[][] cost; // weather or not the CA is assigned to the Section.
+	                    //MTAC (Mandatory TA Attendance Course).
+	                    //WTPS (Weekly Time Period Specification, for both course & student).
+	                    //Skills (For both course & student).
+	                    //Course's level to student's education level.
+	private int[] numOfTARequired;
+	private int[] workLoad;
+	private int maxWorkLoadEachTA;
+	private IloCplex cplex; // its cplex sovler.
+	
+	public LPSolver (CourseAssistantPool cap, CourseInstancePool cip) {
+		this.cap = cap;
+		this.cip = cip;
+		this.cost = null;
+	    
+		this.scoreTable = new ArrayList<ArrayList<Double>>();
+		this.tableMaping = new ArrayList<ArrayList<TableInstance>>();
+        this.numOfSections = 0;
+        this.numOfCourseAssistants = 0;
+
+        this.workLoad = null;
+        this.numOfTARequired = null;
+        this.maxWorkLoadEachTA = 60; //default
+        
+        this.cplex = null;
+
+		// this.leftOver = null;
+
+		this.setCost(); // fille the cost table
+		this.setWorkLoadAndNumOfTARequired(); 
+		this.cplexObject();
+
+				
+		
+	}
+	
+	
+	
+	
+	
+	
+	
+	private void setCost() {
+
+		int i = 0;
+		int j = 0;
+		double finalScore = 0;
+		double skillScore, wtpsScore;
+		ArrayList<ArrayList<Double>> table = new ArrayList<ArrayList<Double>>();
+		SkillSet courseSkills;
+		WeeklySchedule sectionSchedule;
+
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+
+			courseSkills = ci.getCourse().getSkills();
+
+			for (Section sec : ci.getSections()) {
+				ArrayList<Double> secCa = new ArrayList<Double>();
+				ArrayList<TableInstance> rowTable = new ArrayList<TableInstance>();
+
+				sectionSchedule = sec.getSchedule();
+				for (CourseAssistant ca : cap.getCourseAssistantSet()) {
+
+					skillScore = courseSkills.skillScore(ca.getPossessedSkillset());
+					
+					if (skillScore >= 1) {
+						skillScore = 1;
+					}
+
+					System.out.println("sk score:" + skillScore);
+
+					wtpsScore = sectionSchedule.wtpsScore(ca.getWtps());
+					
+					if (wtpsScore > 0.2) {
+						wtpsScore = 1;
+					}
+
+					System.out.println("time score:" + wtpsScore);
+
+					if (!sec.isMtac())
+						wtpsScore = 1.0; // I think this should be included in wtps score, but deal with it later -- Yi
+
+					int graduateRequire = 1;
+					if (!ca.getGraduateStudent()) {
+						int courseCode = Integer.parseInt(ci.getCourse().getCourseCode());
+						if (courseCode >= 600) {
+							graduateRequire = 0;
+						}
+					}
+                    
+					if (wtpsScore * skillScore * graduateRequire >= 1) {
+						finalScore = 1;
+					}else {
+						finalScore = -1;
+					}
+					
+					secCa.add(finalScore);
+					
+					TableInstance oneEntry = new TableInstance(i, j, ca, sec, ci, 0);
+					i ++;
+					
+					rowTable.add(oneEntry);
+					System.out.println(finalScore);
+					System.out.println("_________________");
+				}
+				table.add(secCa);
+				i = 0;
+			}
+			j++;
+
+		}
+		System.out.println(table.toString());
+		System.out.println("-------");
+		this.numOfSections = table.size();
+		this.numOfCourseAssistants = table.get(0).size();
+		this.scoreTable = table;
+		this.tableToLittleDouble();
+
+	}
+	
+	private void tableToLittleDouble() {
+		int a = scoreTable.size();
+		int b = scoreTable.get(0).size();
+		double[][] arrayTable = new double[a][b];
+		for (int i = 0; i < a; i++) {
+			for (int j = 0; j < b; j++) {
+				arrayTable[i][j] = scoreTable.get(i).get(j);
+			}
+		}
+		this.cost = arrayTable;
+	}
+	
+	private void setWorkLoadAndNumOfTARequired() {
+		int[] tmpWorkLoad = new int[numOfSections];
+		int[] tmpNumOfTARequired= new int[numOfSections];
+		int i = 0;
+		for (CourseInstance ci : cip.getCourseInstanceSet()) {
+			for (Section sec : ci.getSections()) {
+				tmpWorkLoad[i] = sec.getEnrollmentCap();
+				tmpNumOfTARequired[i] = sec.getNumOfTA();
+				i++;
+			}
+		}
+		this.workLoad = tmpWorkLoad;
+		this.numOfTARequired = tmpNumOfTARequired;	
+	}
+	
+	private void cplexObject() {
+		//define new model
+		try {
+        	cplex = new IloCplex();
+        	// variables
+        	IloNumVar[][] x = new IloNumVar[numOfSections][];
+        	for (int i = 0; i < numOfSections; i++) {
+        		x[i] = cplex.intVarArray(numOfCourseAssistants, 0, 1);
+        	}
+        	//IloNumVar y = cplex.boolVar();
+        	
+        	//expressions;
+        	IloLinearNumExpr[] usedWorkLoad = new IloLinearNumExpr[numOfCourseAssistants];
+        	for (int j=0; j<numOfCourseAssistants; j++) {
+        		usedWorkLoad[j] = cplex.linearNumExpr();             //each ta's UsedworkLoad
+        		for (int i=0; i<numOfSections; i++) {
+        			usedWorkLoad[j].addTerm(workLoad[i], x[i][j]); //assigned sections's work load sum up;
+        		}
+        	}
+        	
+        	IloLinearNumExpr objective = cplex.linearNumExpr();
+        	for (int i = 0; i < numOfSections; i ++) {
+        		for (int j = 0 ; j < numOfCourseAssistants; j ++) {
+        			objective.addTerm(cost[i][j], x[i][j]);
+        		}
+        	}
+ 
+        	// define objective
+        	
+        	cplex.addMaximize(objective);
+        	
+        	//constraints;
+        	for (int i = 1; i < numOfSections; i ++) {
+        		cplex.addEq(cplex.sum(x[i]), numOfTARequired[i]);
+        	}
+        	for (int i = 1; i < numOfCourseAssistants; i ++) {
+        		cplex.addLe(usedWorkLoad[i], maxWorkLoadEachTA);
+        	}
+        	
+        	for (int i = 0; i < numOfSections; i ++) {
+        		for (int j = 0 ; j < numOfCourseAssistants; j ++) {
+        			if (cost[i][j] == -1) {
+        				cplex.addEq(x[i][j], 0);
+        			}
+        		}
+        	}
+        	
+        	
+        	// solve model
+        	if (cplex.solve()) {
+        		System.out.println("obj = "+cplex.getObjValue());
+        	}
+        	else {
+        		System.out.println("problem not solved");
+        	}
+        	
+        	cplex.end();
+        	        	
+			
+		}
+        catch (IloException exc) {
+        	exc.printStackTrace();
+        }
+	}
+
+}

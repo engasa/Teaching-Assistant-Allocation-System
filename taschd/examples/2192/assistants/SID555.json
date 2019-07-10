@@ -1,0 +1,10 @@
+{
+  "Email" : "dduck@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "000", "C", "Matalb", "PHP", "604", "Python" ],
+  "First Name" : "Donald",
+  "Time Schedule" : [ "Mon 0:00–1:00", "Tue 0:00–1:00", "Wed 0:00–1:00", "Fri 8:40–9:55" ],
+  "ID" : 555,
+  "Graduate Student" : true,
+  "Last Name" : "Duck"
+}

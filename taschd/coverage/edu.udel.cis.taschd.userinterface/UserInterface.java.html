@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserInterface.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.userinterface</a> &gt; <span class="el_source">UserInterface.java</span></div><h1>UserInterface.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.userinterface;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.json.simple.parser.ParseException;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+
+//import edu.udel.cis.taschd.course.Course;
+
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.db.Database;
+import edu.udel.cis.taschd.extract.CAScheduleExtractor;
+import edu.udel.cis.taschd.extract.CourseScheduleExtractor;
+import edu.udel.cis.taschd.gen.GenerateAssignment;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * 
+ * @author Ankush Saini
+ *         &lt;p&gt;
+ * 
+ *         The {@link UserInterface} class is the way a user interacts with
+ *         taschd. It displays and stores details of the CA like the CA ID,
+ *         term, CA's schedule, set of skills that the CA possesses. Course
+ *         details like the Course ID, Course schedule, set of skills the course
+ *         requires and also assignments of CAs to courses. Along with this, the
+ *         user can add details to the db like term, new skill to the CA,new
+ *         skill to the course. To access the Ui, the user requires a user name
+ *         and password.
+ *         &lt;/p&gt;
+ */
+
+<span class="fc" id="L41">public class UserInterface {</span>
+	/**
+	 * get Current directory of user
+	 */
+<span class="fc" id="L45">	static String directory = System.getProperty(&quot;user.dir&quot;);</span>
+<span class="fc" id="L46">	private static boolean success = false;</span>
+
+	/**
+	 * Initializes the default directory structure
+	 * &lt;p&gt;
+	 * command - taschd init redirects here
+	 * &lt;/p&gt;
+	 * &lt;p&gt;
+	 * Output - Create directory structure - taschd_dir with subfolders courses,
+	 * ca_pool, terms
+	 * &lt;/p&gt;
+	 * 
+	 * @author sumeetgupta
+	 */
+
+	public void init() {
+<span class="nc" id="L62">		File rootDir = new File(directory);</span>
+		// file name taschd_dir in current directory
+<span class="nc" id="L64">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+		try {
+			// folder name courses in taschd_dir
+<span class="nc" id="L67">			createDirectory(new File(taschdDirectory, &quot;courses&quot;));</span>
+			// folder name ca_pool in taschd_dir
+<span class="nc" id="L69">			createDirectory(new File(taschdDirectory, &quot;ca_pool&quot;));</span>
+			// folder name terms in taschd_dir
+<span class="nc" id="L71">			createDirectory(new File(taschdDirectory, &quot;terms&quot;));</span>
+
+<span class="nc" id="L73">		} catch (IOException e) {</span>
+			// TODO Auto-generated catch block
+<span class="nc" id="L75">			System.out.println(e);</span>
+		}
+<span class="nc" id="L77">	}</span>
+
+	/**
+	 * Method to check if a directory exists. If file does not exist, create it.
+	 * &lt;p&gt;
+	 * Used by init()
+	 * &lt;/p&gt;
+	 * 
+	 * @author sumeetgupta
+	 * @param file
+	 *            to create
+	 * @return file
+	 * @throws IOException
+	 */
+	public static File createDirectory(File file) throws IOException {
+		// check if directory exists
+<span class="fc bfc" id="L93" title="All 2 branches covered.">		if (file.exists()) {</span>
+<span class="fc" id="L94">			return file;</span>
+		}
+		// create directory if it doesn't already exist
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">		if (file.mkdirs()) {</span>
+<span class="fc" id="L98">			return file;</span>
+		}
+<span class="nc" id="L100">		throw new IOException(&quot;Failed to create directory '&quot; + file.getAbsolutePath() + &quot;' for an unknown reason.&quot;);</span>
+	}
+
+	/**
+	 * Adds a new term to the directory
+	 * 
+	 * @author anksaini command - taschd addTerm redirects here
+	 * 
+	 * 
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 * 
+	 */
+
+	public void addTerm(String term) {
+<span class="fc" id="L115">		File rootDir = new File(directory);</span>
+		// file name taschd_dir in current directory
+<span class="fc" id="L117">		File taschdDirectory = new File(rootDir, &quot;taschd_dir&quot;);</span>
+<span class="fc" id="L118">		File terms = new File(taschdDirectory, &quot;terms&quot;);</span>
+<span class="fc" id="L119">		File termDir = new File(terms, term);</span>
+		try {
+
+			// file name courses in taschd_dir/terms/{term}
+<span class="fc" id="L123">			createDirectory(new File(termDir, &quot;courses&quot;));</span>
+			// file name assistants in taschd_dir/terms/{term}
+<span class="fc" id="L125">			createDirectory(new File(termDir, &quot;assistants&quot;));</span>
+			// file name assignments in taschd_dir/terms/{term}
+<span class="fc" id="L127">			createDirectory(new File(termDir, &quot;assignments&quot;));</span>
+
+<span class="pc" id="L129">		} catch (IOException e) {</span>
+			// TODO Auto-generated catch block
+<span class="nc" id="L131">			System.out.println(e);</span>
+		}
+
+<span class="fc" id="L134">	}</span>
+
+	/**
+	 * 
+	 * @param source
+	 *            Source of extraction (eg. Web)
+	 * @param credentials
+	 *            User's credentials
+	 * @param CAIDs
+	 *            Student ID of CourseAssistant
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 * @return Array list of CourseAssistant
+	 */
+
+	// Method to get the CA's schedule from webreg
+	public ArrayList&lt;CourseAssistant&gt; getCaSchd(String source, String[] credentials, int[] CAIDs, String term) {
+<span class="nc" id="L151">		CAScheduleExtractor caSchd = new CAScheduleExtractor(source, credentials, CAIDs, term);</span>
+<span class="nc" id="L152">		ArrayList&lt;CourseAssistant&gt; caInst = caSchd.returnCASchedules();</span>
+<span class="nc" id="L153">		return caInst;</span>
+	}
+
+	/**
+	 * 
+	 * @param source
+	 *            Source of extraction (eg. Web)
+	 * @param courseKey
+	 *            departmentID/ courseID
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 * @return Array list of CourseInstance
+	 */
+
+	// Method to get Course's schedule from webreg
+	public ArrayList&lt;CourseInstance&gt; getCourseSchd(String source, String courseKey, String term) {
+<span class="nc" id="L169">		System.out.println(&quot;Source = &quot; + source + &quot;CourseKey=&quot; + courseKey + &quot;Term=&quot; + term);</span>
+<span class="nc" id="L170">		System.out.flush();</span>
+<span class="nc" id="L171">		CourseScheduleExtractor cse = new CourseScheduleExtractor(source, courseKey, term);</span>
+<span class="nc" id="L172">		ArrayList&lt;CourseInstance&gt; courseInst = cse.returnCourseInstances();</span>
+<span class="nc" id="L173">		return courseInst;</span>
+	}
+
+	/**
+	 * 
+	 * @param source
+	 *            Source of extraction (eg. Web)
+	 * @param courseKey
+	 * 
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 */
+
+	// Method to get Course's schedule from webreg
+	public void getCourseFromWebReg(String source, String courseKey, String term) {
+<span class="nc" id="L188">		CourseScheduleExtractor cse = new CourseScheduleExtractor(source, courseKey, term);</span>
+<span class="nc" id="L189">		ArrayList&lt;CourseInstance&gt; courseInst = cse.returnCourseInstances();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">		if (courseInst != null) {</span>
+<span class="nc bnc" id="L191" title="All 2 branches missed.">			for (int i = 0; i &lt; courseInst.size(); i++) {</span>
+<span class="nc" id="L192">				storeCourseToDatabase(courseInst.get(i));</span>
+			}
+<span class="nc" id="L194">		} else</span>
+<span class="nc" id="L195">			System.out.println(&quot;No course found.&quot;);</span>
+<span class="nc" id="L196">	}</span>
+
+	// Method to store Course in database
+	public static boolean storeCourseToDatabase(CourseInstance c) {
+<span class="nc" id="L200">		Database dbo = new Database();</span>
+
+		try {
+<span class="nc bnc" id="L203" title="All 4 branches missed.">			success = dbo.storeCourse(c) &amp;&amp; dbo.storeCourseToDynamic(c, String.valueOf(c.getTerm()));</span>
+<span class="nc" id="L204">		} catch (FileNotFoundException e) {</span>
+			// TODO Auto-generated catch block
+<span class="nc" id="L206">			e.printStackTrace();</span>
+		}
+<span class="nc" id="L208">		return success;</span>
+	}
+
+	/**
+	 * 
+	 * @param ca
+	 *            CourseAssistant
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 * @return file of CA stored statically and dynamically
+	 * @throws FileNotFoundException
+	 */
+
+	// Method to store CA
+
+	// TODO: add CA dynamically too. Only stores static file.
+
+	// Method to get CA's schedule from webreg
+	public void getCAFromWebReg(String source, String[] credentials, int[] CAIDs, String term)
+			throws FileNotFoundException {
+<span class="nc" id="L228">		CAScheduleExtractor cse = new CAScheduleExtractor(source, credentials, CAIDs, term);</span>
+<span class="nc" id="L229">		ArrayList&lt;CourseAssistant&gt; courseAssist = cse.returnCASchedules();</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">		if (courseAssist != null) {</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">			for (int i = 0; i &lt; courseAssist.size(); i++) {</span>
+<span class="nc" id="L232">				storeCAToDatabase(courseAssist.get(i), term);</span>
+			}
+<span class="nc" id="L234">		} else</span>
+<span class="nc" id="L235">			System.out.println(&quot;No CA found for this term.&quot;);</span>
+<span class="nc" id="L236">	}</span>
+
+	public static boolean storeCAToDatabase(CourseAssistant ca, String term) throws FileNotFoundException {
+<span class="nc" id="L239">		Database dbo = new Database();</span>
+<span class="nc bnc" id="L240" title="All 4 branches missed.">		success = dbo.storeCA(ca) &amp;&amp; dbo.storeCAToDynamic(ca, term);</span>
+<span class="nc" id="L241">		return success;</span>
+	}
+
+	// Method to get CA By Id from database
+	public CourseAssistant getCAbyIDFromDatabase(int caID, String termOfCA) {
+<span class="nc" id="L246">		Database dbo = new Database();</span>
+<span class="nc" id="L247">		CourseAssistant ca = dbo.getCAById(caID, termOfCA);</span>
+<span class="nc" id="L248">		return ca;</span>
+	}
+
+	/**
+	 * 
+	 * @param code
+	 *            The university course code, represented as a 3-digit String.
+	 *            (Example: 675)
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 * @return CourseInstance
+	 */
+
+	// Method to get Course By code from database
+	public CourseInstance getCourseByCodeFromDatabase(String code, String term) {
+<span class="nc" id="L263">		Database dbo = new Database();</span>
+<span class="nc" id="L264">		CourseInstance c = dbo.getCourseByCode(code, term);</span>
+<span class="nc" id="L265">		return c;</span>
+	}
+
+	/**
+	 * 
+	 * @param courseCode
+	 *            The university course code, represented as a 3-digit String.
+	 *            (Example: 675)
+	 * @param term
+	 *            Current term (eg. 2188, 2193)
+	 * @return
+	 */
+	// Method to get Course Schedule by Code from database
+	public WeeklySchedule getCourseSchdByCodeFromDatabase(String courseCode, String term) {
+<span class="nc" id="L279">		Database dbo = new Database();</span>
+<span class="nc" id="L280">		WeeklySchedule ws = dbo.getCourseSchdByCode(courseCode, term);</span>
+<span class="nc" id="L281">		return ws;</span>
+	}
+
+	// Method to get CA schedule by Id from database
+	public WeeklySchedule getCASchdByIDFromDatabase(int caID, String term) {
+<span class="nc" id="L286">		Database dbo = new Database();</span>
+<span class="nc" id="L287">		WeeklySchedule ws = dbo.getCASchdByID(caID, term);</span>
+<span class="nc" id="L288">		return ws;</span>
+	}
+
+	// Generates assignments &amp; store to database
+	public void genAssign(String term) throws FileNotFoundException, IOException, ParseException {
+<span class="nc" id="L293">		Database dbo = new Database();</span>
+<span class="nc" id="L294">		CourseAssistantPool cap = dbo.getCAPool(term);</span>
+<span class="nc" id="L295">		CourseInstancePool cip = dbo.getCourseInstancePool(term);</span>
+<span class="nc" id="L296">		GenerateAssignment ga = new GenerateAssignment(cap, cip);</span>
+<span class="nc" id="L297">		HashMap&lt;Section, Iterable&lt;CourseAssistant&gt;&gt; obj1 = ga.assign();</span>
+<span class="nc" id="L298">		boolean success = dbo.storeAssign(obj1, term);</span>
+<span class="nc bnc" id="L299" title="All 2 branches missed.">		if (success) {</span>
+<span class="nc" id="L300">			System.out.println(&quot;Successful storage of generated assignment.&quot;);</span>
+		}
+<span class="nc" id="L302">	}</span>
+
+	// Need to further split this method based on Ca, Assign, Time &amp; Skill
+	// modules
+
+	public void display(int caID, String term, String courseCode) {
+<span class="nc" id="L308">		getCASchdByIDFromDatabase(caID, term);</span>
+<span class="nc" id="L309">		getCourseSchdByCodeFromDatabase(courseCode, term);</span>
+<span class="nc" id="L310">	}</span>
+
+	/**
+	 * 
+	 *
+	 * This is the main method which is the primary way the user interacts with
+	 * taschd.
+	 * 
+	 * 
+	 * @author yasha
+	 * @param args
+	 *            command line arguments
+	 * @throws FileNotFoundException
+	 */
+
+	@SuppressWarnings(&quot;static-access&quot;)
+	public final static void main(String[] args) throws FileNotFoundException {
+<span class="nc" id="L327">		System.out.println(&quot;taschd v0: The TA Scheduler.  http://taschd.cis.udel.edu&quot;);</span>
+<span class="nc" id="L328">		int count = args.length;</span>
+
+<span class="nc" id="L330">		UserInterface ui = new UserInterface();</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">		for (int i = 0; i &lt; count; i++)</span>
+<span class="nc bnc" id="L332" title="All 46 branches missed.">			switch (args[0]) {</span>
+			case &quot;init&quot;:
+<span class="nc" id="L334">				System.out.println(&quot;The directory structure has now been created\n&quot;);</span>
+<span class="nc" id="L335">				ui.init();</span>
+<span class="nc" id="L336">				break;</span>
+
+			case &quot;addterm&quot;:
+				// args[1] = term (Ex. 2188)
+<span class="nc" id="L340">				System.out.println(&quot;The term &quot; + args[1] + &quot; has been added\n&quot;);</span>
+<span class="nc" id="L341">				ui.addTerm(args[1]);</span>
+<span class="nc" id="L342">				break;</span>
+
+			case &quot;addcourse&quot;:
+				// String source = args[1] (Ex: Web)
+				// String courseKey = args[2] (Ex: CISC675)
+				// String term = args[3] (Ex: 2188)
+<span class="nc" id="L348">				ui.getCourseFromWebReg(args[1], args[2], args[3]);</span>
+<span class="nc" id="L349">				break;</span>
+
+			case &quot;getcrsschd&quot;:
+				// args[1] = String source (Ex: web)
+				// args[2] = String courseKey (Ex: CISC675)
+				// args[3] = String term (Ex: 2188)
+				// TODO Get this command line working. It should not save as a file.
+				// TODO Just needs to display the schedules
+				// TODO Handle it for up to five courseKeys (make term as args[2])
+<span class="nc" id="L358">				ui.getCourseSchd(args[1], args[2], args[3]);</span>
+<span class="nc" id="L359">				break;</span>
+
+			case &quot;getCoursebyCode&quot;:
+				// TODO does not display
+				// String code = args[1] (Ex:675)
+				// String term = args[2] (Ex: 2188)
+<span class="nc" id="L365">				ui.getCourseByCodeFromDatabase(args[1], args[2]);</span>
+<span class="nc" id="L366">				break;</span>
+
+			case &quot;getCourseSchdbyCode&quot;:
+				// TODO does not display
+				// String courseCode = args[1] (Ex:675)
+				// String term = args[2] (Ex: 2188)
+<span class="nc" id="L372">				ui.getCourseSchdByCodeFromDatabase(args[1], args[2]);</span>
+<span class="nc" id="L373">				break;</span>
+
+			case &quot;addCA&quot;:
+				// TODO Fix NullPointer Exception that arises from Database method
+				// storeCAToDynamic()
+				// and also from UserInterface method storeCAToDatabase
+				// int caID = args[1] (Ex: 123432)
+				// String term = args[2] (Ex: 2188)
+<span class="nc" id="L381">				int caid = Integer.parseInt(args[1]);</span>
+<span class="nc" id="L382">				CourseAssistant ca = new CourseAssistant(caid);</span>
+<span class="nc" id="L383">				ui.storeCAToDatabase(ca, args[2]);</span>
+<span class="nc" id="L384">				break;</span>
+
+			case &quot;getcaschd&quot;:
+				// TODO Have not tested because no credentials
+				// String source = args[1]
+				// String [] credentials [Username = args[2], Password = args[3]]
+				// int caID = args[4]
+				// String term = args[5]
+				// String
+<span class="nc" id="L393">				int CAid = Integer.parseInt(args[4]);</span>
+<span class="nc" id="L394">				int[] id = { CAid };</span>
+<span class="nc" id="L395">				String[] cred = { args[2], args[3] };</span>
+<span class="nc" id="L396">				ui.getCaSchd(args[1], cred, id, args[5]);</span>
+<span class="nc" id="L397">				break;</span>
+
+			case &quot;getCAbyID&quot;:
+<span class="nc" id="L400">				int StudentID = Integer.parseInt(args[1]);</span>
+<span class="nc" id="L401">				ui.getCAbyIDFromDatabase(StudentID, args[2]);</span>
+<span class="nc" id="L402">				break;</span>
+
+			case &quot;getCASchdbyCAID&quot;:
+				// args[1] = CAid (Ex: 123432)
+				// args[2] = term (Ex: 2188)
+<span class="nc" id="L407">				int SID = Integer.parseInt(args[1]);</span>
+<span class="nc" id="L408">				ui.getCASchdByIDFromDatabase(SID, args[2]);</span>
+				break;
+
+			case &quot;genlist&quot;:
+				// arg[1] = term
+				// ui.genAssign(args[1]);
+				break;
+
+			case &quot;display -caschd&quot;:
+				// arg[1] = term
+				// arg[2] = caID1, caID2,...
+				break;
+
+			case &quot;display -crsschd&quot;:
+				// arg[1] = term
+				// arg[2] = courseKey1, courseKey2,...
+				break;
+
+			case &quot;display -assignfile&quot;:
+				// arg[1] = term
+				// arg[2] = fileName...
+				break;
+
+			case &quot;display -assign&quot;:
+				// arg[1] = term
+				// arg[2] = caID1
+				// arg[3] = fileName
+
+				break;
+
+			}
+
+<span class="nc" id="L440">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

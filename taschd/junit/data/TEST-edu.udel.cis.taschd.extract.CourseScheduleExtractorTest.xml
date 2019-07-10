@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite errors="0" failures="0" hostname="wifi-roaming-128-4-108-130.host.udel.edu" name="edu.udel.cis.taschd.extract.CourseScheduleExtractorTest" skipped="0" tests="3" time="17.448" timestamp="2018-12-07T19:56:34">
+  <properties>
+    <property name="java.vendor" value="Oracle Corporation" />
+    <property name="websocket-common-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/websocket-common-9.4.12.v20180830.jar" />
+    <property name="httpclient-4.5.6.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/httpclient-4.5.6.jar" />
+    <property name="sun.java.launcher" value="SUN_STANDARD" />
+    <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers" />
+    <property name="ant.file.type.taschd" value="file" />
+    <property name="serializer-2.7.2.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/serializer-2.7.2.jar" />
+    <property name="os.name" value="Mac OS X" />
+    <property name="htmlunit-cssparser-1.2.0.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/htmlunit-cssparser-1.2.0.jar" />
+    <property name="json-simple-1.1.1.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/json-simple-1.1.1.jar" />
+    <property name="sun.boot.class.path" value="/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/resources.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/rt.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/sunrsasign.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/jsse.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/jce.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/charsets.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/jfr.jar:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/classes" />
+    <property name="xml-apis-1.4.01.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/xml-apis-1.4.01.jar" />
+    <property name="java.vm.specification.vendor" value="Oracle Corporation" />
+    <property name="ant.home" value="/Users/sumeetgupta/Documents/apache-ant-1.10.5" />
+    <property name="java.runtime.version" value="1.8.0_152-b16" />
+    <property name="xercesImpl-2.12.0.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/xercesImpl-2.12.0.jar" />
+    <property name="user.name" value="sumeetgupta" />
+    <property name="jetty-client-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-client-9.4.12.v20180830.jar" />
+    <property name="org.hamcrest.core-1.3.0.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/org.hamcrest.core-1.3.0.jar" />
+    <property name="user.language" value="en" />
+    <property name="jackson-annotations-2.9.7.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jackson-annotations-2.9.7.jar" />
+    <property name="jetty-xml-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-xml-9.4.12.v20180830.jar" />
+    <property name="sun.boot.library.path" value="/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib" />
+    <property name="guava-23.0.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/guava-23.0.jar" />
+    <property name="ant.project.default-target" value="jar" />
+    <property name="ant.project.name" value="taschd" />
+    <property name="commons-lang3-3.8.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-lang3-3.8.jar" />
+    <property name="java.version" value="1.8.0_152" />
+    <property name="user.timezone" value="" />
+    <property name="jetty-io-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-io-9.4.12.v20180830.jar" />
+    <property name="sun.arch.data.model" value="64" />
+    <property name="test.src.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/test" />
+    <property name="http.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16" />
+    <property name="java.endorsed.dirs" value="/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/endorsed" />
+    <property name="sun.cpu.isalist" value="" />
+    <property name="sun.jnu.encoding" value="UTF-8" />
+    <property name="file.encoding.pkg" value="sun.io" />
+    <property name="neko-htmlunit-2.33.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/neko-htmlunit-2.33.jar" />
+    <property name="file.separator" value="/" />
+    <property name="jackson-databind-2.9.7.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jackson-databind-2.9.7.jar" />
+    <property name="java.specification.name" value="Java Platform API Specification" />
+    <property name="httpcore-4.4.10.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/httpcore-4.4.10.jar" />
+    <property name="java.class.version" value="52.0" />
+    <property name="user.country" value="US" />
+    <property name="java.home" value="/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre" />
+    <property name="java.vm.info" value="mixed mode" />
+    <property name="main-class" value="edu.udel.cis.taschd.userinterface.UserInterface" />
+    <property name="ant.file" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/build.xml" />
+    <property name="os.version" value="10.12.6" />
+    <property name="path.separator" value=":" />
+    <property name="java.vm.version" value="25.152-b16" />
+    <property name="htmlunit-core-js-2.33.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/htmlunit-core-js-2.33.jar" />
+    <property name="commons-net-3.6.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-net-3.6.jar" />
+    <property name="ant.library.dir" value="/Users/sumeetgupta/Documents/apache-ant-1.10.5/lib" />
+    <property name="javax.json-1.1.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/javax.json-1.1.jar" />
+    <property name="java.awt.printerjob" value="sun.lwawt.macosx.CPrinterJob" />
+    <property name="sun.io.unicode.encoding" value="UnicodeBig" />
+    <property name="awt.toolkit" value="sun.lwawt.macosx.LWCToolkit" />
+    <property name="_jacoco.agentFile" value="/var/folders/ll/zfb7cv4d5_34hs01y05kq6b40000gn/T/jacocoagent5776982731079610852.jar" />
+    <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16" />
+    <property name="commons-logging-1.2.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-logging-1.2.jar" />
+    <property name="ftp.nonProxyHosts" value="local|*.local|169.254/16|*.169.254/16" />
+    <property name="httpmime-4.5.6.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/httpmime-4.5.6.jar" />
+    <property name="coverage.report.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/coverage" />
+    <property name="user.home" value="/Users/sumeetgupta" />
+    <property name="java.specification.vendor" value="Oracle Corporation" />
+    <property name="junit.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junit" />
+    <property name="java.library.path" value="/Users/sumeetgupta/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:." />
+    <property name="java.vendor.url" value="http://java.oracle.com/" />
+    <property name="commons-text-1.4.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-text-1.4.jar" />
+    <property name="gopherProxySet" value="false" />
+    <property name="java.vm.vendor" value="Oracle Corporation" />
+    <property name="bin.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/bin" />
+    <property name="commons-io-2.6.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-io-2.6.jar" />
+    <property name="htmlunit-2.33.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/htmlunit-2.33.jar" />
+    <property name="java.runtime.name" value="Java(TM) SE Runtime Environment" />
+    <property name="ant.version" value="Apache Ant(TM) version 1.10.5 compiled on July 10 2018" />
+    <property name="java.class.path" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/junit.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/org.hamcrest.core-1.3.0.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/bin:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/bin-test:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-codec-1.10.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-io-2.6.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-lang3-3.8.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-logging-1.2.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-net-3.6.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-text-1.4.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/htmlunit-2.33.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/htmlunit-core-js-2.33.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/htmlunit-cssparser-1.2.0.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/httpclient-4.5.6.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/httpcore-4.4.10.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/httpmime-4.5.6.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/javax.json-1.1.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-client-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-http-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-io-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-util-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-xml-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/json-simple-1.1.1.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/neko-htmlunit-2.33.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/serializer-2.7.2.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/websocket-api-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/websocket-client-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/websocket-common-9.4.12.v20180830.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/xalan-2.7.2.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/xercesImpl-2.12.0.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/xml-apis-1.4.01.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/guava-23.0.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jackson-core-2.9.7.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jackson-databind-2.9.7.jar:/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jackson-annotations-2.9.7.jar:/Users/sumeetgupta/Documents/apache-ant-1.10.5/lib/ant-launcher.jar:/Users/sumeetgupta/Documents/apache-ant-1.10.5/lib/ant.jar:/Users/sumeetgupta/Documents/apache-ant-1.10.5/lib/ant-junit.jar:/Users/sumeetgupta/Documents/apache-ant-1.10.5/lib/ant-junit4.jar:/var/folders/ll/zfb7cv4d5_34hs01y05kq6b40000gn/T/jacocoagent5776982731079610852.jar" />
+    <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner testsfile=/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junittestcases1178532009182673754.properties skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false showoutput=false outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=false formatter=org.apache.tools.ant.taskdefs.optional.junit.BriefJUnitResultFormatter formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junit/data/IGNORETHIS.xml crashfile=/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junitvmwatcher4563043732842867198.properties propsfile=/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junit1662440929255045707.properties" />
+    <property name="xalan-2.7.2.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/xalan-2.7.2.jar" />
+    <property name="java.vm.specification.name" value="Java Virtual Machine Specification" />
+    <property name="websocket-api-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/websocket-api-9.4.12.v20180830.jar" />
+    <property name="websocket-client-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/websocket-client-9.4.12.v20180830.jar" />
+    <property name="ant.file.type" value="file" />
+    <property name="java.vm.specification.version" value="1.8" />
+    <property name="junit.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/junit.jar" />
+    <property name="sun.os.patch.level" value="unknown" />
+    <property name="sun.cpu.endian" value="little" />
+    <property name="junit.reports.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junit/reports" />
+    <property name="ant.file.taschd" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/build.xml" />
+    <property name="java.io.tmpdir" value="/var/folders/ll/zfb7cv4d5_34hs01y05kq6b40000gn/T/" />
+    <property name="java.vendor.url.bug" value="http://bugreport.sun.com/bugreport/" />
+    <property name="java.awt.graphicsenv" value="sun.awt.CGraphicsEnvironment" />
+    <property name="os.arch" value="x86_64" />
+    <property name="java.ext.dirs" value="/Users/sumeetgupta/Library/Java/Extensions:/Library/Java/JavaVirtualMachines/jdk1.8.0_152.jdk/Contents/Home/jre/lib/ext:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java" />
+    <property name="user.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd" />
+    <property name="commons-codec-1.10.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/commons-codec-1.10.jar" />
+    <property name="line.separator" value="&#xa;" />
+    <property name="java.vm.name" value="Java HotSpot(TM) 64-Bit Server VM" />
+    <property name="test.bin.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/bin-test" />
+    <property name="junit.data.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/junit/data" />
+    <property name="basedir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd" />
+    <property name="ant.java.version" value="1.8" />
+    <property name="ant.core.lib" value="/Users/sumeetgupta/Documents/apache-ant-1.10.5/lib/ant.jar" />
+    <property name="jetty-http-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-http-9.4.12.v20180830.jar" />
+    <property name="file.encoding" value="UTF-8" />
+    <property name="jetty-util-9.4.12.v20180830.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jetty-util-9.4.12.v20180830.jar" />
+    <property name="jackson-core-2.9.7.jar" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/lib/jackson-core-2.9.7.jar" />
+    <property name="coverage.exec.file" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/coverage/jacoco.exec" />
+    <property name="java.specification.version" value="1.8" />
+    <property name="src.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/src" />
+    <property name="ant.project.invoked-targets" value="all" />
+    <property name="javadoc.dir" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/doc/javadoc" />
+    <property name="jar-path" value="/Users/sumeetgupta/Desktop/SE/Practicals/taschd/taschd.jar" />
+  </properties>
+  <testcase classname="edu.udel.cis.taschd.extract.CourseScheduleExtractorTest" name="CSExtractorTest" time="9.898" />
+  <testcase classname="edu.udel.cis.taschd.extract.CourseScheduleExtractorTest" name="CSAllCoursesExtractorTest" time="7.544" />
+  <testcase classname="edu.udel.cis.taschd.extract.CourseScheduleExtractorTest" name="CSExtractorEmptyArgsTest" time="0.003" />
+  <system-out><![CDATA[[CISC 675 - 020LAB 010LEC]
+[CISC 681 - 010LEC]
+********************** CSExtractorTest Complete *************************
+57 Courses are returned for key CISC in term 2193
+******************* CSAllCoursesExtractorTest Complete *******************
+Course Key provided is empty
+Term value provided is empty
+Source should be Web, only Web extraction is implemented in this phase
+******************* CSExtractorEmptyArgsTest Complete *******************
+]]></system-out>
+  <system-err><![CDATA[java.lang.instrument.IllegalClassFormatException: Error while instrumenting com/gargoylesoftware/css/parser/javacc/CSS3ParserTokenManager.
+	at org.jacoco.agent.rt.internal_290345e.CoverageTransformer.transform(CoverageTransformer.java:93)
+	at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+	at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:428)
+	at java.lang.ClassLoader.defineClass1(Native Method)
+	at java.lang.ClassLoader.defineClass(ClassLoader.java:763)
+	at java.security.SecureClassLoader.defineClass(SecureClassLoader.java:142)
+	at java.net.URLClassLoader.defineClass(URLClassLoader.java:467)
+	at java.net.URLClassLoader.access$100(URLClassLoader.java:73)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:368)
+	at java.net.URLClassLoader$1.run(URLClassLoader.java:362)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at java.net.URLClassLoader.findClass(URLClassLoader.java:361)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:424)
+	at sun.misc.Launcher$AppClassLoader.loadClass(Launcher.java:338)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:357)
+	at com.gargoylesoftware.css.parser.javacc.CSS3Parser.<init>(CSS3Parser.java:3148)
+	at com.gargoylesoftware.css.parser.javacc.CSS3Parser.<init>(CSS3Parser.java:52)
+	at com.gargoylesoftware.htmlunit.javascript.host.css.CSSStyleSheet.parseCSS(CSSStyleSheet.java:864)
+	at com.gargoylesoftware.htmlunit.javascript.host.css.CSSStyleSheet.<init>(CSSStyleSheet.java:204)
+	at com.gargoylesoftware.htmlunit.javascript.host.css.CSSStyleSheet.loadStylesheet(CSSStyleSheet.java:320)
+	at com.gargoylesoftware.htmlunit.html.HtmlLink$1.execute(HtmlLink.java:288)
+	at com.gargoylesoftware.htmlunit.html.HtmlLink.onAllChildrenAddedToPage(HtmlLink.java:298)
+	at com.gargoylesoftware.htmlunit.html.HTMLParser$HtmlUnitDOMBuilder.endElement(HTMLParser.java:802)
+	at org.apache.xerces.parsers.AbstractSAXParser.endElement(Unknown Source)
+	at com.gargoylesoftware.htmlunit.html.HTMLParser$HtmlUnitDOMBuilder.endElement(HTMLParser.java:758)
+	at org.apache.xerces.parsers.AbstractXMLDocumentParser.emptyElement(Unknown Source)
+	at net.sourceforge.htmlunit.cyberneko.HTMLTagBalancer.startElement(HTMLTagBalancer.java:781)
+	at net.sourceforge.htmlunit.cyberneko.HTMLTagBalancer.emptyElement(HTMLTagBalancer.java:829)
+	at net.sourceforge.htmlunit.cyberneko.filters.DefaultFilter.emptyElement(DefaultFilter.java:151)
+	at net.sourceforge.htmlunit.cyberneko.filters.NamespaceBinder.emptyElement(NamespaceBinder.java:295)
+	at net.sourceforge.htmlunit.cyberneko.HTMLScanner$ContentScanner.scanStartElement(HTMLScanner.java:2811)
+	at net.sourceforge.htmlunit.cyberneko.HTMLScanner$ContentScanner.scan(HTMLScanner.java:2149)
+	at net.sourceforge.htmlunit.cyberneko.HTMLScanner.scanDocument(HTMLScanner.java:939)
+	at net.sourceforge.htmlunit.cyberneko.HTMLConfiguration.parse(HTMLConfiguration.java:452)
+	at net.sourceforge.htmlunit.cyberneko.HTMLConfiguration.parse(HTMLConfiguration.java:403)
+	at org.apache.xerces.parsers.XMLParser.parse(Unknown Source)
+	at com.gargoylesoftware.htmlunit.html.HTMLParser$HtmlUnitDOMBuilder.parse(HTMLParser.java:1001)
+	at com.gargoylesoftware.htmlunit.html.HTMLParser.parse(HTMLParser.java:250)
+	at com.gargoylesoftware.htmlunit.html.HTMLParser.parseHtml(HTMLParser.java:196)
+	at com.gargoylesoftware.htmlunit.DefaultPageCreator.createHtmlPage(DefaultPageCreator.java:267)
+	at com.gargoylesoftware.htmlunit.DefaultPageCreator.createPage(DefaultPageCreator.java:158)
+	at com.gargoylesoftware.htmlunit.WebClient.loadWebResponseInto(WebClient.java:531)
+	at com.gargoylesoftware.htmlunit.WebClient.getPage(WebClient.java:398)
+	at com.gargoylesoftware.htmlunit.WebClient.getPage(WebClient.java:315)
+	at com.gargoylesoftware.htmlunit.WebClient.getPage(WebClient.java:466)
+	at com.gargoylesoftware.htmlunit.WebClient.getPage(WebClient.java:448)
+	at edu.udel.cis.taschd.extract.CourseScheduleExtractor.getCourseScheduleWeb(CourseScheduleExtractor.java:205)
+	at edu.udel.cis.taschd.extract.CourseScheduleExtractor.<init>(CourseScheduleExtractor.java:69)
+	at edu.udel.cis.taschd.extract.CourseScheduleExtractorTest.CSExtractorTest(CourseScheduleExtractorTest.java:35)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:50)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:47)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:325)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:78)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:57)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:290)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:71)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:288)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:58)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:268)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:363)
+	at junit.framework.JUnit4TestAdapter.run(JUnit4TestAdapter.java:38)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.run(JUnitTestRunner.java:534)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.launch(JUnitTestRunner.java:1196)
+	at org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(JUnitTestRunner.java:1014)
+Caused by: java.io.IOException: Error while instrumenting com/gargoylesoftware/css/parser/javacc/CSS3ParserTokenManager.
+	at org.jacoco.agent.rt.internal_290345e.core.instr.Instrumenter.instrumentError(Instrumenter.java:160)
+	at org.jacoco.agent.rt.internal_290345e.core.instr.Instrumenter.instrument(Instrumenter.java:110)
+	at org.jacoco.agent.rt.internal_290345e.CoverageTransformer.transform(CoverageTransformer.java:91)
+	... 69 more
+Caused by: java.lang.RuntimeException: Method code too large!
+	at org.jacoco.agent.rt.internal_290345e.asm.MethodWriter.getSize(MethodWriter.java:2059)
+	at org.jacoco.agent.rt.internal_290345e.asm.ClassWriter.toByteArray(ClassWriter.java:861)
+	at org.jacoco.agent.rt.internal_290345e.core.instr.Instrumenter.instrument(Instrumenter.java:91)
+	at org.jacoco.agent.rt.internal_290345e.core.instr.Instrumenter.instrument(Instrumenter.java:108)
+	... 70 more
+]]></system-err>
+</testsuite>

@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Course.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.course</a> &gt; <span class="el_source">Course.java</span></div><h1>Course.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.course;
+
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+
+import java.util.Objects;
+
+/**
+ * &lt;p&gt;
+ * The {@link Course} represents static attributes of a {@link Course}. 
+ * It specifies the attributes belongs to a {@link Course}. 
+ * It hides the details on the internal representation of {@link Course} objects 
+ * including offerings in a specific semester.
+ * &lt;/p&gt;
+ * 
+ * &lt;p&gt;
+ * {@link Course} uses module time and skill.
+ * &lt;/p&gt;
+ *
+ * @author matthew
+ */
+public class Course implements Comparable&lt;Course&gt; {
+
+    /**
+     * The university 4-character department identifier that this Course has.
+     * For example, &quot;CISC&quot; stands for Computer and Information Science. This is a String
+     * consisting of only capital letters.
+     */
+    private String prefix;
+
+    /**
+     * The university 3-digit course identifier that this Course has. This is a String
+     * in the range [000,999]. Note that all course codes have leading 0's. For example,
+     * 10 represents 010 and 1 represents 001.
+     */
+    private String courseCode;
+
+    /**
+     * The university title identifier that this {@link Course} has. This is an unrestricted
+     * proper-case String with no formal naming conventions.
+     */
+    private String courseName;
+
+    /**
+     * The mandatory set of {@link Skill}s that are required in order to assign to {@link Course}.
+     */
+    private SkillSet skills;
+
+    /**
+     * Constructs a new {@link Course} with given prefix, course code, and course name.
+     *
+     * @param prefix
+     *                   the university 4-character department identifier,
+     *                   a String consisting of only capital letters.
+     * @param courseCode
+     *                   the university 3-digit course identifier,
+     *                   a String consisting of only digits with leading zeros (0).
+     * @param courseName
+     *                   the university title identifier,
+     *                   a unrestricted proper-case String.
+     */
+<span class="fc" id="L62">    public Course(String prefix, String courseCode, String courseName) {</span>
+<span class="pc bpc" id="L63" title="1 of 4 branches missed.">        if (prefix.length() != 4 || prefix.matches(&quot;[A-Z]&quot;))</span>
+<span class="fc" id="L64">            throw new IllegalArgumentException(</span>
+<span class="fc" id="L65">                    &quot;the prefix must be a 4-character upper-case String&quot;);</span>
+<span class="fc" id="L66">        this.prefix = prefix;</span>
+
+<span class="pc bpc" id="L68" title="2 of 4 branches missed.">        if (courseCode.length() != 3 || courseCode.matches(&quot;[0-9]&quot;))</span>
+<span class="nc" id="L69">            throw new IllegalArgumentException(</span>
+<span class="nc" id="L70">                    &quot;the course code must be a 3-digit String&quot;);</span>
+<span class="fc" id="L71">        this.courseCode = courseCode;</span>
+
+<span class="fc" id="L73">        this.courseName = courseName;</span>
+<span class="fc" id="L74">        this.skills = new SkillSet();</span>
+<span class="fc" id="L75">    }</span>
+
+    /**
+     * A getter to get the university prefix, represented as a 4-character String.
+     *
+     * @return the prefix.
+     */
+    public String getPrefix() {
+<span class="fc" id="L83">        return prefix;</span>
+    }
+
+    /**
+     * A getter to get the university course code, represented as a 3-digit String.
+     *
+     * @return the course code.
+     */
+    public String getCourseCode() {
+<span class="fc" id="L92">        return courseCode;</span>
+    }
+
+    /**
+     * A getter to get the university course name, represented as a String.
+     *
+     * @return the course name.
+     */
+    public String getCourseName() {
+<span class="fc" id="L101">        return courseName;</span>
+    }
+
+    /**
+     * A getter to get the set of skills required for this course, represented 
+     * as a {@link java.util.Set} of {@link Skill}s where each entry is a String.
+     *
+     * @return skills the Set of required skills.
+     */
+    public SkillSet getSkills() {
+<span class="fc" id="L111">        return skills;</span>
+    }
+
+    /**
+     * A setter to get the set of {@link Skill}s required for this {@link Course} 
+     * initialized, represented as a {@link java.util.Set} of {@link Skill}s 
+     * where each entry is a String.
+     *
+     * @param skills
+     *               a set representation of skills as Strings.
+     */
+    public void setSkills(SkillSet skills) {
+<span class="fc" id="L123">        this.skills = skills;</span>
+<span class="fc" id="L124">    }</span>
+
+    /**
+     * Compares the prefix of this {@link Course} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the prefix.
+     *
+     * @param that
+     *             another non-{@code null} {@link Course}
+     * @return -1 if alphabetical order of prefix at this ahead of prefix of another;
+     *         0 if the end prefix are the same;
+     *         +1 the other one's prefix is ahead of this one's prefix.
+     */
+    public int comparePrefix(Course that) {
+
+<span class="fc" id="L138">        int diff = this.getPrefix().compareTo(that.getPrefix());</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L140">            return -1;</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L142">            return 0;</span>
+        else
+<span class="fc" id="L144">            return 1;</span>
+    }
+
+    /**
+     * Compares the course code of this {@link Course} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the course code.
+     *
+     * @param that
+     *             another non-{@code null} {@link Course}
+     * @return -1 if alphabetical order of course code at this ahead of course code of another;
+     *         0 if the courseCode are the same;
+     *         +1 the other one's courseCode is ahead of this one's course code.
+     */
+    public int compareCourseCode(Course that) {
+<span class="fc" id="L158">        int diff = this.getCourseCode().compareTo(that.getCourseCode());</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L160">            return -1;</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L162">            return 0;</span>
+        else
+<span class="fc" id="L164">            return 1;</span>
+    }
+
+    /**
+     * Compares the course name number of this {@link Course} with that one. 
+     * Returns -1, 0, or 1 depending on Alphabetical order of the course name.
+     *
+     * @param that
+     *             another non-{@code null} {@link Course}
+     * @return -1 if Id number of this is larger than course name number of that object;
+     *         0 if the course name number are the same;
+     *         +1 the course name number of this is smaller than course name number of that object.
+     */
+    public int compareCourseName(Course that) {
+<span class="fc" id="L178">        int diff = this.getCourseName().compareTo(that.getCourseName());</span>
+
+<span class="fc bfc" id="L180" title="All 2 branches covered.">        if (diff &lt; 0)</span>
+<span class="fc" id="L181">            return -1;</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">        else if (diff == 0)</span>
+<span class="fc" id="L183">            return 0;</span>
+        else
+<span class="fc" id="L185">            return 1;</span>
+    }
+
+    /**
+     * Prints the information of this {@link Course} represented as
+     * &quot;Prefix CourseCode CourseName Skills&quot;.
+     */
+    public void display() {
+<span class="fc" id="L193">    	String prefix = getPrefix(), courseCode = getCourseCode(),</span>
+<span class="fc" id="L194">                courseName = getCourseName(), skills = getSkills().toString();</span>
+<span class="fc" id="L195">        String result = &quot;------\nCourse Information:\n&quot; + prefix + &quot; &quot; + courseCode + &quot; &quot; + </span>
+<span class="fc" id="L196">                courseName + &quot;\nSkills Required - &quot; + skills;</span>
+        
+<span class="fc" id="L198">        System.out.println(result);</span>
+<span class="fc" id="L199">    }</span>
+
+    /**
+     * This method is a override for {@link java.lang.Object#toString()}.
+     *
+     * @return the formatted &quot;Prefix CourseCode CourseName&quot; String
+     */
+    @Override
+	public String toString() {
+<span class="fc" id="L208">    	String prefix = getPrefix(), courseCode = getCourseCode();</span>
+<span class="fc" id="L209">        String result = prefix + &quot; &quot; + courseCode;</span>
+
+<span class="fc" id="L211">        return result;</span>
+    }
+
+    /**
+     * This method is a override for {@link java.lang.Object#equals(Object)}.
+     * 
+     * @return a boolean value, TRUE if these two objects are equal or in the 
+     * second if statement their course coude are the same. FALSE if this object
+     * is not Course type or in the second if statement their course codes are 
+     * not the same.
+     */
+    @Override
+    public boolean equals(Object obj) {
+<span class="fc bfc" id="L224" title="All 2 branches covered.">        if (this == obj)</span>
+<span class="fc" id="L225">            return true;</span>
+<span class="pc bpc" id="L226" title="1 of 2 branches missed.">        if (obj instanceof Course) {</span>
+<span class="fc" id="L227">            Course that = (Course) obj;</span>
+
+<span class="fc bfc" id="L229" title="All 2 branches covered.">            return this.courseCode == that.courseCode;</span>
+        }
+<span class="nc" id="L231">        return false;</span>
+    }
+
+    /**
+     * This method is a override for {@link java.lang.Object#hashCode()}.
+     * 
+     * @return the hash code of the {@link Course}.
+     */
+    @Override
+    public int hashCode() {
+<span class="fc" id="L241">        return Objects.hash(this.getPrefix(), this.getCourseCode(), this.getCourseName(), this.getSkills());</span>
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * &lt;p&gt;
+     * The order is determined by first comparing prefix. If prefix are equal,
+     * courseCode is compared to break the tie. If courseCode is equal, courseName
+     * is compared to break the tie. If courseName is equal, both course objects are equal.
+     * &lt;/p&gt;
+     */
+    @Override
+	public int compareTo(Course that) {
+<span class="fc" id="L255">        int c = comparePrefix(that);</span>
+
+<span class="fc bfc" id="L257" title="All 2 branches covered.">        if (c != 0) {</span>
+<span class="fc" id="L258">            return c;</span>
+        }
+
+<span class="fc" id="L261">        c = compareCourseCode(that);</span>
+
+<span class="fc bfc" id="L263" title="All 2 branches covered.">        if (c != 0)</span>
+<span class="fc" id="L264">            return c;</span>
+<span class="fc" id="L265">        return compareCourseName(that);</span>
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

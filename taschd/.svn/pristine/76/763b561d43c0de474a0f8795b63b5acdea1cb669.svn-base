@@ -1,0 +1,32 @@
+{
+  "Sections" : [ {
+    "Section Number" : "210",
+    "Section Type" : "Lec",
+    "Instructor name" : "Harvey",
+    "Location" : "B-A-GOR117",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "40",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 9:30–10:45" ]
+  }, {
+    "Section Number" : "220",
+    "Section Type" : "Lec",
+    "Instructor name" : "Harvey",
+    "Location" : "B-B-GOR117",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "40",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 11:00–12:15", "Thu 11:00–12:15" ]
+  } ],
+  "Skills" : [ "Java" ],
+  "Course Code" : "275",
+  "Prefix" : "CISC",
+  "Has Lab" : false,
+  "Course Name" : "BBB-Introduction to Software Engineering"
+}

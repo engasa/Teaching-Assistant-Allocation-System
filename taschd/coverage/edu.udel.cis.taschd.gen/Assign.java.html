@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Assign.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.gen</a> &gt; <span class="el_source">Assign.java</span></div><h1>Assign.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.gen;
+
+/**
+ * The Hungarian class is responsible for optimizing and making assignments between Sections and CA 
+ * based on the score provided. 
+ * It hides the details on the internal representation
+ * 
+ * 
+ * @author nikhil
+ */
+
+
+public class Assign {
+	private double[][] scores; // Given Scores
+	private double[][] duplicateScores; // duplicate Scores
+	private int[][] lines; // Line drawn
+	private int numLines; // Number of line drawn
+	
+	private int assignment[]; // Index of the column assigned to every row
+	private int assignedCol[]; //To Verify that all column are occupied
+	
+<span class="nc" id="L22">	public Assign(double[][] scoreTable) {</span>
+	
+<span class="nc" id="L24">		this.scores = scoreTable; </span>
+<span class="nc" id="L25">		this.duplicateScores = duplicateTable(scoreTable); </span>
+<span class="nc" id="L26">		this.assignment = new int[duplicateScores.length];</span>
+<span class="nc" id="L27">		this.assignedCol = new int[duplicateScores.length];</span>
+<span class="nc" id="L28">		this.numLines = 0;</span>
+							
+<span class="nc" id="L30">	}</span>
+	
+	public void hungarian() {
+		
+		//Hungarian Algorithm
+<span class="nc" id="L35">		subRowMax(); 				</span>
+<span class="nc" id="L36">		subColMax();				</span>
+<span class="nc" id="L37">		zerosCovered();						</span>
+<span class="nc bnc" id="L38" title="All 2 branches missed.">		while(numLines &lt; duplicateScores.length){</span>
+<span class="nc" id="L39">			createZeros();		</span>
+<span class="nc" id="L40">			zerosCovered();					</span>
+		}
+<span class="nc" id="L42">		optimize(0);</span>
+<span class="nc" id="L43">	}</span>
+	
+	/**
+	 * 
+	 * Subtract from every element the maximum value from its row
+	 * */
+	
+	private void subRowMax(){
+<span class="nc" id="L51">		double rowMax[] = new double[duplicateScores.length];</span>
+		//get the max for each row 
+<span class="nc bnc" id="L53" title="All 2 branches missed.">		for(int row=0; row&lt;duplicateScores.length;row++){</span>
+<span class="nc" id="L54">			rowMax[row] = duplicateScores[row][0];</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">			for(int col=1; col&lt;duplicateScores.length;col++){</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">				if(duplicateScores[row][col] &gt; rowMax[row])</span>
+<span class="nc" id="L57">					rowMax[row] = duplicateScores[row][col];</span>
+			}
+		}
+		
+		//subtract rowMax from each row 
+<span class="nc bnc" id="L62" title="All 2 branches missed.">		for(int row=0; row&lt;duplicateScores.length;row++){</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">			for(int col=0; col&lt;duplicateScores.length;col++){</span>
+<span class="nc" id="L64">				duplicateScores[row][col] -= rowMax[row];</span>
+			}
+		}
+<span class="nc" id="L67">	} </span>
+	
+	/**
+	 * 
+	 * Subtract from every element the maximum value from its column
+	 * */
+	private void subColMax(){
+<span class="nc" id="L74">		double colMax[] = new double[duplicateScores.length];</span>
+		//get the max for each column 
+<span class="nc bnc" id="L76" title="All 2 branches missed.">		for(int col=0; col&lt;duplicateScores.length;col++){</span>
+<span class="nc" id="L77">			colMax[col] = duplicateScores[0][col];</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">			for(int row=1; row&lt;duplicateScores.length;row++){</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">				if(duplicateScores[row][col] &gt; colMax[col])</span>
+<span class="nc" id="L80">					colMax[col] = duplicateScores[row][col];</span>
+			}
+		}
+		
+		//subtract colMax from each row 
+<span class="nc bnc" id="L85" title="All 2 branches missed.">		for(int col=0; col&lt;duplicateScores.length;col++){</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">			for(int row=0; row&lt;duplicateScores.length;row++){</span>
+<span class="nc" id="L87">				duplicateScores[row][col] -= colMax[col];</span>
+			}
+		}
+<span class="nc" id="L90">	} </span>
+	
+	/**
+	 * 
+	 * Loop through all elements, and run colorNeighbors when the element visited is equal to zero
+	 * */
+	private void zerosCovered(){
+<span class="nc" id="L97">		numLines = 0;</span>
+<span class="nc" id="L98">		lines = new int[duplicateScores.length][duplicateScores.length];</span>
+		
+<span class="nc bnc" id="L100" title="All 2 branches missed.">		for(int row=0; row&lt;duplicateScores.length;row++){</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">			for(int col=0; col&lt;duplicateScores.length;col++){</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">				if(duplicateScores[row][col] == 0)</span>
+<span class="nc" id="L103">					colorNeighbors(row, col, maxZeroDirection(row, col));</span>
+			}
+		}
+<span class="nc" id="L106">	}</span>
+	
+	/**
+	 * 
+	 * Checks which direction (vertical,horizontal) contains more zeros, every time a zero is found vertically, we increment the result
+	 * and every time a zero is found horizontally, we decrement the result. At the end, result will be negative, zero or positive
+	 * @param row Row index for the target cell
+	 * @param col Column index for the target cell
+	 * @return Positive integer means that the line passing by indexes should be vertical, Zero or Negative means that the line passing by indexes should be horizontal
+	 * */
+	private int maxZeroDirection(int row, int col){
+<span class="nc" id="L117">		int result = 0;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">		for(int i=0; i&lt;duplicateScores.length;i++){</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">			if(duplicateScores[i][col] == 0)</span>
+<span class="nc" id="L120">				result++;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">			if(duplicateScores[row][i] == 0)</span>
+<span class="nc" id="L122">				result--;</span>
+		}
+<span class="nc" id="L124">		return result;</span>
+	}
+	
+	/**
+	 * 
+	 * Color the neighbors of the cell. To know which direction to draw the lines, we pass maxZeroDirection value.
+	 * @param row Row index for the target cell
+	 * @param col Column index for the target cell
+	 * @param maxZeroDirection Value return by the maxZeroDirection method
+	 * */
+	private void colorNeighbors(int row, int col, int maxZeroDirection){
+<span class="nc bnc" id="L135" title="All 2 branches missed.">		if(lines[row][col] == 2) // if cell is colored twice before, don't color it again</span>
+<span class="nc" id="L136">			return;</span>
+		
+<span class="nc bnc" id="L138" title="All 4 branches missed.">		if(maxZeroDirection &gt; 0 &amp;&amp; lines[row][col] == 1) // if cell colored vertically and needs to be recolored vertically, don't color it again </span>
+<span class="nc" id="L139">			return;</span>
+			
+<span class="nc bnc" id="L141" title="All 4 branches missed.">		if(maxZeroDirection &lt;= 0 &amp;&amp; lines[row][col] == -1) // if cell colored horizontally and needs to be recolored horizontally, don't color it again </span>
+<span class="nc" id="L142">			return;</span>
+		
+<span class="nc bnc" id="L144" title="All 2 branches missed.">		for(int i=0; i&lt;duplicateScores.length;i++){ // Loop on cell at indexes and its neighbors</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">			if(maxZeroDirection &gt; 0)	// if value of maxZeroDirection is positive, color vertically</span>
+<span class="nc bnc" id="L146" title="All 4 branches missed.">				lines[i][col] = lines[i][col] == -1 || lines[i][col] == 2 ? 2 : 1; // if cell was colored before as horizontal (-1), and now needs to be colored vertical (1), so this cell is an intersection (2). Else if this value was not colored before, color it vertically</span>
+			else			// if value of maxZeroDirection is zero or negative color horizontally
+<span class="nc bnc" id="L148" title="All 4 branches missed.">				lines[row][i] = lines[row][i] == 1 || lines[row][i] == 2 ? 2 : -1; // if cell was colored before as vertical (1), and now needs to be colored horizontal (-1), so this cell is an intersection (2). Else if this value was not colored before, color it horizontally</span>
+		}
+		
+		// increment line number
+<span class="nc" id="L152">		numLines++;</span>
+
+<span class="nc" id="L154">	}</span>
+	
+	/**
+	 * 
+	 * 
+	 * Create additional zeros, by coloring the maximum value of uncovered cells 
+	 * */
+	private void createZeros(){
+<span class="nc" id="L162">		double maxUncovered = 0; </span>
+		
+		// Find the max in the uncovered numbers
+<span class="nc bnc" id="L165" title="All 2 branches missed.">		for(int row=0; row&lt;duplicateScores.length;row++){</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">			for(int col=0; col&lt;duplicateScores.length;col++){</span>
+<span class="nc bnc" id="L167" title="All 6 branches missed.">				if(lines[row][col] == 0 &amp;&amp; (duplicateScores[row][col] &gt; maxUncovered || maxUncovered == 0))</span>
+<span class="nc" id="L168">					maxUncovered = duplicateScores[row][col];</span>
+			}
+		}
+		
+		// Subtract max form all uncovered elements, and add it to all elements covered twice
+<span class="nc bnc" id="L173" title="All 2 branches missed.">		for(int row=0; row&lt;duplicateScores.length;row++){</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">			for(int col=0; col&lt;duplicateScores.length;col++){</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">				if(lines[row][col] == 0) </span>
+<span class="nc" id="L176">					duplicateScores[row][col] -= maxUncovered;</span>
+				
+<span class="nc bnc" id="L178" title="All 2 branches missed.">				else if(lines[row][col] == 2) </span>
+<span class="nc" id="L179">					duplicateScores[row][col] += maxUncovered;</span>
+			}
+		}
+<span class="nc" id="L182">	} </span>
+	
+	/**
+	 * Optimize, assign every row a cell in a unique column. Since a row can contain more than one zero,
+	 * we need to make sure that all rows are assigned one cell from one unique column. 
+	 * @param row
+	 * @param boolean If all rows were assigned a cell from a unique column, return true 
+	 * @return true
+	 * */
+	private boolean optimize(int row){
+<span class="nc bnc" id="L192" title="All 2 branches missed.">		if(row == assignment.length) // If all rows were assigned a cell</span>
+<span class="nc" id="L193">			return true;</span>
+		
+<span class="nc bnc" id="L195" title="All 2 branches missed.">		for(int col=0; col&lt;duplicateScores.length;col++){ </span>
+<span class="nc bnc" id="L196" title="All 4 branches missed.">			if(duplicateScores[row][col] == 0 &amp;&amp; assignedCol[col] == 0){ // If the current cell has a value of zero, and the column assigned to previous row</span>
+<span class="nc" id="L197">				assignment[row] = col; // Assign the current row the current column</span>
+<span class="nc" id="L198">				assignedCol[col] = 1; // Mark the column as assigned</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">				if(optimize(row+1)) // If the next rows were assigned successfully a value from unique column, return true</span>
+<span class="nc" id="L200">					return true;</span>
+<span class="nc" id="L201">				assignedCol[col] = 0; // If the next rows were not able to get value, go back and try for the previous rows another value from another column</span>
+			}
+		}
+<span class="nc" id="L204">		return false; // If no cell were assigned for the current row, return false to go back one row to try to assign to it another value from another column</span>
+	}
+	
+	
+	/**
+	 * Get the result by returning an array containing the cell assigned for each row
+	 * @return Array of rows where each array index represent the row number, and the value at each index is the column assigned to the corresponding row
+	 * */
+	public int[] getAssignment(){
+<span class="nc" id="L213">		return assignment;</span>
+	}
+	
+	/**
+	 * Get the sum of the values of the assigned cells
+	 * @return sum of values
+	 * */
+	public double getOptimumAssignmentScore(){
+<span class="nc" id="L221">		double total = 0;</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">		for(int row = 0; row &lt; duplicateScores.length; row++)</span>
+<span class="nc" id="L223">			total += scores[row][assignment[row]];</span>
+<span class="nc" id="L224">		return total;</span>
+	}
+
+	/**
+	 * Clone the 2D array
+	 * @return A copy of the 2D array
+	 * */
+	private double[][] duplicateTable(double[][] table){
+		
+<span class="nc" id="L233">		double[][] temp = new double[table.length][table.length];</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">		for(int row = 0; row &lt; table.length; row++){</span>
+<span class="nc" id="L235">			temp[row] = table[row].clone();</span>
+		}
+<span class="nc" id="L237">		return temp;</span>
+	}
+	
+	/**
+	 * Print a 2D array
+	 * @param table  2D array to be displayed
+	 * */
+	public void display(double[][] table){
+<span class="nc bnc" id="L245" title="All 2 branches missed.">		for(int row=0; row&lt;table.length;row++){</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">			for(int col=0; col&lt;table.length;col++){</span>
+<span class="nc" id="L247">				System.out.print(table[row][col]+&quot;\t&quot;);</span>
+			}
+<span class="nc" id="L249">			System.out.println();</span>
+		}
+<span class="nc" id="L251">		System.out.println();</span>
+<span class="nc" id="L252">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

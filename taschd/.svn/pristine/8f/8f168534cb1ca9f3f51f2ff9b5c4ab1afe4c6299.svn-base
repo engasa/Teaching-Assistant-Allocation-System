@@ -1,0 +1,69 @@
+package edu.udel.cis.taschd.gen;
+
+import java.util.Collection;
+
+import edu.udel.cis.taschd.assign.Assignment;
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.course.CourseInstance;
+
+/**
+ * <p>
+ * This {@link CompleteAssign} provides a method to complete the partial 
+ * {@link Assignment} which contains part of the assignment but not for all
+ * {@link Course}s.
+ * </p>
+ * 
+ * <p>
+ * {@link CompleteAssign} is a part of {@link GenerateAssignment}'s methods.
+ * </p>
+ * 
+ * @author jinbo
+ *
+ */
+public class CompleteAssign {
+	/**
+	 * This method is responsible for complete all the {@link Assignment}
+	 * when given a partial {@link Assignment} which contains some given
+	 * mapping relations between {@link CourseInstance} and {@link CourseAssistant}.
+	 * 
+	 * @param partialAssign
+	 *             a {@link Assignment} with some mapping relations already.
+	 */
+	public void completeAssign(Assignment partialAssign) {
+		
+		Collection<Section> sC = partialAssign.getSectionsFromAssignment(partialAssign);
+		Collection<CourseAssistant> caSet;
+		CourseAssistantPool newCAPool = new CourseAssistantPool(); // new ca pool
+		CourseInstancePool newCiPool = new CourseInstancePool(); // new course pool
+		
+		if (sC == null){
+			throw new NullPointerException
+			("This partial assignment does not contain any assignment!");
+		}
+		
+		for (Section s1 : sC) {
+		// assigned CAs
+		caSet = partialAssign.getCasForSection(s1);
+		
+		// assigned sections
+		//partialAssign.getSectionForCa(ca1);
+		
+		for (CourseAssistant ca: caSet) {
+			
+			int id = ca.getId();
+			
+			newCAPool.removeCourseAssistantById(id);
+			
+			newCiPool.removeCourseInstanceBySection(s1);
+
+		}
+		
+		GenerateAssignment ga = new GenerateAssignment(newCAPool, newCiPool);
+		ga.assign();
+			
+	}
+	}
+}

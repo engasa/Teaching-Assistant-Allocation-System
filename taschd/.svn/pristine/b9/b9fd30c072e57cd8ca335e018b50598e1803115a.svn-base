@@ -1,0 +1,461 @@
+package edu.udel.cis.taschd.gen;
+
+import static org.junit.Assert.assertEquals;
+import ilog.concert.*;
+import ilog.cplex.*;
+
+
+import java.io.PrintStream;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.Test;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+/**
+ * Tests of the {@link LPSovler} class.
+ *
+ * @author Yi Liu
+ */
+public class LPSolverTest {	
+	
+	@Test
+	public void test() {
+		/**In this test, number of sections will be more than course assistants.
+		 * 
+		 * CISC 210 AAA-Introduction to Systems Programming || Skills Required - C, Matlab
+		 * 110 : 20 students;  Schedule: Tue 0:00–1:00,  Qualified CA will be Barack Obama; Benjamin Franklin ,  Bill Clinton 
+		 * 120: 20 students;  Schedule: Wed 0:00–1:00,  Qualified CA will be Barack Obama; Benjamin Franklin,  Bill Clinton 
+         * 130  20 students;  Schedule: Thu 0:00–1:00,   Qualified CA will be Barack Obama; Benjamin Franklin, Bill Clinton; Donald Duck,
+         * 100 4: 40 students; schedule: Mon 0:00–1:00, NumofTA 2   Qualified CA will be Barack Obama; Benjamin Franklin ,  Bill Clinton 
+         * ----------------------------------------------------------------------------------------------------
+         * CISC 275 BBB-Introduction to Software Engineering || Skills Required - JAVA
+         * Section Information (Term 2191):
+　　　　　 * 210, 33 of 40, Tue 9:30–10:45                     Qualified CA will be   Bill Clinton, Denzel Washiton
+         * 220, 38 of 40, Tue 11:00–12:15; Thu 11:00–12:15,    Qualified CA will be   Bill Clinton, Denzel Washition
+         * 
+         * CISC 304 Logic and Programming || Skills Required - 604
+         * Section Information (Term 2191):
+         * 310, 35 of 35, Tue 11:00–12:15; Thu 11:00–12:15, SHL120, Carberry     Qualified CA will be: Donald Duck,
+         * 
+         * One more TA dummy dummy, who is not qualified for any of these course.
+		 */
+		// Create a Course Assistant Pool object
+		CourseAssistant ca1 = new CourseAssistant(111); 
+		CourseAssistant ca2 = new CourseAssistant(222);
+		CourseAssistant ca3 = new CourseAssistant(333);
+		CourseAssistant ca4 = new CourseAssistant(444);
+		CourseAssistant ca5 = new CourseAssistant(555);
+		CourseAssistant ca6 = new CourseAssistant(666);
+		
+		////////////////// CA 1 //////////////////////////////////////
+		ca1.setFirstName("Barack");
+		ca1.setLastName("Obama");
+		ca1.setEmailAddress("yeswecan@udel.edu");
+		SkillSet skillSet1 = new SkillSet();
+		skillSet1.addSkill(new Skill("SQL"));
+		skillSet1.addSkill(new Skill("Swift"));
+		skillSet1.addSkill(new Skill("Matlab"));
+		skillSet1.addSkill(new Skill("Bash"));
+		skillSet1.addSkill(new Skill(".NET"));
+		skillSet1.addSkill(new Skill("C"));
+		ca1.setPossessedSkillset(skillSet1);
+
+		// Create WTPS for CourseAssisstant1
+		Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+		TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+		TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+		TimeInterval ti3 = new TimeInterval(DayOfWeek.FRIDAY, 11, 0, 75);
+		cti2.add(ti1);
+		cti2.add(ti2);
+		cti2.add(ti3);
+		WeeklySchedule w1 = new WeeklySchedule(cti2);
+		ca1.setWtps(w1);
+		ca1.setGraduateStudent(true);
+		//////////////////   CA 2 //////////////////////////////////////
+		// set First Name, Last Name
+		// Benjamin know java, but schedules is not good for CISC 275 BBB-Introduction to Software Engineering
+		ca2.setFirstName("Benjamin");
+		ca2.setLastName("Franklin");
+		ca2.setEmailAddress("bfrank@udel.edu");
+		SkillSet skillSet2 = new SkillSet();
+		skillSet2.addSkill(new Skill("Matlab"));
+		skillSet2.addSkill(new Skill("C"));
+		skillSet2.addSkill(new Skill("ASP.NET"));
+		skillSet2.addSkill(new Skill("JAVA"));
+		ca2.setPossessedSkillset(skillSet2);
+		
+		// Create WTPS for CourseAssisstant2
+		Collection<TimeInterval> cta2 = new ArrayList<TimeInterval>();
+		TimeInterval tcnn1 = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+		TimeInterval tcnn2 = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+		TimeInterval tcnn3 = new TimeInterval(DayOfWeek.TUESDAY, 10, 52, 75);
+
+		cta2.add(tcnn1);
+		cta2.add(tcnn2);
+		cta2.add(tcnn3);
+		WeeklySchedule w2 = new WeeklySchedule(cta2);
+		ca2.setWtps(w2);
+		ca2.setGraduateStudent(true);
+		//////////////////   CA 3 //////////////////////////////////////
+		// set First Name, Last Name
+		ca3.setFirstName("Bill");
+		ca3.setLastName("Clinton");
+		ca3.setEmailAddress("billclinton@udel.edu");
+		SkillSet skillSet3 = new SkillSet();
+		skillSet3.addSkill(new Skill("Java"));
+		skillSet3.addSkill(new Skill("C"));
+		skillSet3.addSkill(new Skill("Matlab"));
+
+		ca3.setPossessedSkillset(skillSet3);
+
+		// Create WTPS for CourseAssisstant3
+		Collection<TimeInterval> ctb2 = new ArrayList<TimeInterval>();
+		TimeInterval tb1 = new TimeInterval(DayOfWeek.FRIDAY, 15, 30, 75);
+
+		ctb2.add(tb1);
+
+		WeeklySchedule x2 = new WeeklySchedule(ctb2);
+		ca3.setWtps(x2);
+		ca3.setGraduateStudent(true);
+		//////////////////   CA 4 //////////////////////////////////////
+		// set First Name, Last Name
+		ca4.setFirstName("Denzel");
+		ca4.setLastName("Washington");
+		ca4.setEmailAddress("trainingday@udel.edu");
+		SkillSet skillSet4 = new SkillSet();
+		skillSet4.addSkill(new Skill("Java"));
+		skillSet4.addSkill(new Skill("Alloy"));
+		skillSet4.addSkill(new Skill("Perl"));
+		ca4.setPossessedSkillset(skillSet4);
+
+		// Create WTPS for CourseAssisstant4
+		Collection<TimeInterval> ctc2 = new ArrayList<TimeInterval>();
+
+		TimeInterval ctt = new TimeInterval(DayOfWeek.FRIDAY, 11, 0, 75);
+
+
+		ctc2.add(ctt);
+		WeeklySchedule  v2 = new WeeklySchedule(ctc2);
+		ca4.setWtps(v2);
+		ca4.setGraduateStudent(true);
+		//////////////////   CA 5 //////////////////////////////////////
+		// set First Name, Last Name
+		ca5.setFirstName("Donald");
+		ca5.setLastName("Duck");
+		ca5.setEmailAddress("dduck@udel.edu");
+		SkillSet skillSet5 = new SkillSet();
+		skillSet5.addSkill(new Skill("Python"));
+		skillSet5.addSkill(new Skill("PHP"));
+		skillSet5.addSkill(new Skill("Matalb"));
+		skillSet5.addSkill(new Skill("C"));
+
+		skillSet5.addSkill(new Skill("604"));
+		ca5.setPossessedSkillset(skillSet5);
+
+		// Create WTPS for CourseAssisstant5
+		Collection<TimeInterval> cxc2 = new ArrayList<TimeInterval>();
+
+		TimeInterval zc9 = new TimeInterval(DayOfWeek.FRIDAY, 8, 40, 75);
+		TimeInterval zc10 = new TimeInterval(DayOfWeek.WEDNESDAY, 00, 00, 60);
+		TimeInterval zc11 = new TimeInterval(DayOfWeek.MONDAY, 00, 00, 60);
+		TimeInterval zc12 = new TimeInterval(DayOfWeek.TUESDAY, 00, 00, 60);
+
+
+		cxc2.add(zc9);
+		cxc2.add(zc10);
+		cxc2.add(zc11);
+		cxc2.add(zc12);
+
+		WeeklySchedule  z2 = new WeeklySchedule(cxc2);
+		ca5.setWtps(z2);
+		ca5.setGraduateStudent(true);
+		
+		
+		//////////////////   CA 6 //////////////////////////////////////
+		// set First Name, Last Name
+		ca6.setFirstName("Dummy");
+		ca6.setLastName("Dummy");
+		ca6.setEmailAddress("dduck@udel.edu");
+		SkillSet skillSet6 = new SkillSet();
+		skillSet5.addSkill(new Skill("000"));
+		ca6.setPossessedSkillset(skillSet6);
+
+		// Create WTPS for CourseAssisstant6
+		Collection<TimeInterval> cxc6 = new ArrayList<TimeInterval>();
+
+		TimeInterval zc6 = new TimeInterval(DayOfWeek.FRIDAY, 8, 40, 75);
+
+
+		cxc6.add(zc6);
+
+		WeeklySchedule  z6 = new WeeklySchedule(cxc2);
+		ca6.setWtps(z6);
+		ca6.setGraduateStudent(true);
+		
+		CourseAssistantPool cap = new CourseAssistantPool();
+		cap.addCourseAssistant(ca1);
+		cap.addCourseAssistant(ca2);
+		cap.addCourseAssistant(ca3);
+		cap.addCourseAssistant(ca4);
+		cap.addCourseAssistant(ca5);
+		cap.addCourseAssistant(ca6);
+		
+		System.out.println("Course Assistant Pool\n");
+		Iterable<CourseAssistant> i = cap.getCourseAssistantSet();
+		for (CourseAssistant c: i) {
+			c.display();
+			//System.out.println(c.getWtps().toString());
+			//System.out.println(c.toString());
+		}
+		
+		
+		////////////////// CI 1 //////////////////////////////////////
+		ArrayList<CourseInstance> pool1 = new ArrayList<>();
+		// Create WTPS for CourseAssisstant5
+		Collection<TimeInterval> emw1 = new ArrayList<TimeInterval>();
+		TimeInterval er1 = new TimeInterval(DayOfWeek.MONDAY, 00, 00, 60);
+		emw1.add(er1);
+		pool1.add(new CourseInstance(new Course("CISC", "210", "AAA-Introduction to Systems Programming"), 2191));
+		Section s = new Section("Lec", "100", "Silber", 40, 40, "A-A-GOR208", new WeeklySchedule(emw1));		
+		s.setMtac(true);
+		s.setNumOfLA(0);
+		s.setNumOfTA(2);
+		pool1.get(0).addSection(s);
+		
+		Collection<TimeInterval> emw2 = new ArrayList<TimeInterval>();
+		TimeInterval er4 = new TimeInterval(DayOfWeek.TUESDAY, 00, 00, 60);
+		emw2.add(er4);
+		Section s2 = new Section("L", "110", "Silber", 20, 20, "A-B-PRS101", new WeeklySchedule(emw2));
+		s2.setMtac(true);
+		s2.setNumOfLA(0);
+		s2.setNumOfTA(1);
+		s.setCorrespondingLab(s2);
+		s2.setCorrespondingLecture(s);
+		pool1.get(0).addSection(s2);
+		
+		Collection<TimeInterval> emw3 = new ArrayList<TimeInterval>();
+		TimeInterval er6 = new TimeInterval(DayOfWeek.WEDNESDAY, 00, 00, 60);
+		emw3.add(er6);
+		Section s3 = new Section("L", "120", "Silber", 20, 20, "A-C-PRS101", new WeeklySchedule(emw3));
+		s3.setMtac(true);
+		s3.setNumOfLA(0);
+		s3.setNumOfTA(1);
+		s3.setCorrespondingLecture(s);
+		s3.setTaAssigned(false);
+		pool1.get(0).addSection(s3);
+		
+		TimeInterval er7 = new TimeInterval(DayOfWeek.THURSDAY, 00, 00, 60);	
+		Collection<TimeInterval> emw4 = new ArrayList<TimeInterval>();
+		emw4.add(er7);
+		Section s4 = new Section("L", "130", "Silber", 20, 20, "A-D-PRS101", new WeeklySchedule(emw4));
+		
+		pool1.get(0).addSection(s4);
+		pool1.get(0).getCourse().getSkills().addSkill(new Skill("C"));
+		pool1.get(0).getCourse().getSkills().addSkill(new Skill("Matlab"));
+		pool1.get(0).setHasLab(true);
+		
+		//////////////////CI 2 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "275", "BBB-Introduction to Software Engineering"), 2191));
+		Collection<TimeInterval> ss1 = new ArrayList<TimeInterval>();
+		TimeInterval e2 = new TimeInterval(DayOfWeek.TUESDAY, 9, 30, 75);
+		ss1.add(e2);
+		
+		Section p = new Section("Lec", "210", "Harvey", 33, 40, "B-A-GOR117", new WeeklySchedule(ss1));		
+		p.setMtac(true);
+		p.setNumOfLA(0);
+		p.setNumOfTA(1);
+		p.setMtac(true);
+		
+		pool1.get(1).addSection(p);
+		pool1.get(1).setHasLab(true);
+		pool1.get(1).getCourse().getSkills().addSkill(new Skill("Java"));
+		
+		Collection<TimeInterval> tm = new ArrayList<TimeInterval>();
+		TimeInterval cc = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+		TimeInterval vv = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+		tm.add(cc);
+		tm.add(vv);
+		Section p2 = new Section("Lec", "220", "Harvey", 38, 40, "B-B-GOR117", new WeeklySchedule(tm));
+		p2.setMtac(true);
+		p2.setNumOfLA(0);
+		p2.setNumOfTA(1);
+		p2.setTaAssigned(false);
+		pool1.get(1).addSection(p2);
+				
+		
+
+		
+		//////////////////CI 3 //////////////////////////////////////
+		pool1.add(new CourseInstance(new Course("CISC", "304", "Logic and Programming"), 2191));
+		Collection<TimeInterval> hh = new ArrayList<TimeInterval>();
+		TimeInterval qw = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+		TimeInterval wq = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+		hh.add(qw);
+		hh.add(wq);
+		Section q = new Section("Lec", "310", "Carberry", 35, 35, "SHL120", new WeeklySchedule(hh));		
+		q.setNumOfLA(0);
+		q.setNumOfTA(1);
+		q.setMtac(true);
+
+		
+		pool1.get(2).addSection(q);
+		pool1.get(2).setHasLab(false);
+		pool1.get(2).getCourse().getSkills().addSkill(new Skill("604"));
+		
+		
+		//////////////////CI 4 //////////////////////////////////////
+//		pool1.add(new CourseInstance(new Course("CISC", "303", "Automata Theory"), 2191));
+//		Collection<TimeInterval> tt = new ArrayList<TimeInterval>();
+//		TimeInterval ii = new TimeInterval(DayOfWeek.MONDAY, 10, 10, 50);
+//		TimeInterval oo = new TimeInterval(DayOfWeek.WEDNESDAY, 10, 10, 50);
+//		TimeInterval pp = new TimeInterval(DayOfWeek.FRIDAY, 10, 10, 50);
+//		tt.add(ii);
+//		tt.add(oo);
+//		tt.add(pp);
+//		Section d = new Section("Lec", "010", "Carberry", 43, 45, "ALS318", new WeeklySchedule(tt));		
+//		d.setMtac(true);
+//		d.setNumOfLA(0);
+//		d.setNumOfTA(1);
+//		d.setMtac(true);
+//		d.setTaAssigned(false);
+//		
+//		pool1.get(3).addSection(d);
+//		pool1.get(3).setHasLab(false);
+//		pool1.get(3).getCourse().getSkills().addSkill(new Skill("601"));
+//		
+		//////////////////CI 5 //////////////////////////////////////
+//		pool1.add(new CourseInstance(new Course("CISC", "320", "Introduction to Algorithms"), 2191));
+//		Collection<TimeInterval> gg = new ArrayList<TimeInterval>();
+//		TimeInterval gh = new TimeInterval(DayOfWeek.TUESDAY, 12, 30, 75);
+//		TimeInterval hg = new TimeInterval(DayOfWeek.THURSDAY, 12, 30, 75);
+//		gg.add(gh);
+//		gg.add(hg);
+//		Section h = new Section("Lec", "010", "Bart", 43, 45, "GOR208", new WeeklySchedule(gg));		
+//		h.setMtac(true);
+//		h.setNumOfLA(0);
+//		h.setNumOfTA(1);
+//		h.setTaAssigned(false);
+//		
+//		pool1.get(4).addSection(q);
+//		pool1.get(4).setHasLab(false);
+//		pool1.get(4).getCourse().getSkills().addSkill(new Skill("621"));
+		
+		//////////////////CI 6 //////////////////////////////////////
+//		pool1.add(new CourseInstance(new Course("CISC", "437", "Database Systems"), 2191));
+//		Collection<TimeInterval> asd = new ArrayList<TimeInterval>();
+//		TimeInterval sd = new TimeInterval(DayOfWeek.TUESDAY, 16, 0, 75);
+//		TimeInterval ds = new TimeInterval(DayOfWeek.THURSDAY, 16, 0, 75);
+//		asd.add(sd);
+//		asd.add(ds);
+//		Section aa = new Section("Lec", "010", "Gibbons", 35, 35, "GOR102", new WeeklySchedule(asd));		
+//		aa.setMtac(true);
+//		aa.setNumOfLA(0);
+//		aa.setNumOfTA(1);
+//		aa.setTaAssigned(false);
+//		
+//		pool1.get(5).addSection(aa);
+//		pool1.get(5).setHasLab(false);
+//		pool1.get(5).getCourse().getSkills().addSkill(new Skill("637"));
+//		pool1.get(5).getCourse().getSkills().addSkill(new Skill("SQL"));
+		
+//		pool1.add(new CourseInstance(new Course("CISC", "442", "Introduction to Computer Vision"), 2191));
+//		pool1.add(new CourseInstance(new Course("CISC", "450", "Computer Networks I"), 2191));
+//		pool1.add(new CourseInstance(new Course("CISC", "675", "Software Engineering"), 2191));
+//		pool1.add(new CourseInstance(new Course("CISC", "642", "Intro to Computer Vision"), 2198));
+//		pool1.add(new CourseInstance(new Course("CISC", "681", "Artificial Intelligence"), 2191));
+
+//		pool1.get(0).addSection(new Section("Lec", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule()));
+//		pool1.get(0).addSection(new Section("Lec", "010", "Siegel,Stephen", 11, 20, "MDH216", new WeeklySchedule()));
+//		pool1.get(0).addSection(new Section("L", "020", "Siegel,Stephen", 11, 35, "BRL205", new WeeklySchedule()));
+//		pool1.get(1).addSection(new Section("Lec", "010", "Kambhamettu,Chandra", 19, 20, "MEM110", new WeeklySchedule()));
+//		
+		// Create a Course Instance Pool object
+		System.out.println("\nCourse Instance Pool\n");
+		CourseInstancePool cip = new CourseInstancePool(pool1);
+		Iterable<CourseInstance> i2 = cip.getCourseInstanceSet();
+	
+		for( CourseInstance c2 : i2) {
+			c2.display();
+//			System.out.println(c2.toString());
+			
+			/*for(Section sec : c2.getSections())
+				sec.setTaAssigned(false);*/
+			
+		}
+		//HugarianSolver scoreT1 = new HugarianSolver(cap, cip);
+		//ArrayList<ArrayList<Double>> testOne = scoreT1.getTable();
+		
+		//System.out.println(testOne.size());
+		
+		//for (int count = 0; count < testOne.size(); count++) {
+		//	System.out.println(testOne.get(count).toString());
+		//}
+
+      //  System.out.println("Bipartite Matching: " + Arrays.toString(scoreT1.getResult()));
+      //  scoreT1.display();
+        
+        
+        LPSolver cplexTest = new LPSolver(cap,cip);
+        
+		ArrayList<ArrayList<Double>> testTwo = cplexTest.getScoreTable();
+		
+		System.out.println(testTwo.size());
+		
+		System.out.println("Score Table: ");
+		
+		for (int count = 0; count < testTwo.size(); count++) {
+			System.out.println(testTwo.get(count).toString());
+		}
+		
+		
+		cplexTest.displayHash();
+		HashMap<Section, CourseAssistant> assignmentVerify = new HashMap<Section, CourseAssistant>();
+		assignmentVerify.put(s2, ca2);
+		assignmentVerify.put(p, ca4);
+		assignmentVerify.put(q, ca5);
+		assignmentVerify.put(s, ca1);
+		
+		/**In this test, number of sections will be more than course assistants.
+		 * 
+		 * CISC 210 AAA-Introduction to Systems Programming || Skills Required - C, Matlab
+		 * 110 : 20 students;  Schedule: Tue 0:00–1:00,  Qualified CA will be Barack Obama; Benjamin Franklin ,  Bill Clinton 
+		 * 120: 20 students;  Schedule: Wed 0:00–1:00,  Qualified CA will be Barack Obama; Benjamin Franklin,  Bill Clinton 
+         * 130  20 students;  Schedule: Thu 0:00–1:00,   Qualified CA will be Barack Obama; Benjamin Franklin, Bill Clinton; Donald Duck,
+         * 100 4: 40 students; schedule: Mon 0:00–1:00, NumofTA 2   Qualified CA will be Barack Obama; Benjamin Franklin ,  Bill Clinton 
+         * ----------------------------------------------------------------------------------------------------
+         * CISC 275 BBB-Introduction to Software Engineering || Skills Required - JAVA
+         * Section Information (Term 2191):
+　　　　　 * 210, 33 of 40, Tue 9:30–10:45                     Qualified CA will be   Bill Clinton, Denzel Washiton
+         * 220, 38 of 40, Tue 11:00–12:15; Thu 11:00–12:15,    Qualified CA will be   Bill Clinton, Denzel Washition
+         * 
+         * CISC 304 Logic and Programming || Skills Required - 604
+         * Section Information (Term 2191):
+         * 310, 35 of 35, Tue 11:00–12:15; Thu 11:00–12:15, SHL120, Carberry     Qualified CA will be: Donald Duck,
+         * 
+         * One more TA dummy dummy, who is not qualified for any of these course.
+		 */
+		//ssertEquals(cplexTest.getAssignment());
+        
+        
+	} 
+	
+	
+	
+
+}

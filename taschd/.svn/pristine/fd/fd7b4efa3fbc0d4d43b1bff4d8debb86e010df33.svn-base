@@ -1,0 +1,196 @@
+package edu.udel.cis.taschd.ca;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ListIterator;
+
+/**
+ * <p>
+ * The {@link CourseAssistantPool} is responsible for managing {@link CourseAssistant} 
+ * objects like, obtaining all {@link CourseAssistant}s by using API in db module.
+ * It hides the details on the internal representation of {@link CourseAssistant} objects. 
+ * <p>
+ * 
+ * <p>
+ * {@link CourseAssistantPool} is a set of {@link CourseAssistant}s.
+ * </p>
+ * 
+ * @author Yi Liu
+ */
+public class CourseAssistantPool {
+	/**
+	 * The sequenced array list of {@link CourseAssistant}s. They are ordered by last name, 
+	 * then first Name, and ID number. The ordered is determined by the method
+	 * {@link CourseAssistant#compareTo(CourseAssistant)}.
+	 * If last names are equal, the first names are used to break the tie. 
+	 * If first names are equal, the IDs are used to break the tie.
+	 */
+	private ArrayList<CourseAssistant> courseAssistantSet;
+	
+	/**
+	 * Constructs new empty courseAssistantSet.
+	 */	
+	public CourseAssistantPool(){
+		courseAssistantSet = new ArrayList<>();
+	}
+	
+	/**
+	 * Constructs a new courseAssistantSet from the given collection of
+	 * {@link CourseAssistant}s. The new {@link CourseAssistantPool} will not keep any
+	 * reference to the given {@link Collection}, hence subsequent modifications
+	 * to the collection will not affect the new {@link CourseAssistantPool}. 
+	 * The new {@link CourseAssistantPool} may keep references to the member 
+	 * CourseAssistants of the collection, but since
+	 * {@link CourseAssistant}s are immutable, this fact should be invisible to the
+	 * client. The internal representation may differ from the organization of
+	 * the collection, in that courseAssistants will be ordered and duplicates removed.
+	 * The given {@link Collection} will not be modified.
+	 * 
+	 * @param courseAssistants
+	 *                            any collection of non-{@code null}
+	 *                            {@link CourseAssistant}s that will be used to build the
+	 *                            new CourseAssistantSet.
+	 */
+	public CourseAssistantPool(Collection<CourseAssistant> courseAssistants) {
+		this();
+		for (CourseAssistant ca : courseAssistants)
+			addCourseAssistant(ca);
+	}
+	
+	/**
+	 * Returns the courseAssistantSet as an iterable sequence of {@link CourseAssistant}.
+	 * 
+	 * @return the courseAssistantSet.
+	 */
+	public Iterable<CourseAssistant> getCourseAssistantSet() {
+		return courseAssistantSet;
+	}	
+	
+	/**
+	 * Adds a {@link CourseAssistant} to this courseAssistantSet. If the given
+	 * {@link CourseAssistant} is already in this courseAssistantSet, this is a no-op.
+	 * 
+	 * 
+	 * @param ca
+	 *               a non-{@code null} {@link CourseAssistant} to add to this
+	 *               courseAssistantSet.
+	 */
+	public void addCourseAssistant(CourseAssistant ca) {
+
+		ListIterator<CourseAssistant> iter = courseAssistantSet.listIterator();
+
+		while (iter.hasNext()) {
+			CourseAssistant y = iter.next();
+			int c = ca.compareTo(y);
+
+			if (c > 0) // ca goes after y
+				continue;
+			if (c == 0)
+				return;
+			// ... x y z ...
+			// y is the first item in list that comes after ca. You want to
+			// insert just before y.
+			iter.previous();
+			break;
+		}
+		iter.add(ca);
+	}
+	
+	/**
+	 * Removes a {@link CourseAssistant} to this courseAssistantSet given 
+	 * the ID of {@link CourseAssistant}.
+	 * 
+	 * @param Id
+	 *               remove a {@link CourseAssistant} to from this
+	 *               courseAssistantSet with specified ID.
+	 */
+	public void removeCourseAssistantById(int Id) {
+        
+		ListIterator<CourseAssistant> iter = courseAssistantSet.listIterator();
+
+		while (iter.hasNext()) {
+			CourseAssistant y = iter.next(); //iterator next
+			int c = y.getId(); 
+			if (Id == c) {// if the ID equals to the ID specified to be removed.
+				iter.remove();
+			}
+		}
+	}
+	
+	/**
+	 * Finds a {@link CourseAssistant} in this courseAssistantSet by given 
+	 * the ID of the {@link CourseAssistant}.
+	 * 
+	 * @param Id
+	 *               find a {@link CourseAssistant} to from this
+	 *               courseAssistantSet with specified ID.
+	 */
+	public CourseAssistant findCourseAssistantById(int Id) {
+        
+		ListIterator<CourseAssistant> iter = courseAssistantSet.listIterator();
+
+		while (iter.hasNext()) {
+			CourseAssistant y = iter.next(); //iterator next
+			int c = y.getId(); 
+			if (Id == c) {// if the id equals to the ID specified to be removed.
+				return y;
+			}
+		}
+		System.out.println("No specified student with this Id in this list.");
+		return null;
+	}
+	
+	
+	/**
+	 * Finds a {@link CourseAssistant} in this courseAssistantSet by given 
+	 * the first name and last name of {@link CourseAssistant}.
+	 * 
+	 * @param firstName, lastName
+	 *                                 find a {@link CourseAssistant} to from this
+	 *                                 courseAssistantSet with specified first name
+	 *                                 and last name.
+	 */
+	public CourseAssistantPool findCourseAssistantByName(String firstName, String lastName) {
+
+		ListIterator<CourseAssistant> iter = courseAssistantSet.listIterator();
+		CourseAssistantPool poolByName = new CourseAssistantPool(); 
+
+		while (iter.hasNext()) {
+			CourseAssistant y = iter.next(); //iterator next
+			String fName = y.getFirstName();
+			String lName = y.getLastName();
+			if (fName.equals(firstName) && lName.equals(lastName)) {// if the id equals to the Id spcified remove.
+				poolByName.addCourseAssistant(y);
+			}
+		}
+		return poolByName;
+	}
+	
+	/**
+	 * Displays a courseAssistantSet.
+	 * 
+	 * @param set1, set2
+	 *                       two courseAssistantSets. 
+	 *               
+	 * @return courseAssistantInterSet
+	 *                                       return an ArrayList of {@link CourseAssistant},
+	 *                                       which is the intersection of set1 and set2 .
+	 */	
+	public void displayCourseAssistants(){
+		ListIterator<CourseAssistant> iter = courseAssistantSet.listIterator();
+      
+     	while (iter.hasNext()) {
+  		    CourseAssistant y = iter.next(); //iterator next
+            y.display();
+  		}
+  	}
+	
+	/**
+	 * Calculates the size of the courseAssistantSet.
+	 * 
+	 * @return the size of the courseAssistantSet.
+	 */
+	public int getSize(){
+		return courseAssistantSet.size();
+	}
+}
+

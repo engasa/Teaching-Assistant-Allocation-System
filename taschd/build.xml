@@ -1,0 +1,229 @@
+<project name="taschd" basedir="." default="jar" xmlns:jacoco="antlib:org.jacoco.ant">
+
+	<condition property="properties.file" value="build.properties" else="build_default.properties">
+		<available file="build.properties" />
+	</condition>
+
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="test.bin.dir" location="${basedir}/bin-test" />
+	<property name="test.src.dir" value="${basedir}/test" />
+	<property name="coverage.report.dir" value="${basedir}/coverage" />
+	<property name="coverage.exec.file" location="${coverage.report.dir}/jacoco.exec" />
+	<property name="junit.dir" location="${basedir}/junit" />
+	<property name="junit.data.dir" location="${junit.dir}/data" />
+	<property name="junit.reports.dir" location="${junit.dir}/reports" />
+	<property name="javadoc.dir" value="${basedir}/doc/javadoc" />
+
+	<!-- the entry point the project (main function) -->
+	<property name="main-class" value="edu.udel.cis.taschd.userinterface.UserInterface" />
+	<property name="jar-path" value="${basedir}/taschd.jar" />
+	<property name="commons-codec-1.10.jar" value="${basedir}/lib/commons-codec-1.10.jar" />
+	<property name="commons-io-2.6.jar" value="${basedir}/lib/commons-io-2.6.jar" />
+	<property name="commons-lang3-3.8.jar" value="${basedir}/lib/commons-lang3-3.8.jar" />
+	<property name="commons-logging-1.2.jar" value="${basedir}/lib/commons-logging-1.2.jar" />
+	<property name="commons-net-3.6.jar" value="${basedir}/lib/commons-net-3.6.jar" />
+	<property name="commons-text-1.4.jar" value="${basedir}/lib/commons-text-1.4.jar" />
+	<property name="htmlunit-2.33.jar" value="${basedir}/lib/htmlunit-2.33.jar" />
+	<property name="htmlunit-core-js-2.33.jar" value="${basedir}/lib/htmlunit-core-js-2.33.jar" />
+	<property name="htmlunit-cssparser-1.2.0.jar" value="${basedir}/lib/htmlunit-cssparser-1.2.0.jar" />
+	<property name="httpclient-4.5.6.jar" value="${basedir}/lib/httpclient-4.5.6.jar" />
+	<property name="httpcore-4.4.10.jar" value="${basedir}/lib/httpcore-4.4.10.jar" />
+	<property name="httpmime-4.5.6.jar" value="${basedir}/lib/httpmime-4.5.6.jar" />
+	<property name="javax.json-1.1.jar" value="${basedir}/lib/javax.json-1.1.jar" />
+	<property name="jetty-client-9.4.12.v20180830.jar" value="${basedir}/lib/jetty-client-9.4.12.v20180830.jar" />
+	<property name="jetty-http-9.4.12.v20180830.jar" value="${basedir}/lib/jetty-http-9.4.12.v20180830.jar" />
+	<property name="jetty-io-9.4.12.v20180830.jar" value="${basedir}/lib/jetty-io-9.4.12.v20180830.jar" />
+	<property name="jetty-util-9.4.12.v20180830.jar" value="${basedir}/lib/jetty-util-9.4.12.v20180830.jar" />
+	<property name="jetty-xml-9.4.12.v20180830.jar" value="${basedir}/lib/jetty-xml-9.4.12.v20180830.jar" />
+	<property name="json-simple-1.1.1.jar" value="${basedir}/lib/json-simple-1.1.1.jar" />
+	<property name="neko-htmlunit-2.33.jar" value="${basedir}/lib/neko-htmlunit-2.33.jar" />
+	<property name="serializer-2.7.2.jar" value="${basedir}/lib/serializer-2.7.2.jar" />
+	<property name="websocket-api-9.4.12.v20180830.jar" value="${basedir}/lib/websocket-api-9.4.12.v20180830.jar" />
+	<property name="websocket-client-9.4.12.v20180830.jar" value="${basedir}/lib/websocket-client-9.4.12.v20180830.jar" />
+	<property name="websocket-common-9.4.12.v20180830.jar" value="${basedir}/lib/websocket-common-9.4.12.v20180830.jar" />
+	<property name="xalan-2.7.2.jar" value="${basedir}/lib/xalan-2.7.2.jar" />
+	<property name="xercesImpl-2.12.0.jar" value="${basedir}/lib/xercesImpl-2.12.0.jar" />
+	<property name="xml-apis-1.4.01.jar" value="${basedir}/lib/xml-apis-1.4.01.jar" />
+	<property name="guava-23.0.jar" value="${basedir}/lib/guava-23.0.jar" />
+	<property name="junit.jar" value="${basedir}/lib/junit.jar" />
+	<property name="org.hamcrest.core-1.3.0.jar" value="${basedir}/lib/org.hamcrest.core-1.3.0.jar" />
+	<property name="jackson-core-2.9.7.jar" value="${basedir}/lib/jackson-core-2.9.7.jar" />
+	<property name="jackson-databind-2.9.7.jar" value="${basedir}/lib/jackson-databind-2.9.7.jar" />
+	<property name="jackson-annotations-2.9.7.jar" value="${basedir}/lib/jackson-annotations-2.9.7.jar" />
+	<property name="cplex.jar" value="${basedir}/lib/cplex.jar" />
+
+	<path id="classpath.test">
+		<pathelement location="${junit.jar}" />
+		<pathelement location="${org.hamcrest.core-1.3.0.jar}" />
+		<pathelement location="${bin.dir}" />
+		<pathelement location="${test.bin.dir}" />
+		<path refid="src.compile.classpath" />
+	</path>
+
+	<!-- put the paths of all your external jar here -->
+	<path id="src.compile.classpath">
+		<pathelement location="${commons-codec-1.10.jar}" />
+		<pathelement location="${commons-io-2.6.jar}" />
+		<pathelement location="${commons-lang3-3.8.jar}" />
+		<pathelement location="${commons-logging-1.2.jar}" />
+		<pathelement location="${commons-net-3.6.jar}" />
+		<pathelement location="${commons-text-1.4.jar}" />
+		<pathelement location="${htmlunit-2.33.jar}" />
+		<pathelement location="${htmlunit-core-js-2.33.jar}" />
+		<pathelement location="${htmlunit-cssparser-1.2.0.jar}" />
+		<pathelement location="${httpclient-4.5.6.jar}" />
+		<pathelement location="${httpcore-4.4.10.jar}" />
+		<pathelement location="${httpmime-4.5.6.jar}" />
+		<pathelement location="${javax.json-1.1.jar}" />
+		<pathelement location="${jetty-client-9.4.12.v20180830.jar}" />
+		<pathelement location="${jetty-http-9.4.12.v20180830.jar}" />
+		<pathelement location="${jetty-io-9.4.12.v20180830.jar}" />
+		<pathelement location="${jetty-util-9.4.12.v20180830.jar}" />
+		<pathelement location="${jetty-xml-9.4.12.v20180830.jar}" />
+		<pathelement location="${json-simple-1.1.1.jar}" />
+		<pathelement location="${neko-htmlunit-2.33.jar}" />
+		<pathelement location="${serializer-2.7.2.jar}" />
+		<pathelement location="${websocket-api-9.4.12.v20180830.jar}" />
+		<pathelement location="${websocket-client-9.4.12.v20180830.jar}" />
+		<pathelement location="${websocket-common-9.4.12.v20180830.jar}" />
+		<pathelement location="${xalan-2.7.2.jar}" />
+		<pathelement location="${xercesImpl-2.12.0.jar}" />
+		<pathelement location="${xml-apis-1.4.01.jar}" />
+		<pathelement location="${guava-23.0.jar}" />
+		<pathelement location="${jackson-annotations-2.9.7.jar}" />
+		<pathelement location="${jackson-core-2.9.7.jar}" />
+		<pathelement location="${jackson-databind-2.9.7.jar}" />
+		<pathelement location="${cplex.jar}" />
+	</path>
+
+	<taskdef uri="antlib:org.jacoco.ant" resource="org/jacoco/ant/antlib.xml">
+		<classpath path="lib/jacocoant.jar" />
+	</taskdef>
+
+	<target name="compile" description="Compile all java source files.">
+		<mkdir dir="${bin.dir}" />
+		<javac debug="true" srcdir="${src.dir}" destdir="${bin.dir}" classpathref="src.compile.classpath" encoding="UTF-8" includeantruntime="false">
+		</javac>
+	</target>
+
+	<target name="test-compile" depends="compile">
+		<mkdir dir="${test.bin.dir}" />
+		<javac srcdir="${test.src.dir}" destdir="${test.bin.dir}" debug="true" encoding="UTF-8" includeantruntime="false">
+			<classpath refid="classpath.test" />
+		</javac>
+	</target>
+
+	<target name="test-init">
+		<mkdir dir="${junit.dir}" />
+		<mkdir dir="${junit.data.dir}" />
+		<mkdir dir="${junit.reports.dir}" />
+		<mkdir dir="${test.bin.dir}" />
+	</target>
+
+	<target name="test" depends="test-compile,test-init">
+		<jacoco:coverage destfile="${coverage.exec.file}">
+			<junit fork="true" forkmode="once" timeout="900000">
+				<jvmarg value="-ea" />
+				<classpath>
+					<path refid="classpath.test" />
+				</classpath>
+				<formatter type="brief" usefile="false" />
+				<formatter type="xml" />
+				<batchtest todir="${junit.data.dir}">
+					<fileset dir="${test.bin.dir}" includes="**/*Test.class" />
+				</batchtest>
+			</junit>
+		</jacoco:coverage>
+		<junitreport todir="${junit.data.dir}">
+			<fileset dir="${junit.data.dir}">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="${junit.reports.dir}">
+				<param name="TITLE" expression="JUnit Report for taschd ${revision} Test Suite" />
+			</report>
+		</junitreport>
+	</target>
+
+	<target name="jar" depends="compile" description="Jar up all class files.">
+		<jar destfile="${jar-path}">
+			<zipfileset src="jar-in-jar-loader.zip" />
+			<fileset dir="${bin.dir}" />
+			<zipfileset dir="${basedir}/lib" includes="commons-codec-1.10.jar" />
+			<zipfileset dir="${basedir}/lib" includes="commons-io-2.6.jar" />
+			<zipfileset dir="${basedir}/lib" includes="commons-lang3-3.8.jar" />
+			<zipfileset dir="${basedir}/lib" includes="commons-logging-1.2.jar" />
+			<zipfileset dir="${basedir}/lib" includes="commons-net-3.6.jar" />
+			<zipfileset dir="${basedir}/lib" includes="commons-text-1.4.jar" />
+			<zipfileset dir="${basedir}/lib" includes="htmlunit-2.33.jar" />
+			<zipfileset dir="${basedir}/lib" includes="htmlunit-core-js-2.33.jar" />
+			<zipfileset dir="${basedir}/lib" includes="htmlunit-cssparser-1.2.0.jar" />
+			<zipfileset dir="${basedir}/lib" includes="httpclient-4.5.6.jar" />
+			<zipfileset dir="${basedir}/lib" includes="httpcore-4.4.10.jar" />
+			<zipfileset dir="${basedir}/lib" includes="httpmime-4.5.6.jar" />
+			<zipfileset dir="${basedir}/lib" includes="javax.json-1.1.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jetty-client-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jetty-http-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jetty-io-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jetty-util-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jetty-xml-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="json-simple-1.1.1.jar" />
+			<zipfileset dir="${basedir}/lib" includes="neko-htmlunit-2.33.jar" />
+			<zipfileset dir="${basedir}/lib" includes="serializer-2.7.2.jar" />
+			<zipfileset dir="${basedir}/lib" includes="websocket-api-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="websocket-client-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="websocket-common-9.4.12.v20180830.jar" />
+			<zipfileset dir="${basedir}/lib" includes="xalan-2.7.2.jar" />
+			<zipfileset dir="${basedir}/lib" includes="xercesImpl-2.12.0.jar" />
+			<zipfileset dir="${basedir}/lib" includes="xml-apis-1.4.01.jar" />
+			<zipfileset dir="${basedir}/lib" includes="guava-23.0.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jackson-annotations-2.9.7.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jackson-core-2.9.7.jar" />
+			<zipfileset dir="${basedir}/lib" includes="jackson-databind-2.9.7.jar" />
+			<zipfileset dir="${basedir}/lib" includes="cplex.jar" />
+			<manifest>
+				<attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader" />
+				<attribute name="Rsrc-Main-Class" value="${main-class}" />
+				<attribute name="Rsrc-Class-Path" value="./ commons-codec-1.10.jar commons-io-2.6.jar commons-lang3-3.8.jar commons-logging-1.2.jar commons-net-3.6.jar commons-text-1.4.jar htmlunit-2.33.jar htmlunit-core-js-2.33.jar htmlunit-cssparser-1.2.0.jar httpclient-4.5.6.jar httpcore-4.4.10.jar httpmime-4.5.6.jar javax.json-1.1.jar jetty-client-9.4.12.v20180830.jar jetty-http-9.4.12.v20180830.jar jetty-io-9.4.12.v20180830.jar jetty-util-9.4.12.v20180830.jar jetty-xml-9.4.12.v20180830.jar json-simple-1.1.1.jar neko-htmlunit-2.33.jar serializer-2.7.2.jar websocket-api-9.4.12.v20180830.jar websocket-client-9.4.12.v20180830.jar websocket-common-9.4.12.v20180830.jar xalan-2.7.2.jar xercesImpl-2.12.0.jar xml-apis-1.4.01.jar guava-23.0.jar jackson-annotations-2.9.7.jar jackson-core-2.9.7.jar jackson-databind-2.9.7.jar cplex.jar" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="clean" description="Delete all generated files.">
+		<delete dir="${bin.dir}" />
+		<delete dir="${test.bin.dir}" />
+		<delete dir="${coverage.report.dir}" />
+		<delete dir="${junit.dir}" />
+		<delete dir="${javadoc.dir}" />
+		<delete file="${jar-path}" />
+	</target>
+
+	<target name="javadoc">
+		<delete dir="${javadoc.dir}" quiet="true" />
+		<mkdir dir="${javadoc.dir}" />
+		<javadoc destdir="${javadoc.dir}" encoding="UTF-8" Overview="src/overview.html" author="false" version="true" use="true" windowtitle="API for taschd ${revision}" access="public" classpathref="src.compile.classpath" failonerror="false">
+			<packageset dir="${src.dir}" defaultexcludes="yes">
+				<include name="edu/udel/cis/taschd/**" />
+			</packageset>
+		</javadoc>
+	</target>
+
+	<target name="report" depends="test">
+		<jacoco:report>
+			<executiondata>
+				<file file="${coverage.exec.file}" />
+			</executiondata>
+			<structure name="taschd jacoco report">
+				<classfiles>
+					<fileset dir="${bin.dir}" />
+				</classfiles>
+				<sourcefiles encoding="UTF-8">
+					<fileset dir="./src" />
+				</sourcefiles>
+			</structure>
+			<html destdir="${coverage.report.dir}" />
+		</jacoco:report>
+	</target>
+
+	<target name="all" depends="jar,report,javadoc" />
+</project>

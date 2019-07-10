@@ -1,0 +1,10 @@
+{
+  "Email" : "trainingday@udel.edu",
+  "Course Enrolled" : null,
+  "Skills" : [ "Java", "only", "Alloy" ],
+  "First Name" : "Denzel",
+  "Time Schedule" : [ "Fri 11:00–12:15" ],
+  "ID" : 444,
+  "Graduate Student" : true,
+  "Last Name" : "Washington"
+}

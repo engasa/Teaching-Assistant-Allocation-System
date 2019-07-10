@@ -1,0 +1,164 @@
+package edu.udel.cis.taschd.skill;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+/**
+ * 
+ * Tests which corresponds to the class skill of a Skill module
+ *
+ * @author gnikhil
+ 
+ */
+
+public class SkillTest {
+	
+	public static Skill java = new Skill("java");
+	public static Skill python = new Skill("python");
+	public static Skill Perl = new Skill("Perl");
+	public static Skill fortran = new Skill("fortran");
+	public static Skill ml = new Skill("ml");
+	public static Skill cpp = new Skill("cpp");
+	public static Skill csharp = new Skill("csharp");
+	public static Skill course450 = new Skill("course450");
+	public static Skill c = new Skill("c");
+	public static Skill sql = new Skill("sql");
+	public static Skill mips = new Skill("mips");
+	public static Skill javascript = new Skill("javascript");
+	public static Skill women = new Skill("women");
+	public static Skill alloy = new Skill("alloy");
+	public static Skill html= new Skill("html");
+	public static Skill css = new Skill("css");
+	public static Skill php = new Skill("php");
+	public static Skill opencv = new Skill("opencv");
+	public static Skill matlab = new Skill("matlab");
+	
+	
+	
+	@Test
+	public void test1() {
+		
+		String a = "Java";
+
+		Skill skill1 = new Skill(a);
+	
+		assertEquals(0, a.compareTo(skill1.toString()));
+	}
+	
+	@Rule
+    public ExpectedException thrown = ExpectedException.none();
+
+	
+	@Test()
+	public void test2() {
+		
+		
+		thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("the name of a Skill cannot be null");
+		
+        String a = null;
+		@SuppressWarnings("unused")
+		Skill skill1 = new Skill(a);
+		
+	}
+	
+	
+	@Test()
+	public void test3() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+		
+		assertEquals(a.hashCode(),skill1.hashCode());
+		
+	}
+	
+	@Test()
+	public void test4() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+		
+		
+		Skill skill2 = new Skill(a);
+		
+		assertEquals(0,skill1.compareTo(skill2));
+		
+	}
+	
+	@Test()
+	public void test5() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+		
+		String b = "Python";
+		assertNotEquals(b.hashCode(),skill1.hashCode());
+		
+	}
+	
+	@Test()
+	public void test6() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+		
+		String b = "Python";
+		Skill skill2 = new Skill(b);
+	
+		assertNotEquals(0,skill1.compareTo(skill2));
+		
+	}
+	
+	@Test()
+	public void test7() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+	
+		String b = "Python";
+		Skill skill2 = new Skill(b);
+	    
+		assertEquals(false,skill1.equals(skill2));
+		
+	}
+	
+	@Test()
+	public void test8() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+		
+		String b = "Java";
+		Skill skill2 = new Skill(b);
+	    
+		assertEquals(true,skill1.equals(skill2));
+		
+	}
+	
+	@Test()
+	public void test9() {
+		
+					
+        String a = "Java";
+		Skill skill1 = new Skill(a);
+		
+		String b = "Java";
+		
+	    
+		assertEquals(false,skill1.equals(b));
+		
+	}
+	
+	
+}

@@ -1,0 +1,56 @@
+{
+  "Sections" : [ {
+    "Section Number" : "110",
+    "Section Type" : "L",
+    "Instructor name" : "Silber",
+    "Location" : "A-B-PRS101",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Tue 0:00–1:00" ]
+  }, {
+    "Section Number" : "120",
+    "Section Type" : "L",
+    "Instructor name" : "Silber",
+    "Location" : "A-C-PRS101",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Wed 0:00–1:00" ]
+  }, {
+    "Section Number" : "130",
+    "Section Type" : "L",
+    "Instructor name" : "Silber",
+    "Location" : "A-D-PRS101",
+    "Current Enrollment" : "20",
+    "Enrollment Cap" : "20",
+    "TA Assigned" : false,
+    "Num of TA" : "1",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Thu 0:00–1:00" ]
+  }, {
+    "Section Number" : "100",
+    "Section Type" : "Lec",
+    "Instructor name" : "Silber",
+    "Location" : "A-A-GOR208",
+    "Current Enrollment" : "40",
+    "Enrollment Cap" : "40",
+    "TA Assigned" : false,
+    "Num of TA" : "2",
+    "Num of LA" : "0",
+    "MTAC" : true,
+    "Time Schedule" : [ "Mon 0:00–1:00" ]
+  } ],
+  "Skills" : [ "C", "Matlab" ],
+  "Course Code" : "210",
+  "Prefix" : "CISC",
+  "Has Lab" : true,
+  "Course Name" : "AAA-Introduction to Systems Programming"
+}

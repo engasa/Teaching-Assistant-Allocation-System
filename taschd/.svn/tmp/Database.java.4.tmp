@@ -1,0 +1,1459 @@
+package edu.udel.cis.taschd.db;
+
+import edu.udel.cis.taschd.course.Course;
+import edu.udel.cis.taschd.course.CourseInstance;
+import edu.udel.cis.taschd.course.CourseInstancePool;
+import edu.udel.cis.taschd.time.TimeInterval;
+import edu.udel.cis.taschd.time.WeeklySchedule;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.xml.crypto.Data;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import edu.udel.cis.taschd.ca.CourseAssistant;
+import edu.udel.cis.taschd.ca.CourseAssistantPool;
+import edu.udel.cis.taschd.course.Section;
+import edu.udel.cis.taschd.gen.GenerateAssignment;
+import edu.udel.cis.taschd.skill.Skill;
+import edu.udel.cis.taschd.skill.SkillSet;
+
+/**
+ * The Database class is a component of the DB module. It stores and retrieves
+ * data by the request of the client.
+ * 
+ * @author Michael Oyefusi
+ * 
+ */
+
+public class Database {
+	private static boolean success = false;
+	/**
+	 * get Current directory of user
+	 */
+	static String directory = System.getProperty("user.dir");
+	File rootDir = new File(directory);
+	File taschdDirectory = new File(rootDir, "taschd_dir");
+	String[] taschdFolders = taschdDirectory.list();
+	static String course = "courses";
+	static String caPool = "ca_pool";
+	static String terms = "terms";
+	static String assistants = "assistants";
+	static String assignments = "assignments";
+
+	// variables to check if folder or file exists
+	static boolean taschdExists = false;
+	static boolean termExists = false;
+	static boolean courseExists = false;
+	static boolean caPoolExists = false;
+	static boolean termNumberExists = false;
+	static boolean termNumberCourseExists = false;
+	static boolean termNumberAssistantExists = false;
+	static boolean termNumberAssignmentExists = false;
+	static boolean studentExists = false;
+
+	/**
+	 * check if taschd_dir exists
+	 *
+	 * @return
+	 */
+	public static boolean taschdCheck() {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+
+		if (taschdDirectory.exists()) {
+			taschdExists = true;
+		}
+		return taschdExists;
+	}
+
+	/**
+	 * check if course folder exists in taschd_dir
+	 *
+	 * @return
+	 */
+	public static boolean taschdCourseFolderCheck() {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(course)) {
+					courseExists = true;
+					break;
+				}
+			}
+		}
+		return courseExists;
+	}
+
+	/**
+	 * 
+	 * check if ca pool folder exists in taschd_dir
+	 * 
+	 * @return
+	 */
+	public static boolean taschdCaPoolFolderCheck() {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(caPool)) {
+					caPoolExists = true;
+					break;
+				}
+			}
+		}
+		return caPoolExists;
+	}
+
+	/**
+	 * check if terms folder exists in taschd_dir
+	 *
+	 * @return
+	 */
+	public static boolean taschdTermFolderCheck() {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		String[] taschdFolders = taschdDirectory.list();
+
+		if (taschdFolders != null) {
+			for (int i = 0; i < taschdFolders.length; i++) {
+				if (taschdFolders[i].equalsIgnoreCase(terms)) {
+					termExists = true;
+					break;
+				}
+			}
+		}
+		return termExists;
+	}
+
+	/**
+	 * check if [term] folder exists in terms folder in taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberFolderCheck(String term) {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		String[] termsFolders = termsDirectory.list();
+
+		if (termsFolders != null) {
+			for (int i = 0; i < termsFolders.length; i++) {
+				if (termsFolders[i].equalsIgnoreCase(term)) {
+					termNumberExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberExists;
+	}
+
+	/**
+	 * check if courses folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberCourseFolderCheck(String term) {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(course)) {
+					termNumberCourseExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberCourseExists;
+	}
+
+	/**
+	 * check if assistants folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberAssistantFolderCheck(String term) {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(assistants)) {
+					termNumberAssistantExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberAssistantExists;
+	}
+
+	/**
+	 * check if assignment folder exists in [term] folder in terms folder in
+	 * taschd_dir
+	 *
+	 * @param term
+	 * @return
+	 */
+	public static boolean termNumberAssignmentFolderCheck(String term) {
+
+		File rootDir = new File(directory);
+		File taschdDirectory = new File(rootDir, "taschd_dir");
+		File termsDirectory = new File(taschdDirectory, terms);
+		File termDirectory = new File(termsDirectory, term);
+		String[] termFolders = termDirectory.list();
+
+		if (termFolders != null) {
+			for (int i = 0; i < termFolders.length; i++) {
+				if (termFolders[i].equalsIgnoreCase(assignments)) {
+					termNumberAssignmentExists = true;
+					break;
+				}
+			}
+		}
+		return termNumberAssignmentExists;
+	}
+
+	/**
+	 * store course in json format for static data
+	 *
+	 * @param c
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean storeCourse(CourseInstance c) throws FileNotFoundException {
+
+		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + ".json";
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			courseExists = taschdCourseFolderCheck();
+			if (courseExists) {
+
+				File rootDir = new File(directory);
+				File taschdDirectory = new File(rootDir, "taschd_dir");
+				File courseDirectory = new File(taschdDirectory, course);
+				String[] coursesFolder = courseDirectory.list();
+
+				if (coursesFolder != null) {
+					for (int i = 0; i < coursesFolder.length; i++) {
+						if (coursesFolder[i].equalsIgnoreCase(fileToStore)) {
+							System.out.println("Course file with name: " + fileToStore + " already exists.");
+							fileExists = true;
+							break;
+						}
+					}
+				}
+				if (!fileExists) {
+					JSONObject value = new JSONObject();
+
+					// putting data into JSONObject value
+					value.put("Prefix", c.getCourse().getPrefix());
+					value.put("Course Code", c.getCourse().getCourseCode());
+					value.put("Course Name", c.getCourse().getCourseName());
+					value.put("Has Lab", c.isHasLab());
+					Skill s = null;
+					Iterator<Skill> iter = c.getCourse().getSkills().getSkills().iterator();
+					JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+
+					while (iter.hasNext()) {
+						s = iter.next();
+						builderSkill.add(s.toString());
+					}
+					JsonArray arr = builderSkill.build();
+					value.put("Skills", arr);
+					File file = new File(courseDirectory, fileToStore);
+					PrintWriter pw = new PrintWriter(file);
+					pw.write(value.toJSONString());
+					pw.flush();
+					pw.close();
+					success = true;
+
+				} else {
+					System.out.println("File with name " + fileToStore + " already exists.");
+				}
+			} else {
+				System.out.println("courses directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		taschdExists = false;
+		courseExists = false;
+		return success;
+	}
+
+	/**
+	 * store dynamic Course data to taschd_dir/terms/[termForCourse]/courses
+	 * path
+	 *
+	 * @param c
+	 * @param termForCourse
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+
+	@SuppressWarnings({ "unchecked" })
+	public boolean storeCourseToDynamic(CourseInstance c, String termForCourse) throws FileNotFoundException {
+
+		String fileToStore = c.getCourse().getPrefix() + c.getCourse().getCourseCode() + ".json";
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCourse);
+				if (termNumberExists) {
+					termNumberCourseExists = termNumberCourseFolderCheck(termForCourse);
+					if (termNumberCourseExists) {
+
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCourse);
+						File termNumberCourseDirectory = new File(termNumberDirectory, course);
+						String[] termNumberCourseFolder = termNumberCourseDirectory.list();
+
+						if (termNumberCourseFolder != null) {
+							for (int i = 0; i < termNumberCourseFolder.length; i++) {
+								if (termNumberCourseFolder[i].equalsIgnoreCase(fileToStore)) {
+									System.out.println("Course file with name: " + fileToStore + " already exists.");
+									fileExists = true;
+									break;
+								}
+							}
+						}
+
+						if (!fileExists) {
+							JSONObject value = new JSONObject();
+
+							// putting data into JSONObject value
+							value.put("Prefix", c.getCourse().getPrefix());
+							value.put("Course Code", c.getCourse().getCourseCode());
+							value.put("Course Name", c.getCourse().getCourseName());
+							value.put("Has Lab", c.isHasLab());
+
+							Skill sk = null;
+							Iterator<Skill> iterSkill = c.getCourse().getSkills().getSkills().iterator();
+							JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+
+							while (iterSkill.hasNext()) {
+								sk = iterSkill.next();
+								builderSkill.add(sk.toString());
+							}
+
+							JsonArray arrSkill = builderSkill.build();
+							value.put("Skills", arrSkill);
+
+							TimeInterval ti = null;
+							Iterator<TimeInterval> iterTime = null;
+							Iterator<Section> iter = c.getSections().iterator();
+							JsonArrayBuilder builder = Json.createArrayBuilder();
+							JsonArrayBuilder builderTime = Json.createArrayBuilder();
+
+							while (iter.hasNext()) {
+								Section s = iter.next();
+								iterTime = s.getSchedule().getSchedule().iterator();
+								while (iterTime.hasNext()) {
+									ti = iterTime.next();
+									builderTime.add(ti.toString());
+								}
+
+								JsonArray arrTime = builderTime.build();
+								builder.add(Json.createObjectBuilder().add("Section Number", (s.getSectionNumber()))
+										.add("Section Type", (s.getSectionType()))
+										.add("Instructor name", (s.getInstructorName()))
+										.add("Location", (s.getLocation()))
+										.add("Current Enrollment", (String.valueOf(s.getCurrentEnrollment())))
+										.add("Enrollment Cap", (String.valueOf(s.getEnrollmentCap())))
+										.add("TA Assigned", (s.isTaAssigned()))
+										.add("Num of TA", (String.valueOf(s.getNumOfTA())))
+										.add("Num of LA", (String.valueOf(s.getNumOfLA()))).add("MTAC", (s.isMtac()))
+										.add("Time Schedule", arrTime));
+							}
+
+							JsonArray arr = builder.build();
+							value.put("Sections", arr);
+							File file = new File(termNumberCourseDirectory, fileToStore);
+							PrintWriter pw = new PrintWriter(file);
+							pw.write(value.toJSONString());
+							pw.flush();
+							pw.close();
+							success = true;
+
+						} else {
+							System.out.println("File with name " + fileToStore + " already exists.");
+						}
+					} else {
+						System.out.println("courses folder does not exist in " + termForCourse + " folder.");
+					}
+				} else {
+					System.out.println(termForCourse + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberCourseExists = false;
+		return success;
+	}
+
+	/**
+	 * store CA in json format for static data
+	 * 
+	 * @param ca
+	 * 
+	 * @return
+	 * 
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings("unchecked")
+	public boolean storeCA(CourseAssistant ca) throws FileNotFoundException {
+
+		String fileToStore = "SID" + ca.getId() + ".json";
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			caPoolExists = taschdCaPoolFolderCheck();
+			if (caPoolExists) {
+				File rootDir = new File(directory);
+				File taschdDirectory = new File(rootDir, "taschd_dir");
+				File caPoolDirectory = new File(taschdDirectory, caPool);
+				String[] caPoolFolder = caPoolDirectory.list();
+				if (caPoolFolder != null) {
+					for (int i = 0; i < caPoolFolder.length; i++) {
+						if (caPoolFolder[i].equalsIgnoreCase(fileToStore)) {
+							System.out.println("CA file with name: " + fileToStore + " already exists.");
+							fileExists = true;
+							break;
+						}
+					}
+				}
+
+				if (!fileExists) {
+					JSONObject value = new JSONObject();
+
+					// putting data into JSONObject value
+					value.put("First Name", ca.getFirstName());
+					value.put("Last Name", ca.getLastName());
+					value.put("ID", ca.getId());
+					value.put("Email", ca.getEmailAddress());
+					value.put("Graduate Student", ca.getGraduateStudent());
+
+					Skill sk = null;
+					Iterator<Skill> iterSkill = ca.getPossessedSkillset().getSkills().iterator();
+					JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+
+					while (iterSkill.hasNext()) {
+						sk = iterSkill.next();
+						builderSkill.add(sk.toString());
+					}
+
+					JsonArray arrSkill = builderSkill.build();
+					value.put("Skills", arrSkill);
+					File file = new File(caPoolDirectory, fileToStore);
+					PrintWriter pw = new PrintWriter(file);
+					pw.write(value.toJSONString());
+					pw.flush();
+					pw.close();
+					success = true;
+
+				} else {
+					System.out.println("File with name " + fileToStore + " already exists.");
+				}
+			} else {
+				System.out.println("ca_pool directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		taschdExists = false;
+		caPoolExists = false;
+		return success;
+	}
+
+	/**
+	 * store dynamic CA data to taschd_dir/terms/[termForCourse]/assistants path
+	 * 
+	 * @param ca
+	 * @param termForCA
+	 * @return
+	 * @throws FileNotFoundException
+	 */
+	@SuppressWarnings({ "unchecked" })
+	public boolean storeCAToDynamic(CourseAssistant ca, String termForCA) throws FileNotFoundException {
+
+		String fileToStore = "SID" + ca.getId() + ".json";
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCA);
+				if (termNumberExists) {
+					termNumberAssistantExists = termNumberAssistantFolderCheck(termForCA);
+					if (termNumberAssistantExists) {
+
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCA);
+						File termNumberAssistantDirectory = new File(termNumberDirectory, assistants);
+						String[] termNumberAssistantFolder = termNumberAssistantDirectory.list();
+
+						if (termNumberAssistantFolder != null) {
+							for (int i = 0; i < termNumberAssistantFolder.length; i++) {
+								if (termNumberAssistantFolder[i].equalsIgnoreCase(fileToStore)) {
+									System.out.println("Assistant file with name: " + fileToStore + " already exists.");
+									fileExists = true;
+									break;
+								}
+							}
+						}
+						if (!fileExists) {
+							JSONObject value = new JSONObject();
+
+							// putting data into JSONObject value
+							value.put("First Name", ca.getFirstName());
+							value.put("Last Name", ca.getLastName());
+							value.put("ID", ca.getId());
+							value.put("Email", ca.getEmailAddress());
+							value.put("Graduate Student", ca.getGraduateStudent());
+							JsonArrayBuilder builderCourseEnrolled = Json.createArrayBuilder();
+							CourseInstance c = null;
+							Iterator<CourseInstance> iterCI = ca.getCourseEnrolled() != null
+									? ca.getCourseEnrolled().iterator() : null;
+							if (iterCI != null) {
+								while (iterCI.hasNext()) {
+									c = iterCI.next();
+									builderCourseEnrolled.add(c.toString());
+								}
+								JsonArray arrCourseEnrolled = builderCourseEnrolled.build();
+								value.put("Course Enrolled", arrCourseEnrolled);
+							} else {
+								value.put("Course Enrolled", null);
+							}
+							Skill sk = null;
+							Iterator<Skill> iterSkill = ca.getPossessedSkillset().getSkills().iterator();
+							JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+							while (iterSkill.hasNext()) {
+								sk = iterSkill.next();
+								builderSkill.add(sk.toString());
+							}
+							JsonArray arrSkill = builderSkill.build();
+							value.put("Skills", arrSkill);
+							TimeInterval ti = null;
+							Iterator<TimeInterval> iterTime = ca.getWtps().getSchedule().iterator();
+							JsonArrayBuilder builderTime = Json.createArrayBuilder();
+							while (iterTime.hasNext()) {
+								ti = iterTime.next();
+								builderTime.add(ti.toString());
+							}
+							JsonArray arrTime = builderTime.build();
+							value.put("Time Schedule", arrTime);
+							File file = new File(termNumberAssistantDirectory, fileToStore);
+							PrintWriter pw = new PrintWriter(file);
+							pw.write(value.toJSONString());
+							pw.flush();
+							pw.close();
+							success = true;
+						} else {
+							System.out.println("File with name " + fileToStore + " already exists.");
+						}
+					} else {
+						System.out.println("Assistants folder does not exist in " + termForCA + " folder.");
+					}
+				} else {
+					System.out.println(termForCA + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberAssistantExists = false;
+		return success;
+	}
+
+	public CourseAssistant getCAById(int caID, String termOfCA) {
+		return null;
+	}
+
+	/**
+	 * gets Course details from CISC675.json
+	 *
+	 * @param code
+	 * @return
+	 */
+	public CourseInstance getCourseByCode(String code, String term) {
+		return null;
+	}
+
+	/**
+	 * gets CA schedule from SID123212.json
+	 * <p>
+	 * json has schedule, grades, skills, email, name, ID, ca history
+	 * </p>
+	 *
+	 * @param caID
+	 * @param termOfCA
+	 * @return
+	 */
+	public WeeklySchedule getCASchdByID(int caID, String termOfCA) {
+		return null;
+	}
+	
+	/**
+	 * gets Course details from CISC675.json
+	 *
+	 * @param code
+	 * @return
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 */
+	
+	@SuppressWarnings("unused")
+	public CourseInstance getCourseByCode(CourseInstance code, String term) throws FileNotFoundException, IOException, ParseException {
+		String getFile = code.getCourse().getPrefix() + code.getCourse().getCourseCode() + ".json";
+		boolean fileExists = false;
+		Course c = null;
+
+		taschdExists = taschdCheck();
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(term);
+				if (termNumberExists) {
+					termNumberCourseExists = termNumberCourseFolderCheck(term);
+					if (termNumberCourseExists) {
+						JSONParser parser = new JSONParser();
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, term);
+						File termNumberCourseDirectory = new File(termNumberDirectory, course);
+						String[] termNumberCourseFolder = termNumberCourseDirectory.list();
+						SkillSet ss = new SkillSet();
+						Skill sk = null;
+						
+						if (termNumberCourseFolder != null) {
+							for (int i = 0; i < termNumberCourseFolder.length; i++ ) {
+								if (termNumberCourseFolder[i].equalsIgnoreCase(getFile)) {
+									fileExists = true;
+									JSONParser jparse = new JSONParser();
+									File fileToRead = new File(rootDir, "CISC675.json"); 
+									 
+									Object ob1 = jparse.parse(new FileReader("")); 
+									JSONObject jsonObj = (JSONObject) ob1;
+									
+									String prefix = (String) jsonObj.get("Prefix");
+									String cCode = (String) jsonObj.get("Course Code"); 
+									String cName = (String)	jsonObj.get("Course Name"); 
+									//boolean hasLab = (boolean) (jsonObj.get("Has Lab").equals("Yes") ? true : false);
+									JSONArray skillData = (JSONArray) jsonObj.get("Skills");
+									
+									for (int j = 0; j < skillData.size(); j++) {
+										sk = new Skill((String) skillData.get(j));
+										ss.addSkill(sk);
+									}
+									
+									c = new Course(prefix, cCode, cName);
+									c.setSkills(ss);
+									
+								}
+								
+							} 	
+						} 
+						else {
+							System.out.println("No such file called " + getFile + "in directory.");
+							}
+						} 
+					else {
+							System.out.println("File with name " + getFile + " already exists.");
+						}
+					} 
+				else {
+						System.out.println("courses folder does not exist in " + term + " folder.");
+					}
+			}
+			else {
+					System.out.println(term + " directory does not exist.");
+				}
+			} 
+		else {
+				System.out.println("terms directory does not exist.");
+			}
+		
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberAssistantExists = false;
+		
+	return null;
+	}
+	
+	/**
+	 * returns all details of CA corresponding to respective term
+	 * 
+	 * @param termForCA
+	 * @return
+	 * @throws ParseException
+	 * @throws IOException
+	 */
+	public CourseAssistantPool getCAPool(String termForCA) throws IOException, ParseException {
+
+		CourseAssistant ca = null;
+		CourseAssistantPool capl = new CourseAssistantPool();
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCA);
+				if (termNumberExists) {
+					termNumberAssistantExists = termNumberAssistantFolderCheck(termForCA);
+					if (termNumberAssistantExists) {
+
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCA);
+						File termNumberAssistantDirectory = new File(termNumberDirectory, assistants);
+						String[] termNumberAssistantFolder = termNumberAssistantDirectory.list();
+						SkillSet ss = new SkillSet();
+						Skill sk = null;
+						Set<CourseInstance> sci = new HashSet<CourseInstance>();
+						Course c = null;
+						String[] cEnroll = null;
+						CourseInstance ce = null;
+
+						if (termNumberAssistantFolder != null) {
+							for (int i = 0; i < termNumberAssistantFolder.length - 1; i++) {
+								JSONParser parser = new JSONParser();
+								File readFile = new File(termNumberAssistantDirectory,
+										termNumberAssistantFolder[i + 1]);
+								Object ob1 = parser.parse(new FileReader(readFile));
+								JSONObject jsonObj = (JSONObject) ob1;
+								String firstName = (String) jsonObj.get("First Name");
+								String lastName = (String) jsonObj.get("Last Name");
+								int id = Integer.parseInt(String.valueOf(jsonObj.get("ID")));
+								JSONArray skillData = (JSONArray) jsonObj.get("Skills");
+								String email = (String) jsonObj.get("Email");
+								boolean grad = (boolean) jsonObj.get("Graduate Student");
+								JSONArray courseEnroll = (JSONArray) jsonObj.get("Course Enrolled");
+								// JSONArray timeSched = (JSONArray)
+								// jsonObj.get("Time Schedule");
+
+								for (int j = 0; j < skillData.size(); j++) {
+									sk = new Skill((String) skillData.get(j));
+									ss.addSkill(sk);
+								}
+
+								// for (int j = 0; j < timeSched.size(); j++) {
+								// String[] tInt =
+								// timeSched.get(j).toString().split(" ");
+								// [Tue, 11:15–12:30]
+								// }
+
+								ca = new CourseAssistant(id);
+								for (int j = 0; j < courseEnroll.size(); j++) {
+									cEnroll = courseEnroll.get(j).toString().split(" ");
+									c = new Course(cEnroll[0], cEnroll[1], cEnroll[2]);
+									ce = new CourseInstance(c, Integer.parseInt(termForCA));
+									sci.add(ce);
+									cEnroll = null;
+									c = null;
+									ce = null;
+								}
+								ca.setFirstName(firstName);
+								ca.setLastName(lastName);
+								ca.setEmailAddress(email);
+								ca.setGraduateStudent(grad);
+								ca.setPossessedSkillset(ss);
+								ca.setCourseEnrolled(sci);
+								capl.addCourseAssistant(ca);
+							}
+						} else {
+							System.out.println("Assistants folder is empty");
+						}
+					} else {
+						System.out.println("Assistants folder does not exist in " + termForCA + " folder.");
+					}
+				} else {
+					System.out.println(termForCA + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		capl.displayCourseAssistants();
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberAssistantExists = false;
+		return capl;
+	}
+
+	/**
+	 * returns all details of all Courses corresponding to respective term
+	 * 
+	 * @param termForCourse
+	 * @return
+	 * @throws ParseException
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	public CourseInstancePool getCourseInstancePool(String termForCourse)
+			throws FileNotFoundException, IOException, ParseException {
+
+		CourseInstance ci = null;
+		Course c = null;
+		CourseInstancePool cipl = new CourseInstancePool();
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termForCourse);
+				if (termNumberExists) {
+					termNumberCourseExists = termNumberCourseFolderCheck(termForCourse);
+					if (termNumberCourseExists) {
+
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termForCourse);
+						File termNumberCourseDirectory = new File(termNumberDirectory, course);
+						String[] termNumberCourseFolder = termNumberCourseDirectory.list();
+						SkillSet ss = new SkillSet();
+						Skill sk = null;
+						Section sec = null;
+
+						if (termNumberCourseFolder != null) {
+							for (int i = 0; i < termNumberCourseFolder.length - 1; i++) {
+								JSONParser parser = new JSONParser();
+								File readFile = new File(termNumberCourseDirectory, termNumberCourseFolder[i + 1]);
+								Object ob1 = parser.parse(new FileReader(readFile));
+								JSONObject jsonObj = (JSONObject) ob1;
+								String prefix = (String) jsonObj.get("Prefix");
+								String courseCode = (String) jsonObj.get("Course Code");
+								String courseName = (String) jsonObj.get("Course Name");
+								JSONArray skillData = (JSONArray) jsonObj.get("Skills");
+								boolean hasLab = (boolean) jsonObj.get("Has Lab");
+								JSONArray sectionData = (JSONArray) jsonObj.get("Sections");
+
+								for (int j = 0; j < skillData.size(); j++) {
+									sk = new Skill((String) skillData.get(j));
+									ss.addSkill(sk);
+								}
+
+								c = new Course(prefix, courseCode, courseName);
+								c.setSkills(ss);
+								ci = new CourseInstance(c, Integer.parseInt(termForCourse));
+								ci.setHasLab(hasLab);
+
+								for (int l = 0; l < sectionData.size(); l++) {
+									JSONObject obj2 = (JSONObject) sectionData.get(l);
+									String secType = (String) obj2.get("Section Type");
+									String secNum = (String) obj2.get("Section Number");
+									String insName = (String) obj2.get("Instructor name");
+									int currEnroll = Integer.parseInt((String) obj2.get("Current Enrollment"));
+									int maxCap = Integer.parseInt((String) obj2.get("Enrollment Cap"));
+									String location = (String) obj2.get("Location");
+									// String sched = (String)
+									// obj2.get("Schedule");
+									boolean mtac = (boolean) obj2.get("MTAC");
+									int numTA = Integer.parseInt((String) obj2.get("Num of TA"));
+									int numLA = Integer.parseInt((String) obj2.get("Num of LA"));
+									boolean taAssign = (boolean) obj2.get("TA Assigned");
+									WeeklySchedule ws = new WeeklySchedule();
+
+									sec = new Section(secType, secNum, insName, currEnroll, maxCap, location, ws);
+									sec.setNumOfTA(numTA);
+									sec.setNumOfLA(numLA);
+									sec.setTaAssigned(taAssign);
+									sec.setMtac(mtac);
+									ci.addSection(sec);
+								}
+								cipl.addCourseInstancetoPool(ci);
+							}
+						} else {
+							System.out.println(course + " folder is empty");
+						}
+					} else {
+						System.out.println("courses folder does not exist in " + termForCourse + " folder.");
+					}
+				} else {
+					System.out.println(termForCourse + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberCourseExists = false;
+
+		for (int i = 0; i < cipl.getSize(); i++) {
+			// System.out.println(CourseAssistantPool(capl));
+		}
+		return cipl;
+	}
+
+	/**
+	 * stores assignment for respective term
+	 * 
+	 * @param assignment
+	 * @param termToStore
+	 * @return
+	 */
+	public boolean storeAssign(HashMap<Section, Iterable<CourseAssistant>> assignment, String termToStore,
+			String fileName) {
+
+		String fileToStore = fileName;
+		boolean fileExists = false;
+		taschdExists = taschdCheck();
+
+		if (taschdExists) {
+			termExists = taschdTermFolderCheck();
+			if (termExists) {
+				termNumberExists = termNumberFolderCheck(termToStore);
+				if (termNumberExists) {
+					termNumberAssignmentExists = termNumberAssignmentFolderCheck(termToStore);
+					if (termNumberAssignmentExists) {
+
+						File rootDir = new File(directory);
+						File taschdDirectory = new File(rootDir, "taschd_dir");
+						File termsDirectory = new File(taschdDirectory, terms);
+						File termNumberDirectory = new File(termsDirectory, termToStore);
+						File termNumberAssignmentDirectory = new File(termNumberDirectory, assignments);
+						String[] termNumberAssignmentFolder = termNumberAssignmentDirectory.list();
+
+						if (termNumberAssignmentFolder != null) {
+							for (int i = 0; i < termNumberAssignmentFolder.length; i++) {
+								if (termNumberAssignmentFolder[i].equalsIgnoreCase(fileToStore)) {
+									System.out
+											.println("Assignment file with name: " + fileToStore + " already exists.");
+									fileExists = true;
+									break;
+								}
+							}
+						}
+						if (!fileExists) {
+							JSONObject value = new JSONObject();
+							JsonArrayBuilder builder = Json.createArrayBuilder();
+							for(Map.Entry<Section, Iterable<CourseAssistant>> sec: assignment.entrySet()) {
+								System.out.println("Section" + " = " + sec.getKey());
+								System.out.println("Assignment" + " = " + sec.getValue());
+								String studFName = sec.getValue().iterator().next().getFirstName();
+								String studLName = sec.getValue().iterator().next().getLastName();
+								int id = sec.getValue().iterator().next().getId();
+//								WeeklySchedule wtps = sec.getValue().iterator().next().getWtps();
+//								System.out.println(wtps);
+								value.put("Section Number", sec.getKey().getSectionNumber()+sec.getKey().getSectionType());
+								value.put("Instructor name", sec.getKey().getInstructorName());
+								value.put("Student Name", sec.getValue().iterator().next().getFirstName()+sec.getValue().iterator().next().getLastName());
+								value.put("Student ID", sec.getValue().iterator().next().getId());
+							}
+							Iterator<Section> iter = c.getSections().iterator();
+							while (iter.hasNext()) {
+								Section s = iter.next();
+								iterTime = s.getSchedule().getSchedule().iterator();
+								while (iterTime.hasNext()) {
+									ti = iterTime.next();
+									builderTime.add(ti.toString());
+								}
+
+								JsonArray arrTime = builderTime.build();
+								builder.add(Json.createObjectBuilder().add("Section Number", (s.getSectionNumber()))
+										.add("Section Type", (s.getSectionType()))
+										.add("Instructor name", (s.getInstructorName()))
+										.add("Location", (s.getLocation()))
+										.add("Current Enrollment", (String.valueOf(s.getCurrentEnrollment())))
+										.add("Enrollment Cap", (String.valueOf(s.getEnrollmentCap())))
+										.add("TA Assigned", (s.isTaAssigned()))
+										.add("Num of TA", (String.valueOf(s.getNumOfTA())))
+										.add("Num of LA", (String.valueOf(s.getNumOfLA()))).add("MTAC", (s.isMtac()))
+										.add("Time Schedule", arrTime));
+							}
+
+							JsonArray arr = builder.build();
+							value.put("Sections", arr);
+							
+							
+
+//							value.put("Last Name", ca.getLastName());
+//							value.put("ID", ca.getId());
+//							value.put("Email", ca.getEmailAddress());
+//							value.put("Graduate Student", ca.getGraduateStudent());
+//							JsonArrayBuilder builderCourseEnrolled = Json.createArrayBuilder();
+//							CourseInstance c = null;
+//							Iterator<CourseInstance> iterCI = ca.getCourseEnrolled() != null
+//									? ca.getCourseEnrolled().iterator() : null;
+//							if (iterCI != null) {
+//								while (iterCI.hasNext()) {
+//									c = iterCI.next();
+//									builderCourseEnrolled.add(c.toString());
+//								}
+//								JsonArray arrCourseEnrolled = builderCourseEnrolled.build();
+//								value.put("Course Enrolled", arrCourseEnrolled);
+//							} else {
+//								value.put("Course Enrolled", null);
+//							}
+//							Skill sk = null;
+//							Iterator<Skill> iterSkill = ca.getPossessedSkillset().getSkills().iterator();
+//							JsonArrayBuilder builderSkill = Json.createArrayBuilder();
+//							while (iterSkill.hasNext()) {
+//								sk = iterSkill.next();
+//								builderSkill.add(sk.toString());
+//							}
+//							JsonArray arrSkill = builderSkill.build();
+//							value.put("Skills", arrSkill);
+//							TimeInterval ti = null;
+//							Iterator<TimeInterval> iterTime = ca.getWtps().getSchedule().iterator();
+//							JsonArrayBuilder builderTime = Json.createArrayBuilder();
+//							while (iterTime.hasNext()) {
+//								ti = iterTime.next();
+//								builderTime.add(ti.toString());
+//							}
+//							JsonArray arrTime = builderTime.build();
+//							value.put("Time Schedule", arrTime);
+//							File file = new File(termNumberAssistantDirectory, fileToStore);
+//							PrintWriter pw = new PrintWriter(file);
+//							pw.write(value.toJSONString());
+//							pw.flush();
+//							pw.close();
+//							success = true;
+
+						} else {
+							System.out.println("File with name " + fileToStore + " already exists.");
+						}
+					} else {
+						System.out.println("Assignments folder does not exist in " + termToStore + " folder.");
+					}
+				} else {
+					System.out.println(termToStore + " directory does not exist.");
+				}
+			} else {
+				System.out.println("terms directory does not exist.");
+			}
+		} else {
+			System.out.println("taschd directory does not exist.");
+		}
+
+		taschdExists = false;
+		termExists = false;
+		termNumberExists = false;
+		termNumberAssignmentExists = false;
+		return success;
+	}
+	
+	public static void main (String[] args){
+		// Create a Course Assistant Pool object
+				CourseAssistant ca1 = new CourseAssistant(3344556);
+				CourseAssistant ca2 = new CourseAssistant(2938405);
+				CourseAssistant ca3 = new CourseAssistant(4445556);
+				CourseAssistant ca4 = new CourseAssistant(1111222);
+				CourseAssistant ca5 = new CourseAssistant(4582948);
+				
+				////////////////// CA 1 //////////////////////////////////////
+				ca1.setFirstName("Barack");
+				ca1.setLastName("Obama");
+				ca1.setEmailAddress("yeswecan@udel.edu");
+				SkillSet skillSet1 = new SkillSet();
+				skillSet1.addSkill(new Skill("SQL"));
+				skillSet1.addSkill(new Skill("Swift"));
+				skillSet1.addSkill(new Skill("Java"));
+				skillSet1.addSkill(new Skill("Bash"));
+				skillSet1.addSkill(new Skill(".NET"));
+				skillSet1.addSkill(new Skill("C+"));
+				ca1.setPossessedSkillset(skillSet1);
+
+				// Create WTPS for CourseAssisstant1
+				Collection<TimeInterval> cti2 = new ArrayList<TimeInterval>();
+				TimeInterval ti1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+				TimeInterval ti2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+				TimeInterval ti3 = new TimeInterval(DayOfWeek.FRIDAY, 11, 0, 75);
+				cti2.add(ti1);
+				cti2.add(ti2);
+				cti2.add(ti3);
+				WeeklySchedule w1 = new WeeklySchedule(cti2);
+				ca1.setWtps(w1);
+				ca1.setGraduateStudent(true);
+				//////////////////   CA 2 //////////////////////////////////////
+				// set First Name, Last Name
+				ca2.setFirstName("Benjamin");
+				ca2.setLastName("Franklin");
+				ca2.setEmailAddress("bfrank@udel.edu");
+				SkillSet skillSet2 = new SkillSet();
+				skillSet2.addSkill(new Skill("OpenCV"));
+				skillSet2.addSkill(new Skill("Python"));
+				skillSet2.addSkill(new Skill("ASP.NET"));
+				ca2.setPossessedSkillset(skillSet2);
+				
+				// Create WTPS for CourseAssisstant2
+				Collection<TimeInterval> cta2 = new ArrayList<TimeInterval>();
+				TimeInterval ta1 = new TimeInterval(DayOfWeek.TUESDAY, 12, 30, 50);
+				TimeInterval ta2 = new TimeInterval(DayOfWeek.MONDAY, 12, 20, 50);
+				TimeInterval ta4 = new TimeInterval(DayOfWeek.WEDNESDAY, 12, 20, 50);
+				TimeInterval ta3 = new TimeInterval(DayOfWeek.FRIDAY, 12, 20, 50);
+				TimeInterval ta5 = new TimeInterval(DayOfWeek.MONDAY, 14, 30, 50);
+				TimeInterval ta6 = new TimeInterval(DayOfWeek.WEDNESDAY, 14, 30, 50);
+				TimeInterval ta7 = new TimeInterval(DayOfWeek.FRIDAY, 14, 30, 50);
+				cta2.add(ta1);
+				cta2.add(ta2);
+				cta2.add(ta3);
+				cta2.add(ta4);
+				cta2.add(ta5);
+				cta2.add(ta6);
+				cta2.add(ta7);
+				WeeklySchedule w2 = new WeeklySchedule(cta2);
+				ca2.setWtps(w2);
+				ca2.setGraduateStudent(true);
+				//////////////////   CA 3 //////////////////////////////////////
+				// set First Name, Last Name
+				ca3.setFirstName("Bill");
+				ca3.setLastName("Clinton");
+				ca3.setEmailAddress("billclinton@udel.edu");
+				SkillSet skillSet3 = new SkillSet();
+				skillSet3.addSkill(new Skill("Java"));
+				skillSet3.addSkill(new Skill("Clojure"));
+				ca3.setPossessedSkillset(skillSet3);
+
+				// Create WTPS for CourseAssisstant3
+				Collection<TimeInterval> ctb2 = new ArrayList<TimeInterval>();
+				TimeInterval tb1 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+				TimeInterval tb2 = new TimeInterval(DayOfWeek.THURSDAY, 15, 30, 75);
+				TimeInterval tb4 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+				TimeInterval tb3 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+				TimeInterval tb5 = new TimeInterval(DayOfWeek.TUESDAY, 17, 0, 75);
+				TimeInterval tb6 = new TimeInterval(DayOfWeek.THURSDAY, 17, 0, 75);
+				ctb2.add(tb1);
+				ctb2.add(tb2);
+				ctb2.add(tb4);
+				ctb2.add(tb3);
+				ctb2.add(tb5);
+				ctb2.add(tb6);
+				WeeklySchedule x2 = new WeeklySchedule(ctb2);
+				ca3.setWtps(x2);
+				ca3.setGraduateStudent(true);
+				//////////////////   CA 4 //////////////////////////////////////
+				// set First Name, Last Name
+				ca4.setFirstName("Denzel");
+				ca4.setLastName("Washington");
+				ca4.setEmailAddress("trainingday@udel.edu");
+				SkillSet skillSet4 = new SkillSet();
+				skillSet4.addSkill(new Skill("Java"));
+				skillSet4.addSkill(new Skill("Alloy"));
+				skillSet4.addSkill(new Skill("Perl"));
+				ca4.setPossessedSkillset(skillSet4);
+
+				// Create WTPS for CourseAssisstant4
+				Collection<TimeInterval> ctc2 = new ArrayList<TimeInterval>();
+				TimeInterval tc1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+				TimeInterval tc2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+				TimeInterval tc4 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+				TimeInterval tc5 = new TimeInterval(DayOfWeek.TUESDAY, 17, 20, 75);
+				TimeInterval tc6 = new TimeInterval(DayOfWeek.THURSDAY, 17, 20, 75);
+				TimeInterval tc7 = new TimeInterval(DayOfWeek.MONDAY, 9, 5, 50);
+				TimeInterval tc8 = new TimeInterval(DayOfWeek.WEDNESDAY, 9, 5, 50);
+				TimeInterval tc9 = new TimeInterval(DayOfWeek.FRIDAY, 9, 5, 50);
+				TimeInterval tc3 = new TimeInterval(DayOfWeek.FRIDAY, 12, 20, 50);
+				ctc2.add(tc1);
+				ctc2.add(tc2);
+				ctc2.add(tc4);
+				ctc2.add(tc5);
+				ctc2.add(tc6);
+				ctc2.add(tc7);
+				ctc2.add(tc8);
+				ctc2.add(tc9);
+				ctc2.add(tc3);
+				WeeklySchedule  v2 = new WeeklySchedule(ctc2);
+				ca4.setWtps(v2);
+				ca4.setGraduateStudent(false);
+				//////////////////   CA 5 //////////////////////////////////////
+				// set First Name, Last Name
+				ca5.setFirstName("Donald");
+				ca5.setLastName("Duck");
+				ca5.setEmailAddress("dduck@udel.edu");
+				SkillSet skillSet5 = new SkillSet();
+				skillSet5.addSkill(new Skill("Java"));
+				skillSet5.addSkill(new Skill("Python"));
+				skillSet5.addSkill(new Skill("PHP"));
+				skillSet5.addSkill(new Skill("Ruby"));
+				skillSet5.addSkill(new Skill("Pel"));
+				skillSet5.addSkill(new Skill("C"));
+				skillSet5.addSkill(new Skill("Fortran"));
+				ca4.setPossessedSkillset(skillSet5);
+
+				// Create WTPS for CourseAssisstant5
+				Collection<TimeInterval> cxc2 = new ArrayList<TimeInterval>();
+				TimeInterval zc1 = new TimeInterval(DayOfWeek.TUESDAY, 14, 0, 75);
+				TimeInterval zc2 = new TimeInterval(DayOfWeek.THURSDAY, 14, 0, 75);
+				TimeInterval zc4 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+				TimeInterval zc7 = new TimeInterval(DayOfWeek.MONDAY, 8, 40, 75);
+				TimeInterval zc9 = new TimeInterval(DayOfWeek.FRIDAY, 8, 40, 75);
+				TimeInterval zc3 = new TimeInterval(DayOfWeek.TUESDAY, 9, 30, 75);
+				TimeInterval zc8 = new TimeInterval(DayOfWeek.FRIDAY, 10, 10, 115);
+				cxc2.add(zc1);
+				cxc2.add(zc2);
+				cxc2.add(zc4);
+				cxc2.add(zc7);
+				cxc2.add(zc9);
+				cxc2.add(zc3);
+				cxc2.add(zc8);
+				WeeklySchedule  z2 = new WeeklySchedule(cxc2);
+				ca5.setWtps(z2);
+				ca5.setGraduateStudent(false);
+				
+				CourseAssistantPool cap = new CourseAssistantPool();
+				cap.addCourseAssistant(ca1);
+				cap.addCourseAssistant(ca2);
+				cap.addCourseAssistant(ca3);
+				cap.addCourseAssistant(ca4);
+				cap.addCourseAssistant(ca5);
+				
+				System.out.println("Course Assistant Pool\n");
+				Iterable<CourseAssistant> i = cap.getCourseAssistantSet();
+				for (CourseAssistant c: i) {
+					c.display();
+					//System.out.println(c.getWtps().toString());
+					//System.out.println(c.toString());
+				}
+				
+				
+				////////////////// CI 1 //////////////////////////////////////
+				ArrayList<CourseInstance> pool1 = new ArrayList<>();
+				// Create WTPS for CourseAssisstant5
+				Collection<TimeInterval> emw1 = new ArrayList<TimeInterval>();
+				TimeInterval er2 = new TimeInterval(DayOfWeek.TUESDAY, 15, 30, 75);
+				TimeInterval er3 = new TimeInterval(DayOfWeek.THURSDAY, 15, 30, 75);
+				emw1.add(er2);
+				emw1.add(er3);
+				pool1.add(new CourseInstance(new Course("CISC", "210", "Introduction to Systems Programming"), 2191));
+				Section s = new Section("Lec", "010", "Silber", 40, 40, "GOR208", new WeeklySchedule(emw1));		
+				s.setMtac(true);
+				s.setNumOfLA(0);
+				s.setNumOfTA(1);
+				s.setTaAssigned(false);
+				pool1.get(0).addSection(s);
+				
+				Collection<TimeInterval> emw2 = new ArrayList<TimeInterval>();
+				TimeInterval er4 = new TimeInterval(DayOfWeek.WEDNESDAY, 13, 25, 50);
+				emw2.add(er4);
+				Section s2 = new Section("L", "020", "Silber", 20, 20, "PRS101", new WeeklySchedule(emw2));
+				s2.setMtac(true);
+				s2.setNumOfLA(0);
+				s2.setNumOfTA(1);
+				s2.setTaAssigned(false);
+				s.setCorrespondingLab(s2);
+				s2.setCorrespondingLecture(s);
+				pool1.get(0).addSection(s2);
+				
+				Collection<TimeInterval> emw3 = new ArrayList<TimeInterval>();
+				TimeInterval er6 = new TimeInterval(DayOfWeek.WEDNESDAY, 14, 30, 50);
+				emw3.add(er6);
+				Section s3 = new Section("L", "021", "Silber", 20, 20, "PRS101", new WeeklySchedule(emw3));
+				s3.setMtac(true);
+				s3.setNumOfLA(0);
+				s3.setNumOfTA(1);
+				s3.setCorrespondingLecture(s);
+				s3.setTaAssigned(false);
+				pool1.get(0).addSection(s3);
+				pool1.get(0).getCourse().getSkills().addSkill(new Skill("C"));
+				pool1.get(0).getCourse().getSkills().addSkill(new Skill("C++"));
+				pool1.get(0).setHasLab(true);
+				
+				//////////////////CI 2 //////////////////////////////////////
+				pool1.add(new CourseInstance(new Course("CISC", "275", "Introduction to Software Engineering"), 2191));
+				Collection<TimeInterval> ss1 = new ArrayList<TimeInterval>();
+				TimeInterval e2 = new TimeInterval(DayOfWeek.TUESDAY, 9, 30, 75);
+				TimeInterval e3 = new TimeInterval(DayOfWeek.THURSDAY, 9, 30, 75);
+				TimeInterval e4 = new TimeInterval(DayOfWeek.WEDNESDAY, 17, 0, 120);
+				ss1.add(e2);
+				ss1.add(e3);
+				ss1.add(e4);
+				
+				Section p = new Section("Lec", "010", "Harvey", 33, 40, "GOR117", new WeeklySchedule(ss1));		
+				p.setMtac(true);
+				p.setNumOfLA(0);
+				p.setNumOfTA(1);
+				p.setMtac(true);
+				p.setTaAssigned(false);
+				
+				pool1.get(1).addSection(p);
+				pool1.get(1).setHasLab(true);
+				pool1.get(1).getCourse().getSkills().addSkill(new Skill("Any"));
+				
+				Collection<TimeInterval> tm = new ArrayList<TimeInterval>();
+				TimeInterval cc = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+				TimeInterval vv = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+				TimeInterval bb = new TimeInterval(DayOfWeek.WEDNESDAY, 17, 0, 120);
+				tm.add(cc);
+				tm.add(vv);
+				tm.add(bb);
+				Section p2 = new Section("Lec", "011", "Harvey", 38, 40, "GOR117", new WeeklySchedule(tm));
+				p2.setMtac(true);
+				p2.setNumOfLA(0);
+				p2.setNumOfTA(1);
+				p2.setTaAssigned(false);
+				pool1.get(1).addSection(p2);
+						
+				
+				//////////////////CI 3 //////////////////////////////////////
+				pool1.add(new CourseInstance(new Course("CISC", "303", "Automata Theory"), 2191));
+				Collection<TimeInterval> tt = new ArrayList<TimeInterval>();
+				TimeInterval ii = new TimeInterval(DayOfWeek.MONDAY, 10, 10, 50);
+				TimeInterval oo = new TimeInterval(DayOfWeek.WEDNESDAY, 10, 10, 50);
+				TimeInterval pp = new TimeInterval(DayOfWeek.FRIDAY, 10, 10, 50);
+				tt.add(ii);
+				tt.add(oo);
+				tt.add(pp);
+				Section d = new Section("Lec", "010", "Carberry", 43, 45, "ALS318", new WeeklySchedule(tt));		
+				d.setMtac(true);
+				d.setNumOfLA(0);
+				d.setNumOfTA(1);
+				d.setMtac(true);
+				d.setTaAssigned(false);
+				
+				pool1.get(2).addSection(d);
+				pool1.get(2).setHasLab(false);
+				pool1.get(2).getCourse().getSkills().addSkill(new Skill("601"));
+				
+				//////////////////CI 4 //////////////////////////////////////
+				pool1.add(new CourseInstance(new Course("CISC", "304", "Logic and Programming"), 2191));
+				Collection<TimeInterval> hh = new ArrayList<TimeInterval>();
+				TimeInterval qw = new TimeInterval(DayOfWeek.TUESDAY, 11, 0, 75);
+				TimeInterval wq = new TimeInterval(DayOfWeek.THURSDAY, 11, 0, 75);
+				hh.add(qw);
+				hh.add(wq);
+				Section q = new Section("Lec", "010", "Carberry", 35, 35, "SHL120", new WeeklySchedule(hh));		
+				q.setNumOfLA(0);
+				q.setNumOfTA(1);
+				q.setMtac(false);
+				q.setTaAssigned(false);
+				
+				pool1.get(3).addSection(q);
+				pool1.get(3).setHasLab(false);
+				pool1.get(3).getCourse().getSkills().addSkill(new Skill("604"));
+				
+				//////////////////CI 5 //////////////////////////////////////
+				pool1.add(new CourseInstance(new Course("CISC", "320", "Introduction to Algorithms"), 2191));
+				Collection<TimeInterval> gg = new ArrayList<TimeInterval>();
+				TimeInterval gh = new TimeInterval(DayOfWeek.TUESDAY, 12, 30, 75);
+				TimeInterval hg = new TimeInterval(DayOfWeek.THURSDAY, 12, 30, 75);
+				gg.add(gh);
+				gg.add(hg);
+				Section h = new Section("Lec", "010", "Bart", 43, 45, "GOR208", new WeeklySchedule(gg));		
+				h.setMtac(true);
+				h.setNumOfLA(0);
+				h.setNumOfTA(1);
+				h.setTaAssigned(false);
+				
+				pool1.get(4).addSection(q);
+				pool1.get(4).setHasLab(false);
+				pool1.get(4).getCourse().getSkills().addSkill(new Skill("621"));
+				
+				//////////////////CI 6 //////////////////////////////////////
+				pool1.add(new CourseInstance(new Course("CISC", "437", "Database Systems"), 2191));
+				Collection<TimeInterval> asd = new ArrayList<TimeInterval>();
+				TimeInterval sd = new TimeInterval(DayOfWeek.TUESDAY, 16, 0, 75);
+				TimeInterval ds = new TimeInterval(DayOfWeek.THURSDAY, 16, 0, 75);
+				asd.add(sd);
+				asd.add(ds);
+				Section aa = new Section("Lec", "010", "Gibbons", 35, 35, "GOR102", new WeeklySchedule(asd));		
+				aa.setMtac(true);
+				aa.setNumOfLA(0);
+				aa.setNumOfTA(1);
+				aa.setTaAssigned(false);
+				
+				pool1.get(5).addSection(aa);
+				pool1.get(5).setHasLab(false);
+				pool1.get(5).getCourse().getSkills().addSkill(new Skill("637"));
+				pool1.get(5).getCourse().getSkills().addSkill(new Skill("SQL"));
+				
+				CourseInstancePool cip = new CourseInstancePool(pool1);
+				Iterable<CourseInstance> i2 = cip.getCourseInstanceSet();
+				
+				GenerateAssignment gen = new GenerateAssignment(cap, cip);
+				
+				HashMap<Section, Iterable<CourseAssistant>> assignment = gen.assign();
+				
+				for(Section sec: assignment.keySet()) {
+					System.out.println(sec + " = " + assignment.get(sec));
+					
+				
+				}
+				Database db = new Database();
+				db.storeAssign(assignment, "2188", "test");
+	}
+
+}

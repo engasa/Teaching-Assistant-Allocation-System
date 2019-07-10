@@ -1,0 +1,594 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Hungarian.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">taschd jacoco report</a> &gt; <a href="index.source.html" class="el_package">edu.udel.cis.taschd.gen</a> &gt; <span class="el_source">Hungarian.java</span></div><h1>Hungarian.java</h1><pre class="source lang-java linenums">package edu.udel.cis.taschd.gen;
+
+import java.util.Arrays;
+
+
+/**
+ * &lt;p&gt;
+ *  Solve an n-by-n assignment problem.
+ *  Given a n-by-n cost matrix, find the lowest cost of biparties assginment. 
+ *  e.g
+ *  n this simple example there are three workers: Armond, Francine, and Herbert.
+ *  One of them has to clean the bathroom, another sweep the floors and the third washes the windows,
+ *  but they each demand different pay for the various tasks.
+ *  The problem is to find the lowest-cost way to assign the jobs. 
+ *  The problem can be represented in a matrix of the costs of the workers doing the jobs. For example:
+
+ *         Clean bathroom	Sweep floors	Wash windows
+ *  Armond	    $2	            $3	             $3
+ *  Francine	$3	            $2	             $3
+ *  erbert	    $3	            $3	             $2
+ *  The Hungarian method, when applied to the above table, would give the minimum cost: this is $6,
+ *  achieved by having Armond clean the bathroom, Francine sweep the floors, and Herbert wash the windows.
+ *   
+ * &lt;/p&gt;
+ * 
+ * 
+ * @author https://www.sanfoundry.com/java-program-implement-hungarian-algorithm-bipartite-matching/
+ * 
+ * @author Yi Liu
+ */
+public class Hungarian
+
+{
+
+    private final double[][] costMatrix;
+
+    private final int        rows, cols, dim;
+
+    private final double[]   labelByWorker, labelByJob;
+
+    private final int[]      minSlackWorkerByJob;
+
+    private final double[]   minSlackValueByJob;
+
+    private final int[]      matchJobByWorker, matchWorkerByJob;
+
+    private final int[]      parentWorkerByCommittedJob;
+
+    private final boolean[]  committedWorkers;
+
+ 
+    
+    /**
+     * Constructs a new {@link Hungarian} with given {@link double[][] costMatrix}
+     *
+     * @param costMatrix 
+     *                   a N by N matrix
+     *                         
+     */
+<span class="fc" id="L60">    public Hungarian(double[][] costMatrix)</span>
+
+    {
+
+<span class="fc" id="L64">        this.dim = Math.max(costMatrix.length, costMatrix[0].length);</span>
+
+<span class="fc" id="L66">        this.rows = costMatrix.length;</span>
+
+<span class="fc" id="L68">        this.cols = costMatrix[0].length;</span>
+
+<span class="fc" id="L70">        this.costMatrix = new double[this.dim][this.dim];</span>
+
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        for (int w = 0; w &lt; this.dim; w++)</span>
+
+        {
+
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">            if (w &lt; costMatrix.length)</span>
+
+            {
+
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">                if (costMatrix[w].length != this.cols)</span>
+
+                {
+
+<span class="nc" id="L84">                    throw new IllegalArgumentException(&quot;Irregular cost matrix&quot;);</span>
+
+                }
+
+<span class="fc" id="L88">                this.costMatrix[w] = Arrays.copyOf(costMatrix[w], this.dim);</span>
+
+<span class="fc" id="L90">            }</span>
+
+            else
+
+            {
+
+<span class="nc" id="L96">                this.costMatrix[w] = new double[this.dim];</span>
+
+            }
+
+        }
+
+<span class="fc" id="L102">        labelByWorker = new double[this.dim];</span>
+
+<span class="fc" id="L104">        labelByJob = new double[this.dim];</span>
+
+<span class="fc" id="L106">        minSlackWorkerByJob = new int[this.dim];</span>
+
+<span class="fc" id="L108">        minSlackValueByJob = new double[this.dim];</span>
+
+<span class="fc" id="L110">        committedWorkers = new boolean[this.dim];</span>
+
+<span class="fc" id="L112">        parentWorkerByCommittedJob = new int[this.dim];</span>
+
+<span class="fc" id="L114">        matchJobByWorker = new int[this.dim];</span>
+
+<span class="fc" id="L116">        Arrays.fill(matchJobByWorker, -1);</span>
+
+<span class="fc" id="L118">        matchWorkerByJob = new int[this.dim];</span>
+
+<span class="fc" id="L120">        Arrays.fill(matchWorkerByJob, -1);</span>
+
+<span class="fc" id="L122">    }</span>
+    
+    /**
+     * 
+     * Create a greedy matching from workers to jobs of the cost matrix.
+     * This method will 
+     * @return an array of assignment.                        
+     */
+    public int[] execute()
+
+    {
+
+        /*
+
+         * Heuristics to improve performance: Reduce rows and columns by their
+
+         * smallest element, compute an initial non-zero dual feasible solution
+
+         * and
+
+         * create a greedy matching from workers to jobs of the cost matrix.
+
+         */
+<span class="fc" id="L145">        reduce();</span>
+
+<span class="fc" id="L147">        computeInitialFeasibleSolution();</span>
+
+<span class="fc" id="L149">        greedyMatch();</span>
+
+<span class="fc" id="L151">        int w = fetchUnmatchedWorker();</span>
+
+<span class="fc bfc" id="L153" title="All 2 branches covered.">        while (w &lt; dim)</span>
+
+        {
+
+<span class="fc" id="L157">            initializePhase(w);</span>
+
+<span class="fc" id="L159">            executePhase();</span>
+
+<span class="fc" id="L161">            w = fetchUnmatchedWorker();</span>
+
+        }
+
+<span class="fc" id="L165">        int[] result = Arrays.copyOf(matchJobByWorker, rows);</span>
+
+<span class="fc bfc" id="L167" title="All 2 branches covered.">        for (w = 0; w &lt; result.length; w++)</span>
+
+        {
+
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">            if (result[w] &gt;= cols)</span>
+
+            {
+
+<span class="nc" id="L175">                result[w] = -1;</span>
+
+            }
+
+        }
+
+<span class="fc" id="L181">        return result;</span>
+
+    }
+
+    /**
+     * 
+     * This method compute initial feasible solution.                        
+     */
+    protected void computeInitialFeasibleSolution()
+
+    {
+
+<span class="fc bfc" id="L193" title="All 2 branches covered.">        for (int j = 0; j &lt; dim; j++)</span>
+
+        {
+
+<span class="fc" id="L197">            labelByJob[j] = Double.POSITIVE_INFINITY;</span>
+
+        }
+
+<span class="fc bfc" id="L201" title="All 2 branches covered.">        for (int w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc bfc" id="L205" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc bfc" id="L209" title="All 2 branches covered.">                if (costMatrix[w][j] &lt; labelByJob[j])</span>
+
+                {
+
+<span class="fc" id="L213">                    labelByJob[j] = costMatrix[w][j];</span>
+
+                }
+
+            }
+
+        }
+
+<span class="fc" id="L221">    }</span>
+
+    
+ 
+
+ 
+    /**
+     * 
+     * Execute phase                      
+     */
+    protected void executePhase()
+
+    {
+
+<span class="fc" id="L235">        while (true)</span>
+
+        {
+
+<span class="fc" id="L239">            int minSlackWorker = -1, minSlackJob = -1;</span>
+
+<span class="fc" id="L241">            double minSlackValue = Double.POSITIVE_INFINITY;</span>
+
+<span class="fc bfc" id="L243" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc bfc" id="L247" title="All 2 branches covered.">                if (parentWorkerByCommittedJob[j] == -1)</span>
+
+                {
+
+<span class="fc bfc" id="L251" title="All 2 branches covered.">                    if (minSlackValueByJob[j] &lt; minSlackValue)</span>
+
+                    {
+
+<span class="fc" id="L255">                        minSlackValue = minSlackValueByJob[j];</span>
+
+<span class="fc" id="L257">                        minSlackWorker = minSlackWorkerByJob[j];</span>
+
+<span class="fc" id="L259">                        minSlackJob = j;</span>
+
+                    }
+
+                }
+
+            }
+
+<span class="fc bfc" id="L267" title="All 2 branches covered.">            if (minSlackValue &gt; 0)</span>
+
+            {
+
+<span class="fc" id="L271">                updateLabeling(minSlackValue);</span>
+
+            }
+
+<span class="fc" id="L275">            parentWorkerByCommittedJob[minSlackJob] = minSlackWorker;</span>
+
+<span class="fc bfc" id="L277" title="All 2 branches covered.">            if (matchWorkerByJob[minSlackJob] == -1)</span>
+
+            {
+
+                /*
+
+                 * An augmenting path has been found.
+
+                 */
+
+<span class="fc" id="L287">                int committedJob = minSlackJob;</span>
+
+<span class="fc" id="L289">                int parentWorker = parentWorkerByCommittedJob[committedJob];</span>
+
+<span class="nc" id="L291">                while (true)</span>
+
+                {
+
+<span class="fc" id="L295">                    int temp = matchJobByWorker[parentWorker];</span>
+
+<span class="fc" id="L297">                    match(parentWorker, committedJob);</span>
+
+<span class="fc" id="L299">                    committedJob = temp;</span>
+
+<span class="pc bpc" id="L301" title="1 of 2 branches missed.">                    if (committedJob == -1)</span>
+
+                    {
+
+<span class="fc" id="L305">                        break;</span>
+
+                    }
+
+<span class="nc" id="L309">                    parentWorker = parentWorkerByCommittedJob[committedJob];</span>
+
+                }
+
+<span class="fc" id="L313">                return;</span>
+
+            }
+
+            else
+
+            {
+
+                /*
+
+                 * Update slack values since we increased the size of the
+
+                 * committed
+
+                 * workers set.
+
+                 */
+
+<span class="fc" id="L331">                int worker = matchWorkerByJob[minSlackJob];</span>
+
+<span class="fc" id="L333">                committedWorkers[worker] = true;</span>
+
+<span class="fc bfc" id="L335" title="All 2 branches covered.">                for (int j = 0; j &lt; dim; j++)</span>
+
+                {
+
+<span class="fc bfc" id="L339" title="All 2 branches covered.">                    if (parentWorkerByCommittedJob[j] == -1)</span>
+
+                    {
+
+<span class="fc" id="L343">                        double slack = costMatrix[worker][j]</span>
+
+<span class="fc" id="L345">                                - labelByWorker[worker] - labelByJob[j];</span>
+
+<span class="fc bfc" id="L347" title="All 2 branches covered.">                        if (minSlackValueByJob[j] &gt; slack)</span>
+
+                        {
+
+<span class="fc" id="L351">                            minSlackValueByJob[j] = slack;</span>
+
+<span class="fc" id="L353">                            minSlackWorkerByJob[j] = worker;</span>
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+ 
+
+    protected int fetchUnmatchedWorker()
+
+    {
+
+        int w;
+
+<span class="fc bfc" id="L375" title="All 2 branches covered.">        for (w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc bfc" id="L379" title="All 2 branches covered.">            if (matchJobByWorker[w] == -1)</span>
+
+            {
+
+<span class="fc" id="L383">                break;</span>
+
+            }
+
+        }
+
+<span class="fc" id="L389">        return w;</span>
+
+    }
+
+ 
+    /**
+     * Find the match with lowest cost.                   
+     */
+    protected void greedyMatch()
+
+    {
+
+<span class="fc bfc" id="L401" title="All 2 branches covered.">        for (int w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc bfc" id="L405" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc bfc" id="L409" title="All 2 branches covered.">                if (matchJobByWorker[w] == -1</span>
+
+<span class="fc bfc" id="L411" title="All 2 branches covered.">                        &amp;&amp; matchWorkerByJob[j] == -1</span>
+
+<span class="fc bfc" id="L413" title="All 2 branches covered.">                        &amp;&amp; costMatrix[w][j] - labelByWorker[w] - labelByJob[j] == 0)</span>
+
+                {
+
+<span class="fc" id="L417">                    match(w, j);</span>
+
+                }
+
+            }
+
+        }
+
+<span class="fc" id="L425">    }</span>
+
+ 
+    /**
+     * Initialize Phase,      
+     * lowest element subtracted from each element in that row         
+     */
+    protected void initializePhase(int w)
+
+    {
+
+<span class="fc" id="L436">        Arrays.fill(committedWorkers, false);</span>
+
+<span class="fc" id="L438">        Arrays.fill(parentWorkerByCommittedJob, -1);</span>
+
+<span class="fc" id="L440">        committedWorkers[w] = true;</span>
+
+<span class="fc bfc" id="L442" title="All 2 branches covered.">        for (int j = 0; j &lt; dim; j++)</span>
+
+        {
+
+<span class="fc" id="L446">            minSlackValueByJob[j] = costMatrix[w][j] - labelByWorker[w]</span>
+
+<span class="fc" id="L448">                    - labelByJob[j];</span>
+
+<span class="fc" id="L450">            minSlackWorkerByJob[j] = w;</span>
+
+        }
+
+<span class="fc" id="L454">    }</span>
+
+
+    protected void match(int w, int j)
+
+    {
+
+<span class="fc" id="L461">        matchJobByWorker[w] = j;</span>
+
+<span class="fc" id="L463">        matchWorkerByJob[j] = w;</span>
+
+<span class="fc" id="L465">    }</span>
+
+ 
+
+    protected void reduce()
+
+    {
+
+<span class="fc bfc" id="L473" title="All 2 branches covered.">        for (int w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc" id="L477">            double min = Double.POSITIVE_INFINITY;</span>
+
+<span class="fc bfc" id="L479" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc bfc" id="L483" title="All 2 branches covered.">                if (costMatrix[w][j] &lt; min)</span>
+
+                {
+
+<span class="fc" id="L487">                    min = costMatrix[w][j];</span>
+
+                }
+
+            }
+
+<span class="fc bfc" id="L493" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc" id="L497">                costMatrix[w][j] -= min;</span>
+
+            }
+
+        }
+
+<span class="fc" id="L503">        double[] min = new double[dim];</span>
+
+<span class="fc bfc" id="L505" title="All 2 branches covered.">        for (int j = 0; j &lt; dim; j++)</span>
+
+        {
+
+<span class="fc" id="L509">            min[j] = Double.POSITIVE_INFINITY;</span>
+
+        }
+
+<span class="fc bfc" id="L513" title="All 2 branches covered.">        for (int w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc bfc" id="L517" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc bfc" id="L521" title="All 2 branches covered.">                if (costMatrix[w][j] &lt; min[j])</span>
+
+                {
+
+<span class="fc" id="L525">                    min[j] = costMatrix[w][j];</span>
+
+                }
+
+            }
+
+        }
+
+<span class="fc bfc" id="L533" title="All 2 branches covered.">        for (int w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc bfc" id="L537" title="All 2 branches covered.">            for (int j = 0; j &lt; dim; j++)</span>
+
+            {
+
+<span class="fc" id="L541">                costMatrix[w][j] -= min[j];</span>
+
+            }
+
+        }
+
+<span class="fc" id="L547">    }</span>
+
+ 
+
+    protected void updateLabeling(double slack)
+
+    {
+
+<span class="fc bfc" id="L555" title="All 2 branches covered.">        for (int w = 0; w &lt; dim; w++)</span>
+
+        {
+
+<span class="fc bfc" id="L559" title="All 2 branches covered.">            if (committedWorkers[w])</span>
+
+            {
+
+<span class="fc" id="L563">                labelByWorker[w] += slack;</span>
+
+            }
+
+        }
+
+<span class="fc bfc" id="L569" title="All 2 branches covered.">        for (int j = 0; j &lt; dim; j++)</span>
+
+        {
+
+<span class="fc bfc" id="L573" title="All 2 branches covered.">            if (parentWorkerByCommittedJob[j] != -1)</span>
+
+            {
+
+<span class="fc" id="L577">                labelByJob[j] -= slack;</span>
+
+<span class="fc" id="L579">            }</span>
+
+            else
+
+            {
+
+<span class="fc" id="L585">                minSlackValueByJob[j] -= slack;</span>
+
+            }
+
+        }
+
+<span class="fc" id="L591">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>
